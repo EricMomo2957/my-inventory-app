@@ -77,3 +77,40 @@ th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 .restock-btn:hover {
     background-color: #218838;
 }
+
+/* Color Variables */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --card-bg: #f8f9fa;
+    --table-border: #dee2e6;
+    --header-bg: #f1f1f1;
+}
+
+/* Dark Mode Colors */
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --card-bg: #2d2d2d;
+    --table-border: #444444;
+    --header-bg: #333333;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Update your existing components to use these variables */
+.dashboard-card, .modal-content {
+    background-color: var(--card-bg);
+}
+
+table th {
+    background-color: var(--header-bg);
+}
+
+table, th, td {
+    border-color: var(--table-border);
+}

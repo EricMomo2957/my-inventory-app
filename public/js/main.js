@@ -212,5 +212,27 @@ function closeModal() {
 
 window.onclick = (e) => { if (e.target == modal) closeModal(); };
 
+/**
+ * Dark Mode Toggle Logic
+ */
+function toggleDarkMode() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    const btn = document.getElementById('themeToggle');
+
+    document.documentElement.setAttribute('data-theme', targetTheme);
+    localStorage.setItem('theme', targetTheme);
+    
+    btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
+// Check for saved user preference on page load
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.innerText = savedTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
 // Initial load
 loadInventory();
