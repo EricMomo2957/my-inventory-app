@@ -2,24 +2,39 @@ const tableBody = document.getElementById('inventoryTable');
 const productForm = document.getElementById('productForm');
 const modal = document.getElementById('editModal');
 
+// State variable for the Low Stock filter
+let showLowStockOnly = false;
+
 /**
  * 1. Fetch products and calculate dashboard stats
  */
 async function loadInventory(searchTerm = '') {
     try {
-        // We encode the search term to handle spaces or special characters safely
+        // We encode the search term to handle spaces safely
         const res = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
-        const products = await res.json();
+        let products = await res.json();
         
+        // --- DASHBOARD CALCULATION LOGIC ---
+        // We calculate stats based on ALL products returned from search 
+        // before we filter the list for the "Low Stock Only" view.
         let totalItems = 0;
         let totalValue = 0;
         let lowStockCount = 0;
 
-        tableBody.innerHTML = products.map(p => {
+        products.forEach(p => {
             totalItems += Number(p.quantity);
             totalValue += Number(p.quantity) * Number(p.price);
             if (p.quantity < 5) lowStockCount++;
+        });
 
+        // --- FILTER LOGIC ---
+        // If the admin toggled "Show Low Stock Only", we filter the list here
+        if (showLowStockOnly) {
+            products = products.filter(p => p.quantity < 5);
+        }
+
+        // --- RENDER TABLE ---
+        tableBody.innerHTML = products.map(p => {
             const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
 
             return `
@@ -33,6 +48,9 @@ async function loadInventory(searchTerm = '') {
                     <td>${p.quantity}</td>
                     <td>$${Number(p.price).toFixed(2)}</td>
                     <td>
+                        <button class="restock-btn" onclick="restockProduct(${p.id}, ${p.quantity})">
+                            Restock (+10)
+                        </button>
                         <button class="edit-btn" 
                             onclick="openEditModal(${p.id}, '${p.name}', ${p.quantity}, ${p.price}, '${p.category}')">
                             Edit
@@ -43,12 +61,14 @@ async function loadInventory(searchTerm = '') {
             `;
         }).join('');
 
+        // --- UPDATE DASHBOARD UI ---
         document.getElementById('totalItems').innerText = totalItems;
         document.getElementById('totalValue').innerText = `$${totalValue.toFixed(2)}`;
 
         const lowStockElement = document.getElementById('lowStockCount');
         lowStockElement.innerText = lowStockCount;
 
+        // Dynamic Styling for Dashboard Alert
         if (lowStockCount > 0) {
             lowStockElement.classList.add('danger-text');
         } else {
@@ -61,11 +81,10 @@ async function loadInventory(searchTerm = '') {
 }
 
 /**
- * 2. Admin Search Logic
+ * 2. Admin Search & Filter Logic
  */
 function filterInventory() {
     const query = document.getElementById('searchInput').value;
-    console.log("Button clicked! Searching for:", query); // Debugging line
     loadInventory(query);
 }
 
@@ -74,13 +93,30 @@ function clearSearch() {
     loadInventory();
 }
 
-// Add the listener only after checking if the element exists
+/**
+ * Toggle Low Stock Filter
+ */
+function toggleLowStock() {
+    showLowStockOnly = !showLowStockOnly;
+    const btn = document.getElementById('lowStockToggle');
+    
+    if (showLowStockOnly) {
+        btn.innerText = "Show All Items";
+        btn.classList.add('active-filter'); // You can style this in CSS
+    } else {
+        btn.innerText = "Show Low Stock Only";
+        btn.classList.remove('active-filter');
+    }
+    
+    // Refresh with current search term
+    filterInventory();
+}
+
+// "Enter" key listener
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
-    searchInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            filterInventory();
-        }
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') filterInventory();
     });
 }
 
@@ -107,7 +143,7 @@ productForm.addEventListener('submit', async (e) => {
 });
 
 /**
- * 4. Modal Logic (Edit)
+ * 4. Modal & Edit Logic
  */
 function openEditModal(id, name, qty, price, category) {
     document.getElementById('editId').value = id;
@@ -146,6 +182,27 @@ async function deleteProduct(id) {
     if(confirm('Delete this item?')) {
         await fetch(`/api/products/${id}`, { method: 'DELETE' });
         loadInventory();
+    }
+}
+
+/**
+ * 6. Quick Restock Feature
+ */
+async function restockProduct(id, currentQty) {
+    const newQty = Number(currentQty) + 10;
+    
+    try {
+        const response = await fetch(`/api/products/restock/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: newQty })
+        });
+
+        if (response.ok) {
+            loadInventory();
+        }
+    } catch (err) {
+        console.error("Restock failed:", err);
     }
 }
 

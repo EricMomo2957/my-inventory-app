@@ -61,3 +61,19 @@ th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     border-radius: 5px;
     cursor: pointer;
 }
+
+.restock-btn {
+    background-color: #28a745; /* Success Green */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 0.85rem;
+    transition: background 0.3s;
+}
+
+.restock-btn:hover {
+    background-color: #218838;
+}

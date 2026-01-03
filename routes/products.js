@@ -69,5 +69,22 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ error: "Failed to delete product" });
     }
 });
+/**
+ * 5. PATCH (Quick Restock)
+ * Only updates the quantity field
+ */
+router.patch('/restock/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { quantity } = req.body;
+        const sql = 'UPDATE products SET quantity = ? WHERE id = ?';
+        
+        await db.query(sql, [quantity, id]);
+        res.send('Restocked successfully');
+    } catch (err) {
+        console.error("Restock Route Error:", err);
+        res.status(500).json({ error: "Restock failed" });
+    }
+});
 
 module.exports = router;
