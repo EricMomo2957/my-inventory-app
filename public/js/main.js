@@ -47,6 +47,9 @@ async function loadInventory(searchTerm = '') {
                     </td>
                     <td>${p.quantity}</td>
                     <td>$${Number(p.price).toFixed(2)}</td>
+                    <td style="font-size: 0.8rem; color: #888;">
+                        ${new Date(p.updated_at).toLocaleString()}
+                    </td>
                     <td>
                         <button class="restock-btn" onclick="restockProduct(${p.id}, ${p.quantity})">
                             Restock (+10)

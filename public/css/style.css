@@ -114,3 +114,8 @@ table th {
 table, th, td {
     border-color: var(--table-border);
 }
+
+td:nth-child(5) {
+    font-family: monospace;
+    white-space: nowrap;
+}
