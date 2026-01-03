@@ -2,3 +2,62 @@ body { font-family: sans-serif; padding: 20px; }
 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 .low-stock { background-color: #ffcccc; color: #cc0000; font-weight: bold; }
+
+.danger-text {
+    color: #dc3545; /* Professional Red */
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+/* General Badge Styling */
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+    text-transform: capitalize;
+}
+
+/* Category Specific Colors */
+.badge-vegetables { background-color: #28a745; } /* Green */
+.badge-fruits { background-color: #fd7e14; }     /* Orange */
+.badge-supplies { background-color: #007bff; }   /* Blue */
+.badge-canned-goods { background-color: #6c757d; } /* Gray */
+.badge-general { background-color: #adb5bd; }   /* Light Gray */
+
+.search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#searchInput {
+    flex: 1; /* Makes the input take up available space */
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.search-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color: #0056b3;
+}
+
+.clear-btn {
+    padding: 10px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

@@ -1,40 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
-    <title>Inventory Manager</title>
+    <title>Inventory Manager Pro</title>
 </head>
 <body>
-    <h1>Inventory Dashboard</h1>
-    <form id="productForm">
-        <input type="text" id="name" placeholder="Item Name" required>
-        <input type="number" id="qty" placeholder="Quantity" required>
-        <input type="number" id="price" placeholder="Price" step="0.01" required>
-        <button type="submit">Add Item</button>
-    </form>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="inventoryTable"></tbody>
-    </table>
+    <header>
+        <h1>Inventory Dashboard</h1>
+    </header>
+
+    <main class="container">
+        <section class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Items</h3>
+                <p id="totalItems">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Inventory Value</h3>
+                <p id="totalValue">$0.00</p>
+            </div>
+            <div class="stat-card low-stock-alert">
+                <h3>Low Stock Alert</h3>
+                <p id="lowStockCount">0</p>
+            </div>
+        </section>
+
+        <section class="form-container">
+            <h3>Add New Product</h3>
+            <form id="productForm">
+                <input type="text" id="name" placeholder="Item Name" required>
+                <input type="number" id="qty" placeholder="Quantity" required>
+                <input type="number" id="price" placeholder="Price" step="0.01" required>
+                
+                <select id="category" required>
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Canned Goods">Canned Goods</option>
+                </select>
+
+                <button type="submit" class="add-btn">Add Item</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section class="table-controls">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="🔍 Search product name...">
+                <button type="button" class="search-btn" onclick="filterInventory()">Search</button>
+                <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
+            </div>
+        </section>
+
+        <section class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTable"></tbody>
+            </table>
+        </section>
+    </main>
 
     <div id="editModal" class="modal">
         <div class="modal-content">
             <h2>Edit Product</h2>
+            <hr>
             <input type="hidden" id="editId">
-            <input type="text" id="editName">
-            <input type="number" id="editQty">
-            <input type="number" id="editPrice" step="0.01">
+            
+            <div class="input-group">
+                <label for="editName">Product Name</label>
+                <input type="text" id="editName">
+            </div>
+            
+            <div class="input-group">
+                <label for="editCategory">Category</label>
+                <select id="editCategory">
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Canned Goods">Canned Goods</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="editQty">Quantity</label>
+                <input type="number" id="editQty">
+            </div>
+            
+            <div class="input-group">
+                <label for="editPrice">Price</label>
+                <input type="number" id="editPrice" step="0.01">
+            </div>
+            
             <div class="modal-buttons">
-                <button onclick="saveEdit()">Save Changes</button>
-                <button onclick="closeModal()">Cancel</button>
+                <button class="save-btn" onclick="saveEdit()">Save Changes</button>
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
             </div>
         </div>
     </div>
