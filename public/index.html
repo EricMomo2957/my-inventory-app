@@ -13,20 +13,62 @@
     </header>
 
     <main class="container">
-        <section class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Items</h3>
-                <p id="totalItems">0</p>
+        <div class="stats-grid">
+            <div class="stat-tile">
+                <div class="tile-icon">📦</div>
+                <div class="tile-content">
+                    <h3>Total Items</h3>
+                    <p id="totalItems">0</p>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Inventory Value</h3>
-                <p id="totalValue">$0.00</p>
+
+            <div class="stat-tile">
+                <div class="tile-icon">💰</div>
+                <div class="tile-content">
+                    <h3>Inventory Value</h3>
+                    <p id="totalValue">$0.00</p>
+                </div>
             </div>
-            <div class="stat-card low-stock-alert">
-                <h3>Low Stock Alert</h3>
-                <p id="lowStockCount">0</p>
+
+            <div class="stat-tile alert-tile">
+                <div class="tile-icon">⚠️</div>
+                <div class="tile-content">
+                    <h3>Low Stock Alert</h3>
+                    <p id="lowStockCount">0</p>
+                </div>
             </div>
-        </section>
+            <div class="stat-tile">
+                <div class="tile-icon">🥦</div>
+                <div class="tile-content">
+                    <h3>Vegetables</h3>
+                    <p id="countVegetables">0</p>
+                </div>
+            </div>
+
+            <div class="stat-tile">
+                <div class="tile-icon">🍎</div>
+                <div class="tile-content">
+                    <h3>Fruits</h3>
+                    <p id="countFruits">0</p>
+                </div>
+            </div>
+
+            <div class="stat-tile">
+                <div class="tile-icon">🛠️</div>
+                <div class="tile-content">
+                    <h3>Supplies</h3>
+                    <p id="countSupplies">0</p>
+                </div>
+            </div>
+
+            <div class="stat-tile">
+                <div class="tile-icon">🥫</div>
+                <div class="tile-content">
+                    <h3>Canned Goods</h3>
+                    <p id="countCanned">0</p>
+                </div>
+            </div>
+        </div>
 
         <section class="form-container">
             <h3>Add New Product</h3>

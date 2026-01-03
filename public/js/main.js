@@ -16,16 +16,51 @@ async function loadInventory() {
         let products = await res.json();
         
         // --- DASHBOARD CALCULATION LOGIC ---
-        // Stats are calculated based on the search result before category filtering
         let totalItems = 0;
         let totalValue = 0;
         let lowStockCount = 0;
+        
+        // Category Counters
+        let vegCount = 0;
+        let fruitCount = 0;
+        let supplyCount = 0;
+        let cannedCount = 0;
 
         products.forEach(p => {
-            totalItems += Number(p.quantity);
-            totalValue += Number(p.quantity) * Number(p.price);
-            if (p.quantity < 5) lowStockCount++;
+            const qty = Number(p.quantity);
+            totalItems += qty;
+            totalValue += qty * Number(p.price);
+            if (qty < 5) lowStockCount++;
+
+            // Increment specific category counts
+            if (p.category === 'Vegetables') vegCount += qty;
+            if (p.category === 'Fruits') fruitCount += qty;
+            if (p.category === 'Supplies') supplyCount += qty;
+            if (p.category === 'Canned Goods') cannedCount += qty;
         });
+
+        // --- UPDATE DASHBOARD UI ---
+        document.getElementById('totalItems').innerText = totalItems;
+        document.getElementById('totalValue').innerText = `$${totalValue.toFixed(2)}`;
+        
+        const lowStockElement = document.getElementById('lowStockCount');
+        const alertTile = lowStockElement.closest('.stat-tile');
+        lowStockElement.innerText = lowStockCount;
+
+        // Update Category UI Tiles
+        document.getElementById('countVegetables').innerText = vegCount;
+        document.getElementById('countFruits').innerText = fruitCount;
+        document.getElementById('countSupplies').innerText = supplyCount;
+        document.getElementById('countCanned').innerText = cannedCount;
+
+        // Dynamic Styling for Alert Tile
+        if (lowStockCount > 0) {
+            lowStockElement.classList.add('danger-text');
+            alertTile?.classList.add('danger-mode');
+        } else {
+            lowStockElement.classList.remove('danger-text');
+            alertTile?.classList.remove('danger-mode');
+        }
 
         // --- APPLY BUTTON FILTERS ---
         if (currentCategory !== '') {
@@ -36,10 +71,8 @@ async function loadInventory() {
         }
 
         // --- RENDER TABLE ---
-        // First, clear the table to "reset" the animation state
-        tableBody.innerHTML = ''; 
+        tableBody.innerHTML = ''; // Clear for animation reset
 
-        // Now, populate it with the filtered products
         tableBody.innerHTML = products.map(p => {
             const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
 
@@ -70,19 +103,6 @@ async function loadInventory() {
             `;
         }).join('');
 
-        // --- UPDATE DASHBOARD UI ---
-        document.getElementById('totalItems').innerText = totalItems;
-        document.getElementById('totalValue').innerText = `$${totalValue.toFixed(2)}`;
-
-        const lowStockElement = document.getElementById('lowStockCount');
-        lowStockElement.innerText = lowStockCount;
-
-        if (lowStockCount > 0) {
-            lowStockElement.classList.add('danger-text');
-        } else {
-            lowStockElement.classList.remove('danger-text');
-        }
-
     } catch (err) {
         console.error("Error loading inventory:", err);
     }
@@ -94,10 +114,8 @@ async function loadInventory() {
 function setCategory(category) {
     currentCategory = category;
     
-    // Highlight the active button
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active-filter');
-        // Match "All" button or the specific category name
         if ((category === '' && btn.innerText === 'All') || btn.innerText === category) {
             btn.classList.add('active-filter');
         }
@@ -113,7 +131,6 @@ function filterInventory() {
 function clearSearch() {
     document.getElementById('searchInput').value = '';
     showLowStockOnly = false;
-    // Reset category to All
     setCategory(''); 
 }
 
@@ -132,7 +149,7 @@ function toggleLowStock() {
     loadInventory();
 }
 
-// "Enter" key listener
+// Enter key listener
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
     searchInput.addEventListener('keypress', (e) => {
@@ -141,7 +158,7 @@ if (searchInput) {
 }
 
 /**
- * 3. Product Actions (Add, Edit, Delete, Restock)
+ * 3. Product Actions
  */
 productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -233,10 +250,9 @@ function toggleDarkMode() {
     document.documentElement.setAttribute('data-theme', targetTheme);
     localStorage.setItem('theme', targetTheme);
     
-    btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    if (btn) btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-// Initial theme setup
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) {
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -244,5 +260,4 @@ if (savedTheme) {
     if (btn) btn.innerText = savedTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-// Run on page load
 loadInventory();

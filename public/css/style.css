@@ -143,3 +143,70 @@ td:nth-child(5) {
 #inventoryTable tr:nth-child(3) { animation-delay: 0.15s; }
 #inventoryTable tr:nth-child(4) { animation-delay: 0.2s; }
 #inventoryTable tr:nth-child(5) { animation-delay: 0.25s; }
+
+/* Dashboard Grid Layout */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Base Tile Styling */
+.stat-tile {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--table-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideInUp 0.5s ease forwards;
+}
+
+/* Hover Animation */
+.stat-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon Backgrounds */
+.tile-icon {
+    font-size: 2rem;
+    background: rgba(0, 123, 255, 0.1);
+    padding: 15px;
+    border-radius: 50%;
+}
+
+.tile-content h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tile-content p {
+    margin: 5px 0 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+/* Special Alert Tile Styling */
+.alert-tile.danger-mode {
+    border-left: 5px solid #ff4d4d;
+    background: rgba(255, 77, 77, 0.05);
+}
+
+.danger-text {
+    color: #ff4d4d !important;
+}
+
+/* Entry Animation for Tiles */
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
