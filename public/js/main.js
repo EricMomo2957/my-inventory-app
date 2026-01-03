@@ -2,21 +2,21 @@ const tableBody = document.getElementById('inventoryTable');
 const productForm = document.getElementById('productForm');
 const modal = document.getElementById('editModal');
 
-// State variable for the Low Stock filter
+// Global Filter States
+let currentCategory = ''; 
 let showLowStockOnly = false;
 
 /**
  * 1. Fetch products and calculate dashboard stats
  */
-async function loadInventory(searchTerm = '') {
+async function loadInventory() {
     try {
-        // We encode the search term to handle spaces safely
+        const searchTerm = document.getElementById('searchInput').value;
         const res = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
         let products = await res.json();
         
         // --- DASHBOARD CALCULATION LOGIC ---
-        // We calculate stats based on ALL products returned from search 
-        // before we filter the list for the "Low Stock Only" view.
+        // Stats are calculated based on the search result before category filtering
         let totalItems = 0;
         let totalValue = 0;
         let lowStockCount = 0;
@@ -27,13 +27,19 @@ async function loadInventory(searchTerm = '') {
             if (p.quantity < 5) lowStockCount++;
         });
 
-        // --- FILTER LOGIC ---
-        // If the admin toggled "Show Low Stock Only", we filter the list here
+        // --- APPLY BUTTON FILTERS ---
+        if (currentCategory !== '') {
+            products = products.filter(p => p.category === currentCategory);
+        }
         if (showLowStockOnly) {
             products = products.filter(p => p.quantity < 5);
         }
 
         // --- RENDER TABLE ---
+        // First, clear the table to "reset" the animation state
+        tableBody.innerHTML = ''; 
+
+        // Now, populate it with the filtered products
         tableBody.innerHTML = products.map(p => {
             const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
 
@@ -48,7 +54,7 @@ async function loadInventory(searchTerm = '') {
                     <td>${p.quantity}</td>
                     <td>$${Number(p.price).toFixed(2)}</td>
                     <td style="font-size: 0.8rem; color: #888;">
-                        ${new Date(p.updated_at).toLocaleString()}
+                        ${p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Never'}
                     </td>
                     <td>
                         <button class="restock-btn" onclick="restockProduct(${p.id}, ${p.quantity})">
@@ -71,7 +77,6 @@ async function loadInventory(searchTerm = '') {
         const lowStockElement = document.getElementById('lowStockCount');
         lowStockElement.innerText = lowStockCount;
 
-        // Dynamic Styling for Dashboard Alert
         if (lowStockCount > 0) {
             lowStockElement.classList.add('danger-text');
         } else {
@@ -84,35 +89,47 @@ async function loadInventory(searchTerm = '') {
 }
 
 /**
- * 2. Admin Search & Filter Logic
+ * 2. Filter & Search Logic
  */
+function setCategory(category) {
+    currentCategory = category;
+    
+    // Highlight the active button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active-filter');
+        // Match "All" button or the specific category name
+        if ((category === '' && btn.innerText === 'All') || btn.innerText === category) {
+            btn.classList.add('active-filter');
+        }
+    });
+
+    loadInventory();
+}
+
 function filterInventory() {
-    const query = document.getElementById('searchInput').value;
-    loadInventory(query);
+    loadInventory();
 }
 
 function clearSearch() {
     document.getElementById('searchInput').value = '';
-    loadInventory();
+    showLowStockOnly = false;
+    // Reset category to All
+    setCategory(''); 
 }
 
-/**
- * Toggle Low Stock Filter
- */
 function toggleLowStock() {
     showLowStockOnly = !showLowStockOnly;
     const btn = document.getElementById('lowStockToggle');
     
     if (showLowStockOnly) {
         btn.innerText = "Show All Items";
-        btn.classList.add('active-filter'); // You can style this in CSS
+        btn.classList.add('active-filter');
     } else {
         btn.innerText = "Show Low Stock Only";
         btn.classList.remove('active-filter');
     }
     
-    // Refresh with current search term
-    filterInventory();
+    loadInventory();
 }
 
 // "Enter" key listener
@@ -124,7 +141,7 @@ if (searchInput) {
 }
 
 /**
- * 3. Add Product Logic
+ * 3. Product Actions (Add, Edit, Delete, Restock)
  */
 productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -145,9 +162,6 @@ productForm.addEventListener('submit', async (e) => {
     loadInventory(); 
 });
 
-/**
- * 4. Modal & Edit Logic
- */
 function openEditModal(id, name, qty, price, category) {
     document.getElementById('editId').value = id;
     document.getElementById('editName').value = name;
@@ -178,9 +192,6 @@ async function saveEdit() {
     }
 }
 
-/**
- * 5. Delete Logic
- */
 async function deleteProduct(id) {
     if(confirm('Delete this item?')) {
         await fetch(`/api/products/${id}`, { method: 'DELETE' });
@@ -188,12 +199,8 @@ async function deleteProduct(id) {
     }
 }
 
-/**
- * 6. Quick Restock Feature
- */
 async function restockProduct(id, currentQty) {
     const newQty = Number(currentQty) + 10;
-    
     try {
         const response = await fetch(`/api/products/restock/${id}`, {
             method: 'PATCH',
@@ -209,15 +216,15 @@ async function restockProduct(id, currentQty) {
     }
 }
 
+/**
+ * 4. UI Helpers
+ */
 function closeModal() {
     modal.style.display = 'none';
 }
 
 window.onclick = (e) => { if (e.target == modal) closeModal(); };
 
-/**
- * Dark Mode Toggle Logic
- */
 function toggleDarkMode() {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -229,7 +236,7 @@ function toggleDarkMode() {
     btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-// Check for saved user preference on page load
+// Initial theme setup
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) {
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -237,5 +244,5 @@ if (savedTheme) {
     if (btn) btn.innerText = savedTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-// Initial load
+// Run on page load
 loadInventory();

@@ -119,3 +119,27 @@ td:nth-child(5) {
     font-family: monospace;
     white-space: nowrap;
 }
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px); /* Starts slightly lower */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Ends at its natural position */
+    }
+}
+
+#inventoryTable tr {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+/* Row Stagger Effect (Optional) */
+/* This makes rows appear one after another instead of all at once */
+#inventoryTable tr:nth-child(1) { animation-delay: 0.05s; }
+#inventoryTable tr:nth-child(2) { animation-delay: 0.1s; }
+#inventoryTable tr:nth-child(3) { animation-delay: 0.15s; }
+#inventoryTable tr:nth-child(4) { animation-delay: 0.2s; }
+#inventoryTable tr:nth-child(5) { animation-delay: 0.25s; }

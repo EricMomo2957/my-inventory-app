@@ -54,7 +54,15 @@
                 <input type="text" id="searchInput" placeholder="🔍 Search product name...">
                 <button type="button" class="search-btn" onclick="filterInventory()">Search</button>
                 <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
-                <button type="button" id="lowStockToggle" onclick="toggleLowStock()">Show Low Stock Only</button>
+                
+                <hr> <div class="filter-buttons">
+                    <button type="button" class="filter-btn" onclick="setCategory('')">All</button>
+                    <button type="button" class="filter-btn" onclick="setCategory('Vegetables')">Vegetables</button>
+                    <button type="button" class="filter-btn" onclick="setCategory('Fruits')">Fruits</button>
+                    <button type="button" class="filter-btn" onclick="setCategory('Supplies')">Supplies</button>
+                    <button type="button" class="filter-btn" onclick="setCategory('Canned Goods')">Canned Goods</button>
+                    <button type="button" id="lowStockToggle" class="filter-btn warning" onclick="toggleLowStock()">Show Low Stock Only</button>
+                </div>
             </div>
 
             <div class="theme-switch-wrapper">
