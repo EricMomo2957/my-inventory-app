@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/style.css">
+    <title>Inventory Manager</title>
+</head>
+<body>
+    <h1>Inventory Dashboard</h1>
+    <form id="productForm">
+        <input type="text" id="name" placeholder="Item Name" required>
+        <input type="number" id="qty" placeholder="Quantity" required>
+        <input type="number" id="price" placeholder="Price" step="0.01" required>
+        <button type="submit">Add Item</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="inventoryTable"></tbody>
+    </table>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Product</h2>
+            <input type="hidden" id="editId">
+            <input type="text" id="editName">
+            <input type="number" id="editQty">
+            <input type="number" id="editPrice" step="0.01">
+            <div class="modal-buttons">
+                <button onclick="saveEdit()">Save Changes</button>
+                <button onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
