@@ -1,73 +1,112 @@
-// Target the form and the table body
+/**
+ * THEME INITIALIZATION
+ * Apply dark mode immediately based on localStorage state
+ */
+function applyCurrentTheme() {
+    const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+}
+
+// Run theme check immediately
+applyCurrentTheme();
+
+// Target DOM elements
 const scheduleForm = document.getElementById('scheduleForm');
 const scheduleTableBody = document.getElementById('scheduleTableBody');
 
 /**
- * FETCH AND DISPLAY SCHEDULES FROM DATABASE
+ * FETCH AND DISPLAY SCHEDULES
+ * Gets data from MySQL and renders it with color-coded badges
  */
 async function loadSchedules() {
     try {
         const res = await fetch('/api/schedules');
         const schedules = await res.json();
         
-        // Render the table rows
-        scheduleTableBody.innerHTML = schedules.map(s => `
-            <tr>
-                <td><strong>${new Date(s.schedule_date).toLocaleDateString()}</strong></td>
-                <td>${s.title}</td>
-                <td><span class="category-badge badge-supplies">${s.type}</span></td>
-                <td>
-                    <button class="btn-table delete-btn" onclick="deleteSchedule(${s.id})">🗑️ Remove</button>
-                </td>
-            </tr>
-        `).join('');
+        if (!scheduleTableBody) return;
+
+        // Render rows with dynamic badge classes based on type
+        // Replace the mapping logic inside loadSchedules()
+        scheduleTableBody.innerHTML = schedules.map(s => {
+            // Standardize the type for the CSS class (Removes spaces and converts to lowercase)
+            const typeClass = s.type.toLowerCase().replace(/\s+/g, '-');
+
+            return `
+                <tr>
+                    <td><strong>${new Date(s.schedule_date).toLocaleDateString()}</strong></td>
+                    <td>${s.title}</td>
+                    <td><span class="category-badge badge-${typeClass}">${s.type}</span></td>
+                    <td style="text-align: right;">
+                        <button class="btn-table delete-btn" onclick="deleteSchedule(${s.id})">🗑️ Remove</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     } catch (err) {
         console.error("Error loading schedules:", err);
     }
 }
 
 /**
- * SAVE NEW SCHEDULE TO DATABASE
+ * SAVE NEW SCHEDULE
+ * Sends form data to the Node.js backend
  */
-scheduleForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // This stops the page from refreshing
-    
-    // Collect the data from your input fields
-    const data = {
-        title: document.getElementById('schedTitle').value,
-        schedule_date: document.getElementById('schedDate').value,
-        type: document.getElementById('schedType').value
-    };
+if (scheduleForm) {
+    scheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const data = {
+            title: document.getElementById('schedTitle').value,
+            schedule_date: document.getElementById('schedDate').value,
+            type: document.getElementById('schedType').value
+        };
 
-    try {
-        const res = await fetch('/api/schedules', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+        try {
+            const res = await fetch('/api/schedules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
 
-        if (res.ok) {
-            // Success! Clear the form and refresh the list
-            scheduleForm.reset();
-            loadSchedules();
-        } else {
-            alert("Failed to save schedule. Check server logs.");
+            if (res.ok) {
+                scheduleForm.reset();
+                loadSchedules();
+            } else {
+                const errData = await res.json();
+                alert("Failed to save: " + (errData.error || "Check server logs"));
+            }
+        } catch (err) {
+            console.error("Connection error:", err);
+            alert("Could not connect to server. Ensure backend is running.");
         }
-    } catch (err) {
-        console.error("Connection error:", err);
-    }
-});
+    });
+}
 
 /**
  * DELETE SCHEDULE
+ * Removes the entry from the database
  */
 async function deleteSchedule(id) {
-    if (confirm("Delete this event?")) {
-        await fetch(`/api/schedules/${id}`, { method: 'DELETE' });
-        loadSchedules();
+    if (confirm("Are you sure you want to delete this event?")) {
+        try {
+            const res = await fetch(`/api/schedules/${id}`, { 
+                method: 'DELETE' 
+            });
+            
+            if (res.ok) {
+                loadSchedules();
+            } else {
+                alert("Failed to delete entry.");
+            }
+        } catch (err) {
+            console.error("Delete error:", err);
+        }
     }
 }
 
-
-// Initial load when the page opens
+// Initial load when page opens
 loadSchedules();

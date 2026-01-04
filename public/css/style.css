@@ -649,14 +649,32 @@ td:nth-child(5) {
 
 
 /* Category Badges in Table */
-/* Category Badge Base Styles */
+/* Base Badge Style */
 .category-badge {
-    padding: 4px 12px;
+    padding: 5px 12px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    text-transform: uppercase;
-    color: white; /* Text color for dark mode badges */
+    color: #ffffff !important; /* Forces text to stay white on the colored background */
+    display: inline-block;
+}
+
+/* Color Coding for specific types */
+.badge-delivery { 
+    background-color: #ff9f43; /* Orange */
+}
+
+.badge-inventory-check { 
+    background-color: #00cfe8; /* Cyan */
+}
+
+.badge-supplier-meeting { 
+    background-color: #ea5455; /* Red/Pink */
+}
+
+/* Default fallback color */
+.badge-supplies {
+    background-color: #7367f0; /* Purple */
 }
 
 /* Specific Category Colors */
@@ -743,3 +761,4 @@ td:nth-child(5) {
 .badge-admin { background-color: #ff4757; }   /* Red */
 .badge-manager { background-color: #5352ed; } /* Blue */
 .badge-clerk { background-color: #2ed573; }   /* Green */
+
