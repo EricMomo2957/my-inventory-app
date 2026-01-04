@@ -1,0 +1,40 @@
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        
+        <h2>Edit Product</h2>
+        <hr>
+        
+        <input type="hidden" id="editId">
+        
+        <div class="input-group">
+            <label for="editName">Product Name</label>
+            <input type="text" id="editName" placeholder="Enter product name">
+        </div>
+        
+        <div class="input-group">
+            <label for="editCategory">Category</label>
+            <select id="editCategory">
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Supplies">Supplies</option>
+                <option value="Canned Goods">Canned Goods</option>
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="editQty">Quantity</label>
+            <input type="number" id="editQty" placeholder="0">
+        </div>
+        
+        <div class="input-group">
+            <label for="editPrice">Price (₱)</label>
+            <input type="number" id="editPrice" step="0.01" placeholder="0.00">
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="save-btn" onclick="saveEdit()">Save Changes</button>
+            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>

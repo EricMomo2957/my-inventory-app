@@ -1,150 +1,102 @@
-body { font-family: sans-serif; padding: 20px; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-.low-stock { background-color: #ffcccc; color: #cc0000; font-weight: bold; }
-
-.danger-text {
-    color: #dc3545; /* Professional Red */
-    font-weight: bold;
-    animation: pulse 2s infinite;
-}
-
-/* General Badge Styling */
-.badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    color: white;
-    display: inline-block;
-    text-transform: capitalize;
-}
-
-/* Category Specific Colors */
-.badge-vegetables { background-color: #28a745; } /* Green */
-.badge-fruits { background-color: #fd7e14; }     /* Orange */
-.badge-supplies { background-color: #007bff; }   /* Blue */
-.badge-canned-goods { background-color: #6c757d; } /* Gray */
-.badge-general { background-color: #adb5bd; }   /* Light Gray */
-
-.search-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-#searchInput {
-    flex: 1; /* Makes the input take up available space */
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-}
-
-.search-btn {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.search-btn:hover {
-    background-color: #0056b3;
-}
-
-.clear-btn {
-    padding: 10px 20px;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.restock-btn {
-    background-color: #28a745; /* Success Green */
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 5px;
-    font-size: 0.85rem;
-    transition: background 0.3s;
-}
-
-.restock-btn:hover {
-    background-color: #218838;
-}
-
-/* Color Variables */
+/* ==========================================================================
+   1. CORE VARIABLES & THEMES
+   ========================================================================== */
 :root {
     --bg-color: #ffffff;
     --text-color: #333333;
     --card-bg: #f8f9fa;
     --table-border: #dee2e6;
     --header-bg: #f1f1f1;
+    --accent-blue: #007bff;
+    --accent-green: #28a745;
+    --accent-red: #dc3545;
+    --sidenav-bg: #2c3e50;
 }
 
-/* Dark Mode Colors */
 [data-theme="dark"] {
     --bg-color: #1a1a1a;
     --text-color: #e0e0e0;
     --card-bg: #2d2d2d;
     --table-border: #444444;
     --header-bg: #333333;
+    --sidenav-bg: #000000;
 }
 
+* { box-sizing: border-box; }
+
 body {
+    font-family: 'Segoe UI', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
+    margin: 0;
+    padding: 0;
     transition: background-color 0.3s, color 0.3s;
 }
 
-/* Update your existing components to use these variables */
-.dashboard-card, .modal-content {
-    background-color: var(--card-bg);
+/* ==========================================================================
+   2. LAYOUT STRUCTURE (SIDENAV & MAIN)
+   ========================================================================== */
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
 }
 
-table th {
-    background-color: var(--header-bg);
+.sidenav {
+    width: 250px;
+    height: 100vh;
+    background-color: var(--sidenav-bg);
+    color: white;
+    position: fixed;
+    left: 0; top: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    z-index: 1000;
+    animation: slideInLeft 0.5s ease-out; /* NEW ANIMATION */
 }
 
-table, th, td {
-    border-color: var(--table-border);
+.sidenav .nav-header h2 {
+    color: white;
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 1.2rem;
 }
 
-td:nth-child(5) {
-    font-family: monospace;
-    white-space: nowrap;
+.sidenav a {
+    display: block;
+    color: #bdc3c7;
+    padding: 15px 25px;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-size: 1rem;
 }
 
-/* Fade-in Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px); /* Starts slightly lower */
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0); /* Ends at its natural position */
-    }
+.sidenav a:hover, .sidenav a.active {
+    background-color: #34495e;
+    color: white;
+    border-left: 4px solid #3498db;
+    padding-left: 30px; /* Slight slide effect */
 }
 
-#inventoryTable tr {
-    animation: fadeIn 0.4s ease forwards;
+.main-content {
+    margin-left: 50px;
+    flex-grow: 1;
+    padding: 40px;
+    width: calc(100% - 250px);
+    overflow-x: hidden;
+    animation: fadeIn 0.8s ease-in-out; /* NEW ANIMATION */
 }
 
-/* Row Stagger Effect (Optional) */
-/* This makes rows appear one after another instead of all at once */
-#inventoryTable tr:nth-child(1) { animation-delay: 0.05s; }
-#inventoryTable tr:nth-child(2) { animation-delay: 0.1s; }
-#inventoryTable tr:nth-child(3) { animation-delay: 0.15s; }
-#inventoryTable tr:nth-child(4) { animation-delay: 0.2s; }
-#inventoryTable tr:nth-child(5) { animation-delay: 0.25s; }
+.nav-footer {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
 
-/* Dashboard Grid Layout */
+/* ==========================================================================
+   3. DASHBOARD TILES (STATS)
+   ========================================================================== */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -152,7 +104,6 @@ td:nth-child(5) {
     margin-bottom: 30px;
 }
 
-/* Base Tile Styling */
 .stat-tile {
     background: var(--card-bg);
     padding: 20px;
@@ -163,21 +114,24 @@ td:nth-child(5) {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--table-border);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: slideInUp 0.5s ease forwards;
+    animation: slideInUp 0.6s ease forwards;
 }
 
-/* Hover Animation */
 .stat-tile:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Icon Backgrounds */
 .tile-icon {
     font-size: 2rem;
     background: rgba(0, 123, 255, 0.1);
     padding: 15px;
     border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.stat-tile:hover .tile-icon {
+    transform: scale(1.1) rotate(5deg); /* NEW INTERACTION */
 }
 
 .tile-content h3 {
@@ -195,23 +149,56 @@ td:nth-child(5) {
     color: var(--text-color);
 }
 
-/* Special Alert Tile Styling */
 .alert-tile.danger-mode {
     border-left: 5px solid #ff4d4d;
     background: rgba(255, 77, 77, 0.05);
+    animation: pulseGlow 2s infinite; /* NEW ANIMATION */
 }
 
-.danger-text {
-    color: #ff4d4d !important;
+/* ==========================================================================
+   4. INVENTORY TABLE
+   ========================================================================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-/* Entry Animation for Tiles */
-@keyframes slideInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+th, td {
+    border: 1px solid var(--table-border);
+    padding: 12px;
+    text-align: left;
 }
 
-/* Progress Bar Container */
+table th {
+    background-color: var(--header-bg);
+}
+
+td:nth-child(5) {
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+/* Row Animation & Staggering */
+#inventoryTable tr {
+    animation: fadeIn 0.4s ease forwards;
+    transition: background 0.2s;
+}
+
+#inventoryTable tr:hover {
+    background-color: rgba(0,0,0,0.02); /* NEW INTERACTION */
+}
+
+#inventoryTable tr:nth-child(1) { animation-delay: 0.05s; }
+#inventoryTable tr:nth-child(2) { animation-delay: 0.1s; }
+#inventoryTable tr:nth-child(3) { animation-delay: 0.15s; }
+#inventoryTable tr:nth-child(4) { animation-delay: 0.2s; }
+#inventoryTable tr:nth-child(5) { animation-delay: 0.25s; }
+
+/* Progress Bars */
 .stock-bar-container {
     width: 100%;
     background-color: #e0e0e0;
@@ -221,14 +208,277 @@ td:nth-child(5) {
     overflow: hidden;
 }
 
-/* The actual bar */
 .stock-bar-fill {
     height: 100%;
     border-radius: 10px;
-    transition: width 0.5s ease-in-out;
+    transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* NEW BOUNCY FILL */
 }
 
-/* Colors based on stock levels */
-.bar-low { background-color: #ff4d4d; }    /* Red */
-.bar-medium { background-color: #ffc107; } /* Orange/Yellow */
-.bar-high { background-color: #28a745; }   /* Green */
+.bar-low { background-color: #ff4d4d; }
+.bar-medium { background-color: #ffc107; }
+.bar-high { background-color: #28a745; }
+
+/* ==========================================================================
+   5. CONTROLS (SEARCH & BUTTONS)
+   ========================================================================== */
+.search-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#searchInput {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--table-border);
+    border-radius: 5px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    transition: border 0.3s;
+}
+
+#searchInput:focus {
+    border-color: var(--accent-blue);
+    outline: none;
+}
+
+.search-btn, .clear-btn, .restock-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.search-btn { background-color: var(--accent-blue); color: white; }
+.search-btn:hover { background-color: #0056b3; transform: scale(1.05); }
+
+.clear-btn { background-color: #6c757d; color: white; }
+.clear-btn:hover { transform: scale(1.05); }
+
+.restock-btn {
+    background-color: var(--accent-green);
+    color: white;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+}
+.restock-btn:hover { background-color: #218838; transform: translateY(-2px); }
+
+/* Badges */
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+    display: inline-block;
+    text-transform: capitalize;
+    animation: popIn 0.3s ease; /* NEW ANIMATION */
+}
+
+.badge-vegetables { background-color: #28a745; }
+.badge-fruits { background-color: #fd7e14; }
+.badge-supplies { background-color: #007bff; }
+.badge-canned-goods { background-color: #6c757d; }
+.badge-general { background-color: #adb5bd; }
+
+/* ==========================================================================
+   6. MODALS & UTILITIES
+   ========================================================================== */
+/* ==========================================================================
+   UNIFIED MODAL DESIGN (ADD & EDIT)
+   ========================================================================== */
+
+/* ==========================================================================
+   FIXED CENTERED MODAL POSITIONING
+   ========================================================================== */
+
+.modal {
+    /* Initially hidden */
+    display: none; 
+    
+    /* Position fixed covers the entire viewport, ignoring the sidenav */
+    position: fixed; 
+    z-index: 9999; /* Ensure it stays above the sidenav and dashboard */
+    left: 0;
+    top: 0;
+    width: 100vw; 
+    height: 100vh; 
+    
+    /* THE FIX: Flexbox centering */
+    display: none; /* Change to 'flex' via JS to show */
+    align-items: center;    /* Vertical center */
+    justify-content: center; /* Horizontal center */
+    
+    background-color: rgba(0, 0, 0, 0.5); /* Dimmed overlay */
+    backdrop-filter: blur(4px); /* Modern blur effect */
+}
+
+/* When the modal is active, it must use flex to center correctly */
+.modal[style*="display: block"],
+.modal[style*="display: inline-block"] {
+    display: flex !important;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 420px; /* Standard professional form width */
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--table-border);
+    position: relative;
+    
+    /* Animation for smooth pop-up */
+    animation: modalPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPopIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-content h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+    color: var(--text-color);
+}
+
+.modal-content hr {
+    border: 0;
+    border-top: 1px solid var(--table-border);
+    margin-bottom: 25px;
+}
+
+/* 3. Input Groups: Fixes label and field spacing */
+.input-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between label and input */
+    text-align: left;
+}
+
+.input-group label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+/* 4. Form Inputs & Selects */
+.input-group input, 
+.input-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--table-border);
+    border-radius: 10px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-group input:focus, 
+.input-group select:focus {
+    border-color: var(--accent-blue);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* 5. Modal Buttons Layout */
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.save-btn, .cancel-btn {
+    flex: 1; /* Makes both buttons equal width */
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-btn {
+    background-color: var(--accent-blue);
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.cancel-btn {
+    background-color: #f1f3f5;
+    color: #495057;
+}
+
+.cancel-btn:hover {
+    background-color: #e9ecef;
+}
+
+/* 6. Close Icon (Top Right) */
+.close-btn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 1.5rem;
+    color: #adb5bd;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--accent-red);
+}
+
+
+.low-stock { background-color: #ffcccc; color: #cc0000; font-weight: bold; }
+
+.danger-text {
+    color: #ff4d4d !important;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+/* ==========================================================================
+   7. ANIMATION KEYFRAMES
+   ========================================================================== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 4px 15px rgba(255, 77, 77, 0.1); }
+    50% { box-shadow: 0 4px 25px rgba(255, 77, 77, 0.3); }
+    100% { box-shadow: 0 4px 15px rgba(255, 77, 77, 0.1); }
+}

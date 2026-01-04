@@ -1,0 +1,18 @@
+// public/components/sidenav.html
+
+<nav class="sidenav">
+    <div class="nav-header">
+        <h2>Inventory Manager</h2>
+    </div>
+
+    <div>
+        <a href="#" class="active" onclick="setCategory('')">🏠 Dashboard</a>
+        <a href="#" onclick="setCategory('Vegetables')">🥦 Vegetables</a>
+        <a href="#" onclick="setCategory('Fruits')">🍎 Fruits</a>
+        <a href="#" onclick="setCategory('Supplies')">🛠️ Supplies</a>
+        <a href="#" onclick="setCategory('Canned Goods')">🥫 Canned Goods</a>
+    </div>
+    <div class="nav-footer">
+        <button id="themeToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+    </div>
+</nav>

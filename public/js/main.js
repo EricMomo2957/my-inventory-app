@@ -1,30 +1,55 @@
+/**
+ * GLOBAL STATE & SELECTORS
+ */
 const tableBody = document.getElementById('inventoryTable');
-const productForm = document.getElementById('productForm');
-const modal = document.getElementById('editModal');
-
-// Global Filter States
 let currentCategory = ''; 
 let showLowStockOnly = false;
+let debounceTimer;
 
 /**
- * 1. Fetch products and calculate dashboard stats
+ * 1. HELPER FUNCTIONS
+ */
+
+// Format numbers as Philippine Peso with commas (e.g., ₱1,250.00)
+function formatCurrency(amount) {
+    return "₱" + Number(amount).toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// Update the visibility of the "Clear All Filters" badge
+function updateFilterStatusBadge() {
+    const statusContainer = document.getElementById('filter-status-container');
+    const filterText = document.getElementById('active-filter-text');
+    const searchTerm = document.getElementById('searchInput')?.value || '';
+
+    if (currentCategory !== '' || searchTerm !== '' || showLowStockOnly) {
+        if (statusContainer) statusContainer.style.display = 'block';
+        
+        let message = "Applied: ";
+        if (currentCategory) message += ` [${currentCategory}]`;
+        if (searchTerm) message += ` "${searchTerm}"`;
+        if (showLowStockOnly) message += ` [Low Stock]`;
+        
+        if (filterText) filterText.innerText = message;
+    } else {
+        if (statusContainer) statusContainer.style.display = 'none';
+    }
+}
+
+/**
+ * 2. CORE DATA LOADING
  */
 async function loadInventory() {
     try {
-        const searchTerm = document.getElementById('searchInput').value;
+        const searchTerm = document.getElementById('searchInput')?.value || '';
         const res = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
         let products = await res.json();
         
-        // --- DASHBOARD CALCULATION LOGIC ---
-        let totalItems = 0;
-        let totalValue = 0;
-        let lowStockCount = 0;
-        
-        // Category Counters
-        let vegCount = 0;
-        let fruitCount = 0;
-        let supplyCount = 0;
-        let cannedCount = 0;
+        // --- DASHBOARD CALCULATIONS ---
+        let totalItems = 0, totalValue = 0, lowStockCount = 0;
+        let vegCount = 0, fruitCount = 0, supplyCount = 0, cannedCount = 0;
 
         products.forEach(p => {
             const qty = Number(p.quantity);
@@ -32,7 +57,6 @@ async function loadInventory() {
             totalValue += qty * Number(p.price);
             if (qty < 5) lowStockCount++;
 
-            // Increment specific category counts
             if (p.category === 'Vegetables') vegCount += qty;
             if (p.category === 'Fruits') fruitCount += qty;
             if (p.category === 'Supplies') supplyCount += qty;
@@ -41,28 +65,14 @@ async function loadInventory() {
 
         // --- UPDATE DASHBOARD UI ---
         document.getElementById('totalItems').innerText = totalItems;
-        document.getElementById('totalValue').innerText = `₱${totalValue.toFixed(2)}`;
-        
-        const lowStockElement = document.getElementById('lowStockCount');
-        const alertTile = lowStockElement.closest('.stat-tile');
-        lowStockElement.innerText = lowStockCount;
-
-        // Update Category UI Tiles
+        document.getElementById('totalValue').innerText = formatCurrency(totalValue);
+        document.getElementById('lowStockCount').innerText = lowStockCount;
         document.getElementById('countVegetables').innerText = vegCount;
         document.getElementById('countFruits').innerText = fruitCount;
         document.getElementById('countSupplies').innerText = supplyCount;
         document.getElementById('countCanned').innerText = cannedCount;
 
-        // Dynamic Styling for Alert Tile
-        if (lowStockCount > 0) {
-            lowStockElement.classList.add('danger-text');
-            alertTile?.classList.add('danger-mode');
-        } else {
-            lowStockElement.classList.remove('danger-text');
-            alertTile?.classList.remove('danger-mode');
-        }
-
-        // --- APPLY BUTTON FILTERS ---
+        // --- APPLY FILTERS ---
         if (currentCategory !== '') {
             products = products.filter(p => p.category === currentCategory);
         }
@@ -71,130 +81,119 @@ async function loadInventory() {
         }
 
         // --- RENDER TABLE ---
-        tableBody.innerHTML = ''; // Clear for animation reset
+        if (products.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:50px; color:#888;">🔍 No matching products found.</td></tr>`;
+        } else {
+            tableBody.innerHTML = products.map(p => {
+                const qty = Number(p.quantity);
+                const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
+                const percentage = Math.min((qty / 50) * 100, 100);
+                const barClass = qty < 5 ? 'bar-low' : (qty < 15 ? 'bar-medium' : 'bar-high');
 
-        tableBody.innerHTML = products.map(p => {
-            const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
-            const qty = Number(p.quantity);
-            
-            // Calculate stock health (Assume 50 is a "full" stock for the bar)
-            const maxStock = 50;
-            const percentage = Math.min((qty / maxStock) * 100, 100);
-            
-            // Determine bar color
-            let barClass = 'bar-high';
-            if (qty < 5) barClass = 'bar-low';
-            else if (qty < 15) barClass = 'bar-medium';
+                return `
+                    <tr class="${qty < 5 ? 'low-stock' : ''}">
+                        <td><strong>${p.name}</strong></td>
+                        <td><span class="badge badge-${categoryClass}">${p.category}</span></td>
+                        <td>
+                            <strong>${qty}</strong>
+                            <div class="stock-bar-container"><div class="stock-bar-fill ${barClass}" style="width: ${percentage}%"></div></div>
+                        </td>
+                        <td>${formatCurrency(p.price)}</td>
+                        <td style="font-size: 0.75rem; color: #888;">${p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Never'}</td>
+                        <td>
+                            <button class="restock-btn" onclick="restockProduct(${p.id}, ${qty})">Restock</button>
+                            <button class="edit-btn" onclick="openEditModal(${p.id}, '${p.name}', ${qty}, ${p.price}, '${p.category}')">Edit</button>
+                            <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
+                        </td>
+                    </tr>`;
+            }).join('');
+        }
 
-            return `
-                <tr class="${qty < 5 ? 'low-stock' : ''}">
-                    <td>${p.name}</td>
-                    <td>
-                        <span class="badge badge-${categoryClass}">
-                            ${p.category}
-                        </span>
-                    </td>
-                    <td>
-                        <strong>${qty}</strong>
-                        <div class="stock-bar-container">
-                            <div class="stock-bar-fill ${barClass}" style="width: ${percentage}%"></div>
-                        </div>
-                    </td>
-                    <td>₱${Number(p.price).toFixed(2)}</td>
-                    <td style="font-size: 0.8rem; color: #888;">
-                        ${p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Never'}
-                    </td>
-                    <td>
-                        <button class="restock-btn" onclick="restockProduct(${p.id}, ${qty})">
-                            Restock (+10)
-                        </button>
-                        <button class="edit-btn" 
-                            onclick="openEditModal(${p.id}, '${p.name}', ${qty}, ${p.price}, '${p.category}')">
-                            Edit
-                        </button>
-                        <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        
+        updateFilterStatusBadge();
 
     } catch (err) {
-        console.error("Error loading inventory:", err);
+        console.error("Critical Error loading inventory:", err);
     }
 }
 
 /**
- * 2. Filter & Search Logic
+ * 3. FILTER & SEARCH HANDLERS
  */
+
+// Search-as-you-type with Debouncing
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'searchInput') {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => loadInventory(), 300);
+    }
+});
+
 function setCategory(category) {
     currentCategory = category;
-    
+    // Update active UI state for filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active-filter');
-        if ((category === '' && btn.innerText === 'All') || btn.innerText === category) {
-            btn.classList.add('active-filter');
-        }
+        btn.classList.toggle('active-filter', (category === '' && btn.innerText === 'All') || btn.innerText === category);
     });
-
     loadInventory();
-}
-
-function filterInventory() {
-    loadInventory();
-}
-
-function clearSearch() {
-    document.getElementById('searchInput').value = '';
-    showLowStockOnly = false;
-    setCategory(''); 
 }
 
 function toggleLowStock() {
     showLowStockOnly = !showLowStockOnly;
     const btn = document.getElementById('lowStockToggle');
-    
-    if (showLowStockOnly) {
-        btn.innerText = "Show All Items";
-        btn.classList.add('active-filter');
-    } else {
-        btn.innerText = "Show Low Stock Only";
-        btn.classList.remove('active-filter');
+    if (btn) {
+        btn.innerText = showLowStockOnly ? "Show All Items" : "Show Low Stock Only";
+        btn.classList.toggle('active-filter', showLowStockOnly);
     }
-    
     loadInventory();
 }
 
-// Enter key listener
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') filterInventory();
-    });
+function clearAllFilters() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    currentCategory = '';
+    showLowStockOnly = false;
+    
+    const lowStockBtn = document.getElementById('lowStockToggle');
+    if (lowStockBtn) {
+        lowStockBtn.innerText = "Show Low Stock Only";
+        lowStockBtn.classList.remove('active-filter');
+    }
+    setCategory(''); // This calls loadInventory
 }
 
 /**
- * 3. Product Actions
+ * 4. MODAL & PRODUCT ACTIONS
  */
-productForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const data = {
-        name: document.getElementById('name').value,
-        quantity: document.getElementById('qty').value,
-        price: document.getElementById('price').value,
-        category: document.getElementById('category').value
-    };
 
-    await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    
-    productForm.reset();
-    loadInventory(); 
+// Event Delegation for the dynamic "Add Product" form
+document.addEventListener('submit', async (e) => {
+    if (e.target && e.target.id === 'productForm') {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('name').value,
+            quantity: document.getElementById('qty').value,
+            price: document.getElementById('price').value,
+            category: document.getElementById('category').value
+        };
+
+        const res = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            closeAddModal();
+            loadInventory();
+        }
+    }
 });
+
+function openAddModal() { document.getElementById('addModal').style.display = 'block'; }
+function closeAddModal() { 
+    document.getElementById('addModal').style.display = 'none';
+    document.getElementById('productForm').reset();
+}
 
 function openEditModal(id, name, qty, price, category) {
     document.getElementById('editId').value = id;
@@ -202,8 +201,10 @@ function openEditModal(id, name, qty, price, category) {
     document.getElementById('editQty').value = qty;
     document.getElementById('editPrice').value = price;
     document.getElementById('editCategory').value = category;
-    modal.style.display = 'block';
+    document.getElementById('editModal').style.display = 'block';
 }
+
+function closeModal() { document.getElementById('editModal').style.display = 'none'; }
 
 async function saveEdit() {
     const id = document.getElementById('editId').value;
@@ -214,67 +215,49 @@ async function saveEdit() {
         category: document.getElementById('editCategory').value
     };
 
-    const response = await fetch(`/api/products/${id}`, {
+    const res = await fetch(`/api/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
 
-    if (response.ok) {
-        closeModal();
-        loadInventory(); 
-    }
+    if (res.ok) { closeModal(); loadInventory(); }
 }
 
 async function deleteProduct(id) {
-    if(confirm('Delete this item?')) {
+    if (confirm('Permanently delete this item?')) {
         await fetch(`/api/products/${id}`, { method: 'DELETE' });
         loadInventory();
     }
 }
 
 async function restockProduct(id, currentQty) {
-    const newQty = Number(currentQty) + 10;
-    try {
-        const response = await fetch(`/api/products/restock/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quantity: newQty })
-        });
-
-        if (response.ok) {
-            loadInventory();
-        }
-    } catch (err) {
-        console.error("Restock failed:", err);
-    }
+    const response = await fetch(`/api/products/restock/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: Number(currentQty) + 10 })
+    });
+    if (response.ok) loadInventory();
 }
 
 /**
- * 4. UI Helpers
+ * 5. THEME & UTILS
  */
-function closeModal() {
-    modal.style.display = 'none';
-}
-
-window.onclick = (e) => { if (e.target == modal) closeModal(); };
-
 function toggleDarkMode() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    const btn = document.getElementById('themeToggle');
-
+    const targetTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', targetTheme);
     localStorage.setItem('theme', targetTheme);
-    
+    const btn = document.getElementById('themeToggle');
     if (btn) btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    const btn = document.getElementById('themeToggle');
-    if (btn) btn.innerText = savedTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-}
+// Global window clicks to close modals
+window.onclick = (e) => {
+    if (e.target.className === 'modal') {
+        closeModal();
+        closeAddModal();
+    }
+};
 
+// Start the App
 loadInventory();

@@ -8,165 +8,140 @@
 </head>
 <body>
 
-    <header>
-        <h1>Inventory Dashboard</h1>
-    </header>
+    <div class="dashboard-wrapper">
+        <div id="sidenav-placeholder"></div>
 
-    <main class="container">
-        <div class="stats-grid">
-            <div class="stat-tile">
-                <div class="tile-icon">📦</div>
-                <div class="tile-content">
-                    <h3>Total Items</h3>
-                    <p id="totalItems">0</p>
+        <main class="main-content">
+            <header>
+                <h1>Inventory Dashboard</h1>
+            </header>
+
+            <div class="action-bar">
+                <button class="add-main-btn" onclick="openAddModal()">➕ Add New Product</button>
+            </div>
+
+            <div id="filter-status-container" style="margin-bottom: 15px; display: none;">
+                <span class="filter-badge">
+                    <span id="active-filter-text">Showing filtered results</span>
+                    <button onclick="clearAllFilters()" class="clear-badge-btn">&times;</button>
+                </span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-tile">
+                    <div class="tile-icon">📦</div>
+                    <div class="tile-content">
+                        <h3>Total Items</h3>
+                        <p id="totalItems">0</p>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="tile-icon">💰</div>
+                    <div class="tile-content">
+                        <h3>Inventory Value</h3>
+                        <p id="totalValue">₱0.00</p>
+                    </div>
+                </div>
+                <div class="stat-tile alert-tile">
+                    <div class="tile-icon">⚠️</div>
+                    <div class="tile-content">
+                        <h3>Low Stock Alert</h3>
+                        <p id="lowStockCount">0</p>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="tile-icon">🥦</div>
+                    <div class="tile-content">
+                        <h3>Vegetables</h3>
+                        <p id="countVegetables">0</p>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="tile-icon">🍎</div>
+                    <div class="tile-content">
+                        <h3>Fruits</h3>
+                        <p id="countFruits">0</p>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="tile-icon">🛠️</div>
+                    <div class="tile-content">
+                        <h3>Supplies</h3>
+                        <p id="countSupplies">0</p>
+                    </div>
+                </div>
+                <div class="stat-tile">
+                    <div class="tile-icon">🥫</div>
+                    <div class="tile-content">
+                        <h3>Canned Goods</h3>
+                        <p id="countCanned">0</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-tile">
-                <div class="tile-icon">💰</div>
-                <div class="tile-content">
-                    <h3>Inventory Value</h3>
-                    <p id="totalValue">₱0.00</p>
+            <section class="table-controls">
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="🔍 Search product name...">
+                        <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
+                    </div>
+                    
+                    <div class="filter-buttons">
+                        <button type="button" class="filter-btn active-filter" onclick="setCategory('')">All</button>
+                        <button type="button" class="filter-btn" onclick="setCategory('Vegetables')">Vegetables</button>
+                        <button type="button" class="filter-btn" onclick="setCategory('Fruits')">Fruits</button>
+                        <button type="button" class="filter-btn" onclick="setCategory('Supplies')">Supplies</button>
+                        <button type="button" class="filter-btn" onclick="setCategory('Canned Goods')">Canned Goods</button>
+                        <button type="button" id="lowStockToggle" class="filter-btn warning" onclick="toggleLowStock()">Show Low Stock Only</button>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="stat-tile alert-tile">
-                <div class="tile-icon">⚠️</div>
-                <div class="tile-content">
-                    <h3>Low Stock Alert</h3>
-                    <p id="lowStockCount">0</p>
-                </div>
-            </div>
-            <div class="stat-tile">
-                <div class="tile-icon">🥦</div>
-                <div class="tile-content">
-                    <h3>Vegetables</h3>
-                    <p id="countVegetables">0</p>
-                </div>
-            </div>
-
-            <div class="stat-tile">
-                <div class="tile-icon">🍎</div>
-                <div class="tile-content">
-                    <h3>Fruits</h3>
-                    <p id="countFruits">0</p>
-                </div>
-            </div>
-
-            <div class="stat-tile">
-                <div class="tile-icon">🛠️</div>
-                <div class="tile-content">
-                    <h3>Supplies</h3>
-                    <p id="countSupplies">0</p>
-                </div>
-            </div>
-
-            <div class="stat-tile">
-                <div class="tile-icon">🥫</div>
-                <div class="tile-content">
-                    <h3>Canned Goods</h3>
-                    <p id="countCanned">0</p>
-                </div>
-            </div>
-        </div>
-
-        <section class="form-container">
-            <h3>Add New Product</h3>
-            <form id="productForm">
-                <input type="text" id="name" placeholder="Item Name" required>
-                <input type="number" id="qty" placeholder="Quantity" required>
-                <input type="number" id="price" placeholder="Price" step="0.01" required>
-                
-                <select id="category" required>
-                    <option value="" disabled selected>Select Category</option>
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Supplies">Supplies</option>
-                    <option value="Canned Goods">Canned Goods</option>
-                </select>
-
-                <button type="submit" class="add-btn">Add Item</button>
-            </form>
-        </section>
-
-        <hr>
-
-        <section class="table-controls">
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="🔍 Search product name...">
-                <button type="button" class="search-btn" onclick="filterInventory()">Search</button>
-                <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
-                
-                <hr> <div class="filter-buttons">
-                    <button type="button" class="filter-btn" onclick="setCategory('')">All</button>
-                    <button type="button" class="filter-btn" onclick="setCategory('Vegetables')">Vegetables</button>
-                    <button type="button" class="filter-btn" onclick="setCategory('Fruits')">Fruits</button>
-                    <button type="button" class="filter-btn" onclick="setCategory('Supplies')">Supplies</button>
-                    <button type="button" class="filter-btn" onclick="setCategory('Canned Goods')">Canned Goods</button>
-                    <button type="button" id="lowStockToggle" class="filter-btn warning" onclick="toggleLowStock()">Show Low Stock Only</button>
-                </div>
-            </div>
-
-            <div class="theme-switch-wrapper">
-                <button id="themeToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
-            </div>
-        </section>
-
-        <section class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Time</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="inventoryTable"></tbody>
-            </table>
-        </section>
-    </main>
-
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <h2>Edit Product</h2>
-            <hr>
-            <input type="hidden" id="editId">
-            
-            <div class="input-group">
-                <label for="editName">Product Name</label>
-                <input type="text" id="editName">
-            </div>
-            
-            <div class="input-group">
-                <label for="editCategory">Category</label>
-                <select id="editCategory">
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Supplies">Supplies</option>
-                    <option value="Canned Goods">Canned Goods</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="editQty">Quantity</label>
-                <input type="number" id="editQty">
-            </div>
-            
-            <div class="input-group">
-                <label for="editPrice">Price</label>
-                <input type="number" id="editPrice" step="0.01">
-            </div>
-            
-            <div class="modal-buttons">
-                <button class="save-btn" onclick="saveEdit()">Save Changes</button>
-                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
-            </div>
-        </div>
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable"></tbody>
+                </table>
+            </section>
+        </main>
     </div>
 
+    <div id="addModal-placeholder"></div>
+    <div id="editModal-placeholder"></div>
+
     <script src="js/main.js"></script>
+    <script>
+        async function loadComponent(id, path) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error(`Failed to load ${path}`);
+                const text = await response.text();
+                document.getElementById(id).innerHTML = text;
+                
+                // Trigger any necessary UI sync after components load
+                if (id === 'sidenav-placeholder') {
+                    const savedTheme = localStorage.getItem('theme') || 'light';
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                }
+            } catch (err) { 
+                console.error("Component Load Error:", err); 
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadComponent('sidenav-placeholder', 'components/sidenav.html');
+            loadComponent('addModal-placeholder', 'components/addModal.html');
+            loadComponent('editModal-placeholder', 'components/editModal.html');
+        });
+    </script>
 </body>
 </html>
