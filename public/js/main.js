@@ -41,7 +41,7 @@ async function loadInventory() {
 
         // --- UPDATE DASHBOARD UI ---
         document.getElementById('totalItems').innerText = totalItems;
-        document.getElementById('totalValue').innerText = `$${totalValue.toFixed(2)}`;
+        document.getElementById('totalValue').innerText = `₱${totalValue.toFixed(2)}`;
         
         const lowStockElement = document.getElementById('lowStockCount');
         const alertTile = lowStockElement.closest('.stat-tile');
@@ -75,26 +75,41 @@ async function loadInventory() {
 
         tableBody.innerHTML = products.map(p => {
             const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
+            const qty = Number(p.quantity);
+            
+            // Calculate stock health (Assume 50 is a "full" stock for the bar)
+            const maxStock = 50;
+            const percentage = Math.min((qty / maxStock) * 100, 100);
+            
+            // Determine bar color
+            let barClass = 'bar-high';
+            if (qty < 5) barClass = 'bar-low';
+            else if (qty < 15) barClass = 'bar-medium';
 
             return `
-                <tr class="${p.quantity < 5 ? 'low-stock' : ''}">
+                <tr class="${qty < 5 ? 'low-stock' : ''}">
                     <td>${p.name}</td>
                     <td>
                         <span class="badge badge-${categoryClass}">
                             ${p.category}
                         </span>
                     </td>
-                    <td>${p.quantity}</td>
-                    <td>$${Number(p.price).toFixed(2)}</td>
+                    <td>
+                        <strong>${qty}</strong>
+                        <div class="stock-bar-container">
+                            <div class="stock-bar-fill ${barClass}" style="width: ${percentage}%"></div>
+                        </div>
+                    </td>
+                    <td>₱${Number(p.price).toFixed(2)}</td>
                     <td style="font-size: 0.8rem; color: #888;">
                         ${p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Never'}
                     </td>
                     <td>
-                        <button class="restock-btn" onclick="restockProduct(${p.id}, ${p.quantity})">
+                        <button class="restock-btn" onclick="restockProduct(${p.id}, ${qty})">
                             Restock (+10)
                         </button>
                         <button class="edit-btn" 
-                            onclick="openEditModal(${p.id}, '${p.name}', ${p.quantity}, ${p.price}, '${p.category}')">
+                            onclick="openEditModal(${p.id}, '${p.name}', ${qty}, ${p.price}, '${p.category}')">
                             Edit
                         </button>
                         <button class="delete-btn" onclick="deleteProduct(${p.id})">Delete</button>
@@ -102,6 +117,8 @@ async function loadInventory() {
                 </tr>
             `;
         }).join('');
+
+        
 
     } catch (err) {
         console.error("Error loading inventory:", err);

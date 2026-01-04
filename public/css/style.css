@@ -210,3 +210,25 @@ td:nth-child(5) {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Progress Bar Container */
+.stock-bar-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    height: 8px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+/* The actual bar */
+.stock-bar-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+}
+
+/* Colors based on stock levels */
+.bar-low { background-color: #ff4d4d; }    /* Red */
+.bar-medium { background-color: #ffc107; } /* Orange/Yellow */
+.bar-high { background-color: #28a745; }   /* Green */
