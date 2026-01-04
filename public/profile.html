@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>My Profile - Inventory Pro</title>
+    <script>
+        // NAVIGATION GUARD
+        (function() {
+            if (!localStorage.getItem('currentUser')) window.location.href = 'login.html';
+        })();
+    </script>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div id="sidenav-placeholder"></div>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>👤 My Profile</h1>
+            </header>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <section class="table-card" style="padding: 25px;">
+                    <h2 style="margin-bottom: 15px;">Account Details</h2>
+                    <div class="profile-info-item">
+                        <label style="color: #888; font-size: 0.8rem;">Full Name</label>
+                        <p id="profFullName" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">-</p>
+                    </div>
+                    <div class="profile-info-item">
+                        <label style="color: #888; font-size: 0.8rem;">Username</label>
+                        <p id="profUsername" style="margin-bottom: 15px;">-</p>
+                    </div>
+                    <div class="profile-info-item">
+                        <label style="color: #888; font-size: 0.8rem;">Access Level</label>
+                        <div><span id="profRole" class="category-badge">-</span></div>
+                    </div>
+                </section>
+
+                <section class="table-card" style="padding: 25px;">
+                    <h2 style="margin-bottom: 15px;">Security</h2>
+                    <form id="passwordForm">
+                        <div class="input-group">
+                            <label>New Password</label>
+                            <input type="password" id="newPass" required placeholder="Enter new password">
+                        </div>
+                        <div class="input-group" style="margin-top: 15px;">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirmPass" required placeholder="Repeat new password">
+                        </div>
+                        <div id="passError" style="color: #dc3545; display: none; margin-top: 10px; font-size: 0.85rem;">
+                            ❌ Passwords do not match.
+                        </div>
+                        <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; justify-content: center;">
+                            Update Password
+                        </button>
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/profile.js"></script>
+    <script>
+        async function loadComponent(id, path) {
+            const res = await fetch(path);
+            const text = await res.text();
+            document.getElementById(id).innerHTML = text;
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            loadComponent('sidenav-placeholder', 'components/sidenav.html');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>User Management - Inventory Pro</title>
+    <script>
+        // SECURITY GUARD: Only Admins can view this page
+        (function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || user.role !== 'admin') {
+                alert("Access Denied: Admins Only");
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div id="sidenav-placeholder"></div>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div>
+                    <h1>🛡️ User Management</h1>
+                    <p style="color: #888;">Create and manage system access roles</p>
+                </div>
+                <button class="add-main-btn" onclick="document.getElementById('userModal').style.display='flex'">
+                    <span>➕</span> Create New User
+                </button>
+            </header>
+
+            <section class="table-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Create New Account</h2>
+                <span class="close-btn" onclick="document.getElementById('userModal').style.display='none'">&times;</span>
+            </header>
+            <form id="userForm">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="regUser" required placeholder="e.g. jdoe">
+                </div>
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regFullName" required placeholder="e.g. John Doe">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="regPass" required placeholder="••••••••">
+                </div>
+                <div class="input-group">
+                    <label>System Role</label>
+                    <select id="regRole">
+                        <option value="clerk">Clerk (Restock Only)</option>
+                        <option value="manager">Manager (Full Inventory Access)</option>
+                        <option value="admin">Admin (System Access)</option>
+                    </select>
+                </div>
+                <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; justify-content: center;">
+                    Save User Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/users_admin.js"></script>
+    <script>
+        // Standard component loader
+        async function loadComponent(id, path) {
+            const res = await fetch(path);
+            const text = await res.text();
+            document.getElementById(id).innerHTML = text;
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            loadComponent('sidenav-placeholder', 'components/sidenav.html');
+        });
+    </script>
+</body>
+</html>

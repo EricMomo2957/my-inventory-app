@@ -80,7 +80,7 @@ body {
 }
 
 .main-content {
-    margin-left: 50px;
+    margin-left: 250px;
     flex-grow: 1;
     padding: 40px;
     width: calc(100% - 250px);
@@ -739,3 +739,7 @@ td:nth-child(5) {
     background-color: #dc3545; /* Solid Red on hover */
     color: white;
 }
+
+.badge-admin { background-color: #ff4757; }   /* Red */
+.badge-manager { background-color: #5352ed; } /* Blue */
+.badge-clerk { background-color: #2ed573; }   /* Green */

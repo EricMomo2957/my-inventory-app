@@ -1,19 +1,22 @@
-// public/components/sidenav.html
-
 <nav class="sidenav">
     <div class="nav-header">
         <h2>Inventory Manager</h2>
     </div>
 
     <div class="nav-links">
-        <a href="#" class="active" onclick="setCategory('')">🏠 Dashboard</a>
-        <a href="#" onclick="setCategory('Vegetables')">🥦 Vegetables</a>
-        <a href="#" onclick="setCategory('Fruits')">🍎 Fruits</a>
-        <a href="#" onclick="setCategory('Supplies')">🛠️ Supplies</a>
-        <a href="#" onclick="setCategory('Canned Goods')">🥫 Canned Goods</a>
+        <p class="section-title">Main Menu</p>
+        <a href="index.html" class="active" onclick="setCategory('')">🏠 Dashboard</a>
+        <a href="calendar.html">📅 Calendar</a>
+        
+        <p class="section-title">User Account</p>
+        <a href="profile.html">👤 Profile</a>
+        <a href="settings.html">⚙️ Settings</a>
+        <a href="admin_management.html" style="color: #ff9f43;">🛡️ Admin Management</a>
     </div>
 
     <div class="nav-footer">
+        
+        </div>
         <button id="themeToggle" class="nav-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
         <button class="nav-btn logout-btn" onclick="logout()">🚪 Logout</button>
     </div>

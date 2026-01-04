@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Delivery Schedule - Inventory Pro</title>
+    <script>
+        (function() {
+            if (!localStorage.getItem('currentUser')) window.location.href = 'login.html';
+        })();
+    </script>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <div id="sidenav-placeholder"></div>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <h1>📅 Delivery & Task Schedule</h1>
+            </header>
+
+            <div style="display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start;">
+                
+                <section class="table-card" style="padding: 20px;">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem;">Add New Schedule</h2>
+                    <form id="scheduleForm">
+                        <div class="input-group">
+                            <label>Event/Delivery Name</label>
+                            <input type="text" id="schedTitle" placeholder="e.g. Bulk Fruit Arrival" required>
+                        </div>
+                        <div class="input-group" style="margin-top: 12px;">
+                            <label>Date</label>
+                            <input type="date" id="schedDate" required>
+                        </div>
+                        <div class="input-group" style="margin-top: 12px;">
+                            <label>Type</label>
+                            <select id="schedType">
+                                <option value="Delivery">🚚 Delivery</option>
+                                <option value="Inventory Check">📋 Inventory Check</option>
+                                <option value="Supplier Meeting">🤝 Supplier Meeting</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; justify-content: center;">
+                            Add to Calendar
+                        </button>
+                    </form>
+                </section>
+
+                <section class="table-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Event Name</th>
+                                    <th>Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/calendar.js"></script>
+    <script>
+        async function loadComponent(id, path) {
+            const res = await fetch(path);
+            const text = await res.text();
+            document.getElementById(id).innerHTML = text;
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            loadComponent('sidenav-placeholder', 'components/sidenav.html');
+        });
+    </script>
+</body>
+</html>
