@@ -5,14 +5,16 @@
         <h2>Inventory Manager</h2>
     </div>
 
-    <div>
+    <div class="nav-links">
         <a href="#" class="active" onclick="setCategory('')">🏠 Dashboard</a>
         <a href="#" onclick="setCategory('Vegetables')">🥦 Vegetables</a>
         <a href="#" onclick="setCategory('Fruits')">🍎 Fruits</a>
         <a href="#" onclick="setCategory('Supplies')">🛠️ Supplies</a>
         <a href="#" onclick="setCategory('Canned Goods')">🥫 Canned Goods</a>
     </div>
+
     <div class="nav-footer">
-        <button id="themeToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+        <button id="themeToggle" class="nav-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+        <button class="nav-btn logout-btn" onclick="logout()">🚪 Logout</button>
     </div>
 </nav>

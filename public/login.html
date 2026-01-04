@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Login - Inventory Manager Pro</title>
+</head>
+<body class="login-page-wrapper">
+    <div class="login-card">
+        <header>
+            <h1>Inventory Manager <span>Pro</span></h1>
+            <p>Enter your credentials to manage stock</p>
+        </header>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required placeholder="Enter username">
+            </div>
+            <div class="input-group" style="margin-top: 15px;">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <div id="loginError" class="error-msg" style="display: none; color: #dc3545; margin-top: 10px; font-size: 0.85rem;">
+                ❌ Invalid username or password.
+            </div>
+            <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 25px; justify-content: center;">
+                Sign In
+            </button>
+        </form>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>

@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <title>Inventory Manager Pro</title>
+    <script>
+        // NAVIGATION GUARD: Run this immediately before the page renders
+        (function() {
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
+                // No user found, redirect to login page immediately
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
 </head>
 <body>
 
@@ -12,20 +22,14 @@
         <div id="sidenav-placeholder"></div>
 
         <main class="main-content">
-            <header>
+            <header class="dashboard-header">
                 <h1>Inventory Dashboard</h1>
+                <div class="action-bar">
+                    <button class="add-main-btn" onclick="openAddModal()">
+                        <span class="btn-icon">➕</span> Add New Product
+                    </button>
+                </div>
             </header>
-
-            <div class="action-bar">
-                <button class="add-main-btn" onclick="openAddModal()">➕ Add New Product</button>
-            </div>
-
-            <div id="filter-status-container" style="margin-bottom: 15px; display: none;">
-                <span class="filter-badge">
-                    <span id="active-filter-text">Showing filtered results</span>
-                    <button onclick="clearAllFilters()" class="clear-badge-btn">&times;</button>
-                </span>
-            </div>
 
             <div class="stats-grid">
                 <div class="stat-tile">
@@ -51,66 +55,61 @@
                 </div>
                 <div class="stat-tile">
                     <div class="tile-icon">🥦</div>
-                    <div class="tile-content">
-                        <h3>Vegetables</h3>
-                        <p id="countVegetables">0</p>
-                    </div>
+                    <div class="tile-content"><h3>Vegetables</h3><p id="countVegetables">0</p></div>
                 </div>
                 <div class="stat-tile">
                     <div class="tile-icon">🍎</div>
-                    <div class="tile-content">
-                        <h3>Fruits</h3>
-                        <p id="countFruits">0</p>
-                    </div>
+                    <div class="tile-content"><h3>Fruits</h3><p id="countFruits">0</p></div>
                 </div>
                 <div class="stat-tile">
                     <div class="tile-icon">🛠️</div>
-                    <div class="tile-content">
-                        <h3>Supplies</h3>
-                        <p id="countSupplies">0</p>
-                    </div>
+                    <div class="tile-content"><h3>Supplies</h3><p id="countSupplies">0</p></div>
                 </div>
                 <div class="stat-tile">
                     <div class="tile-icon">🥫</div>
-                    <div class="tile-content">
-                        <h3>Canned Goods</h3>
-                        <p id="countCanned">0</p>
-                    </div>
+                    <div class="tile-content"><h3>Canned Goods</h3><p id="countCanned">0</p></div>
                 </div>
             </div>
 
             <section class="table-controls">
-                <div class="search-container">
+                <div class="controls-upper">
                     <div class="search-bar">
-                        <input type="text" id="searchInput" placeholder="🔍 Search product name...">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="Search product name..." onkeyup="handleSearch()">
                         <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
                     </div>
-                    
+                </div>
+
+                <div class="filter-row">
                     <div class="filter-buttons">
                         <button type="button" class="filter-btn active-filter" onclick="setCategory('')">All</button>
                         <button type="button" class="filter-btn" onclick="setCategory('Vegetables')">Vegetables</button>
                         <button type="button" class="filter-btn" onclick="setCategory('Fruits')">Fruits</button>
                         <button type="button" class="filter-btn" onclick="setCategory('Supplies')">Supplies</button>
                         <button type="button" class="filter-btn" onclick="setCategory('Canned Goods')">Canned Goods</button>
-                        <button type="button" id="lowStockToggle" class="filter-btn warning" onclick="toggleLowStock()">Show Low Stock Only</button>
                     </div>
+                    <button type="button" id="lowStockToggle" class="filter-btn warning-btn" onclick="toggleLowStock()">
+                        Show Low Stock Only
+                    </button>
                 </div>
             </section>
 
-            <section class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Category</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Time</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryTable"></tbody>
-                </table>
+            <section class="table-card">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTable"></tbody>
+                    </table>
+                </div>
             </section>
         </main>
     </div>
@@ -127,7 +126,6 @@
                 const text = await response.text();
                 document.getElementById(id).innerHTML = text;
                 
-                // Trigger any necessary UI sync after components load
                 if (id === 'sidenav-placeholder') {
                     const savedTheme = localStorage.getItem('theme') || 'light';
                     document.documentElement.setAttribute('data-theme', savedTheme);
