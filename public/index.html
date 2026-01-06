@@ -6,12 +6,17 @@
     <link rel="stylesheet" href="css/style.css">
     <title>Inventory Manager Pro</title>
     <script>
-        // NAVIGATION GUARD: Run this immediately before the page renders
+        // 1. AUTH & THEME GUARD: Run immediately before page renders
         (function() {
             const user = localStorage.getItem('currentUser');
             if (!user) {
-                // No user found, redirect to login page immediately
                 window.location.href = 'login.html';
+                return;
+            }
+
+            // Check for dark mode enabled in a previous session or tab
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark-mode');
             }
         })();
     </script>
@@ -126,9 +131,9 @@
                 const text = await response.text();
                 document.getElementById(id).innerHTML = text;
                 
-                if (id === 'sidenav-placeholder') {
-                    const savedTheme = localStorage.getItem('theme') || 'light';
-                    document.documentElement.setAttribute('data-theme', savedTheme);
+                // After sidebar loads, ensure body syncs with the dark-mode class
+                if (localStorage.getItem('darkMode') === 'enabled') {
+                    document.body.classList.add('dark-mode');
                 }
             } catch (err) { 
                 console.error("Component Load Error:", err); 
