@@ -300,6 +300,37 @@ function toggleDarkMode() {
     if (btn) btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
+async function restockProduct(id) {
+    const amount = prompt("Enter quantity to add to stock:");
+    if (amount === null) return;
+    
+    const increment = parseInt(amount);
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (isNaN(increment) || increment <= 0) {
+        alert("Please enter a valid positive number.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/products/restock/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                increment: increment,
+                user: user.full_name // Sending the current user's name
+            })
+        });
+
+        if (response.ok) {
+            loadInventory();
+            alert(`Successfully added ${increment} units!`);
+        }
+    } catch (err) {
+        console.error("Restock error:", err);
+    }
+}
+
 // Global click handler to close modals when clicking outside
 window.onclick = (e) => {
     if (e.target.classList.contains('modal')) {
@@ -307,6 +338,8 @@ window.onclick = (e) => {
         closeAddModal();
     }
 };
+
+
 
 // Start the application logic
 loadInventory();
