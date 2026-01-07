@@ -43,7 +43,7 @@
                             </tr>
                         </thead>
                         <tbody id="userTableBody">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -79,6 +79,41 @@
                 </div>
                 <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; justify-content: center;">
                     Save User Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Edit User Account</h2>
+                <span class="close-btn" onclick="document.getElementById('editUserModal').style.display='none'">&times;</span>
+            </header>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editFullName" required>
+                </div>
+                <div class="input-group">
+                    <label>New Password (Leave blank to keep current)</label>
+                    <input type="password" id="editPassword" placeholder="••••••••">
+                </div>
+                <div class="input-group">
+                    <label>System Role</label>
+                    <select id="editRole">
+                        <option value="clerk">Clerk (Restock Only)</option>
+                        <option value="manager">Manager (Full Inventory Access)</option>
+                        <option value="admin">Admin (System Access)</option>
+                    </select>
+                </div>
+                <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; background: #4361ee; justify-content: center;">
+                    Update User Account
                 </button>
             </form>
         </div>

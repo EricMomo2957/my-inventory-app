@@ -181,11 +181,19 @@ function closeEditModal() {
 }
 
 // Handle Update Submission
+// Optimized Update Logic in public/js/calendar.js
 const editForm = document.getElementById('editForm');
 if (editForm) {
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Ensure we are getting the ID correctly from the hidden field
         const id = document.getElementById('editId').value;
+        if (!id) {
+            alert("Error: Missing event ID");
+            return;
+        }
+
         const payload = {
             title: document.getElementById('editTitle').value,
             date: document.getElementById('editDate').value,
@@ -201,14 +209,15 @@ if (editForm) {
 
             if (res.ok) {
                 closeEditModal();
-                calendar.refetchEvents();
+                // Refresh both views immediately
+                if (calendar) calendar.refetchEvents();
                 loadScheduleTable();
             } else {
-                const errData = await res.json();
-                alert("Update failed: " + (errData.error || "Unknown error"));
+                const errorData = await res.json();
+                console.error("Update failed:", errorData);
             }
         } catch (err) {
-            console.error("Update error:", err);
+            console.error("Network or Server error:", err);
         }
     });
 }
