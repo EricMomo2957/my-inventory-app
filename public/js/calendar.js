@@ -1,7 +1,12 @@
-
 let calendar; // Global calendar variable
 
+/**
+ * 1. INITIALIZATION & THEME
+ * Setup the calendar and apply dark mode immediately
+ */
 document.addEventListener('DOMContentLoaded', function() {
+    applyCurrentTheme();
+    
     const calendarEl = document.getElementById('calendar');
     
     // Initialize FullCalendar
@@ -17,34 +22,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 const res = await fetch('/api/schedules');
                 const data = await res.json();
                 
-                // Map your DB data to FullCalendar format
+                // Map DB data to FullCalendar format using 'date' field
                 const events = data.map(item => ({
                     id: item.id,
                     title: item.title,
-                    start: item.date, // Must be YYYY-MM-DD
-                    extendedProps: { type: item.type },
-                    backgroundColor: item.type === 'Delivery' ? '#4361ee' : '#f72585'
+                    start: item.date, 
+                    backgroundColor: getColorByType(item.type),
+                    borderColor: getColorByType(item.type),
+                    extendedProps: { type: item.type }
                 }));
                 successCallback(events);
-            } catch (err) { failureCallback(err); }
+            } catch (err) { 
+                console.error("Calendar fetch error:", err);
+                failureCallback(err); 
+            }
         }
     });
     
     calendar.render();
+    loadScheduleTable(); // Initial load of the table below
 });
 
-// Update your existing Add Event function to refresh the calendar
-async function refreshDisplay() {
-    // 1. Refresh your table (existing logic)
-    loadScheduleTable(); 
-    
-    // 2. Refresh the visual calendar
-    if (calendar) calendar.refetchEvents();
+/**
+ * 2. HELPER: COLOR LOGIC
+ */
+function getColorByType(type) {
+    switch(type) {
+        case 'Work': return '#4361ee';      // Blue
+        case 'Personal': return '#28c76f';  // Green
+        case 'Delivery': return '#ff9f43';  // Orange
+        case 'Inventory Check': return '#f72585'; // Pink
+        default: return '#6e6b7b';          // Gray
+    }
 }
 
 /**
- * THEME INITIALIZATION
- * Apply dark mode immediately based on localStorage state
+ * 3. THEME MANAGEMENT
  */
 function applyCurrentTheme() {
     const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
@@ -55,57 +68,52 @@ function applyCurrentTheme() {
     }
 }
 
-// Run theme check immediately
-applyCurrentTheme();
-
-// Target DOM elements
-const scheduleForm = document.getElementById('scheduleForm');
-const scheduleTableBody = document.getElementById('scheduleTableBody');
-
 /**
- * FETCH AND DISPLAY SCHEDULES
- * Gets data from MySQL and renders it with color-coded badges
+ * 4. FETCH AND DISPLAY TABLE
+ * Uses item.date to render the list rows and includes Edit/Delete actions
  */
-async function loadSchedules() {
+async function loadScheduleTable() {
+    const tableBody = document.getElementById('scheduleTableBody');
+    if (!tableBody) return;
+
     try {
         const res = await fetch('/api/schedules');
-        const schedules = await res.json();
+        const data = await res.json();
         
-        if (!scheduleTableBody) return;
-
-        // Render rows with dynamic badge classes based on type
-        // Replace the mapping logic inside loadSchedules()
-        scheduleTableBody.innerHTML = schedules.map(s => {
-            // Standardize the type for the CSS class (Removes spaces and converts to lowercase)
-            const typeClass = s.type.toLowerCase().replace(/\s+/g, '-');
-
+        tableBody.innerHTML = data.map(item => {
+            // Escape single quotes in title to prevent JS errors in the onclick string
+            const escapedTitle = item.title.replace(/'/g, "\\'");
+            
             return `
                 <tr>
-                    <td><strong>${new Date(s.schedule_date).toLocaleDateString()}</strong></td>
-                    <td>${s.title}</td>
-                    <td><span class="category-badge badge-${typeClass}">${s.type}</span></td>
+                    <td>${new Date(item.date).toLocaleDateString()}</td>
+                    <td><strong>${item.title}</strong></td>
+                    <td><span class="category-badge">${item.type}</span></td>
                     <td style="text-align: right;">
-                        <button class="btn-table delete-btn" onclick="deleteSchedule(${s.id})">🗑️ Remove</button>
+                        <button class="btn-table" style="background: #4361ee; color: white; margin-right: 5px;" 
+                            onclick="openEditModal(${item.id}, '${escapedTitle}', '${item.date}', '${item.type}')">✏️ Edit</button>
+                        <button class="btn-table delete-btn" onclick="deleteSchedule(${item.id})">🗑️ Remove</button>
                     </td>
                 </tr>
             `;
         }).join('');
     } catch (err) {
-        console.error("Error loading schedules:", err);
+        console.error("Error loading table:", err);
     }
 }
 
 /**
- * SAVE NEW SCHEDULE
- * Sends form data to the Node.js backend
+ * 5. SAVE NEW ENTRY
+ * Sends 'date' to the backend and refreshes the UI
  */
+const scheduleForm = document.getElementById('scheduleForm');
 if (scheduleForm) {
     scheduleForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const data = {
+        const payload = {
             title: document.getElementById('schedTitle').value,
-            schedule_date: document.getElementById('schedDate').value,
+            date: document.getElementById('schedDate').value,
             type: document.getElementById('schedType').value
         };
 
@@ -113,26 +121,25 @@ if (scheduleForm) {
             const res = await fetch('/api/schedules', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
                 scheduleForm.reset();
-                loadSchedules();
+                calendar.refetchEvents();
+                loadScheduleTable();
             } else {
                 const errData = await res.json();
-                alert("Failed to save: " + (errData.error || "Check server logs"));
+                alert("Error: " + (errData.error || "Failed to save"));
             }
         } catch (err) {
-            console.error("Connection error:", err);
-            alert("Could not connect to server. Ensure backend is running.");
+            console.error("Submission error:", err);
         }
     });
 }
 
 /**
- * DELETE SCHEDULE
- * Removes the entry from the database
+ * 6. DELETE ENTRY
  */
 async function deleteSchedule(id) {
     if (confirm("Are you sure you want to delete this event?")) {
@@ -142,7 +149,8 @@ async function deleteSchedule(id) {
             });
             
             if (res.ok) {
-                loadSchedules();
+                calendar.refetchEvents();
+                loadScheduleTable();
             } else {
                 alert("Failed to delete entry.");
             }
@@ -152,5 +160,55 @@ async function deleteSchedule(id) {
     }
 }
 
-// Initial load when page opens
-loadSchedules();
+/**
+ * 7. EDIT LOGIC
+ */
+async function openEditModal(id, title, date, type) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editTitle').value = title;
+    
+    // Format date to YYYY-MM-DD specifically for the <input type="date"> field
+    const dateObj = new Date(date);
+    const formattedDate = dateObj.toISOString().split('T')[0];
+    
+    document.getElementById('editDate').value = formattedDate;
+    document.getElementById('editType').value = type;
+    document.getElementById('editModal').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Handle Update Submission
+const editForm = document.getElementById('editForm');
+if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const payload = {
+            title: document.getElementById('editTitle').value,
+            date: document.getElementById('editDate').value,
+            type: document.getElementById('editType').value
+        };
+
+        try {
+            const res = await fetch(`/api/schedules/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeEditModal();
+                calendar.refetchEvents();
+                loadScheduleTable();
+            } else {
+                const errData = await res.json();
+                alert("Update failed: " + (errData.error || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("Update error:", err);
+        }
+    });
+}

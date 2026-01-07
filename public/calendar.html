@@ -26,6 +26,19 @@
         }
         .fc-toolbar-title { font-size: 1.2rem !important; font-weight: bold; }
         .fc-button-primary { background-color: #4361ee !important; border: none !important; }
+        
+        /* Modal Backdrop */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
     </style>
 </head>
 <body>
@@ -60,6 +73,8 @@
                         <div class="input-group" style="margin-top: 15px;">
                             <label>Event Type</label>
                             <select id="schedType">
+                                <option value="Work">💼 Work Task</option>
+                                <option value="Personal">🧘 Personal</option>
                                 <option value="Delivery">🚚 Delivery</option>
                                 <option value="Inventory Check">📋 Inventory Check</option>
                                 <option value="Supplier Meeting">🤝 Supplier Meeting</option>
@@ -91,9 +106,41 @@
         </main>
     </div>
 
+    <div id="editModal" class="modal">
+        <div class="table-card" style="margin: 10% auto; width: 400px; padding: 25px; position: relative;">
+            <h2 style="margin-bottom: 20px;">Edit Schedule</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="input-group">
+                    <label>Event Name</label>
+                    <input type="text" id="editTitle" required>
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Date</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Event Type</label>
+                    <select id="editType">
+                        <option value="Work">💼 Work Task</option>
+                        <option value="Personal">🧘 Personal</option>
+                        <option value="Delivery">🚚 Delivery</option>
+                        <option value="Inventory Check">📋 Inventory Check</option>
+                        <option value="Supplier Meeting">🤝 Supplier Meeting</option>
+                    </select>
+                </div>
+                <div style="margin-top: 25px; display: flex; gap: 10px;">
+                    <button type="submit" class="add-main-btn" style="flex: 1; justify-content: center;">Update</button>
+                    <button type="button" onclick="closeEditModal()" class="btn-table" style="flex: 1; background: #666; color: white; border: none;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script src="js/calendar.js"></script>
     <script>
+        // Component Loader for Sidebar
         async function loadComponent(id, path) {
             try {
                 const res = await fetch(path);
@@ -105,6 +152,11 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadComponent('sidenav-placeholder', 'components/sidenav.html');
         });
+
+        // Modal Close Helper (defined here so it's globally accessible)
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
