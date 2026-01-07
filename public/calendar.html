@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <title>Delivery Schedule - Inventory Pro</title>
     <script>
-        // 1. PREVENT WHITE FLASH: Apply dark mode before body renders
         (function() {
             if (!localStorage.getItem('currentUser')) window.location.href = 'login.html';
             if (localStorage.getItem('darkMode') === 'enabled') {
@@ -14,6 +14,19 @@
             }
         })();
     </script>
+    <style>
+        /* Specific tweaks for the visual calendar */
+        #calendar {
+            background: var(--card-bg, #fff);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            color: var(--text-color, #333);
+        }
+        .fc-toolbar-title { font-size: 1.2rem !important; font-weight: bold; }
+        .fc-button-primary { background-color: #4361ee !important; border: none !important; }
+    </style>
 </head>
 <body>
     <div class="dashboard-wrapper">
@@ -26,6 +39,8 @@
                     <p style="color: #888;">Manage upcoming stock arrivals and team tasks</p>
                 </div>
             </header>
+
+            <div id="calendar"></div>
 
             <div class="calendar-grid" style="display: grid; grid-template-columns: 350px 1fr; gap: 20px; align-items: start;">
                 
@@ -68,8 +83,7 @@
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="scheduleTableBody">
-                                </tbody>
+                            <tbody id="scheduleTableBody"></tbody>
                         </table>
                     </div>
                 </section>
@@ -77,22 +91,15 @@
         </main>
     </div>
 
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
     <script src="js/calendar.js"></script>
     <script>
-        // Component Loader for Sidenav
         async function loadComponent(id, path) {
             try {
                 const res = await fetch(path);
                 const text = await res.text();
                 document.getElementById(id).innerHTML = text;
-                
-                // Re-check dark mode after sidenav loads
-                if (localStorage.getItem('darkMode') === 'enabled') {
-                    document.body.classList.add('dark-mode');
-                }
-            } catch (err) {
-                console.error("Sidebar failed to load", err);
-            }
+            } catch (err) { console.error("Sidebar failed", err); }
         }
 
         window.addEventListener('DOMContentLoaded', () => {

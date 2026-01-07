@@ -1,3 +1,47 @@
+
+let calendar; // Global calendar variable
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    
+    // Initialize FullCalendar
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const res = await fetch('/api/schedules');
+                const data = await res.json();
+                
+                // Map your DB data to FullCalendar format
+                const events = data.map(item => ({
+                    id: item.id,
+                    title: item.title,
+                    start: item.date, // Must be YYYY-MM-DD
+                    extendedProps: { type: item.type },
+                    backgroundColor: item.type === 'Delivery' ? '#4361ee' : '#f72585'
+                }));
+                successCallback(events);
+            } catch (err) { failureCallback(err); }
+        }
+    });
+    
+    calendar.render();
+});
+
+// Update your existing Add Event function to refresh the calendar
+async function refreshDisplay() {
+    // 1. Refresh your table (existing logic)
+    loadScheduleTable(); 
+    
+    // 2. Refresh the visual calendar
+    if (calendar) calendar.refetchEvents();
+}
+
 /**
  * THEME INITIALIZATION
  * Apply dark mode immediately based on localStorage state
