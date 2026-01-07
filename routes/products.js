@@ -8,9 +8,7 @@ const db = require('../config/db');
 router.get('/', async (req, res) => {
     try {
         const searchTerm = req.query.search || '';
-        // Using LOWER() ensures "T-shirt" matches "t-shirt" regardless of DB settings
         const sql = 'SELECT * FROM products WHERE LOWER(name) LIKE LOWER(?) ORDER BY id DESC';
-        
         const [rows] = await db.query(sql, [`%${searchTerm}%`]);
         res.json(rows);
     } catch (err) {
@@ -26,7 +24,6 @@ router.post('/', async (req, res) => {
     try {
         const { name, quantity, price, category } = req.body;
         const sql = 'INSERT INTO products (name, quantity, price, category) VALUES (?, ?, ?, ?)';
-        
         await db.query(sql, [name, quantity, price, category]);
         res.status(201).send('Product added successfully');
     } catch (err) {
@@ -43,7 +40,6 @@ router.put('/:id', async (req, res) => {
         const { id } = req.params;
         const { name, quantity, price, category } = req.body;
         const sql = 'UPDATE products SET name = ?, quantity = ?, price = ?, category = ? WHERE id = ?';
-        
         const [result] = await db.query(sql, [name, quantity, price, category, id]);
         
         if (result.affectedRows === 0) {
@@ -69,21 +65,38 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ error: "Failed to delete product" });
     }
 });
+
 /**
- * 5. PATCH (Quick Restock)
- * Only updates the quantity field
+ * 5. PATCH (Quick Restock + History Logging)
  */
 router.patch('/restock/:id', async (req, res) => {
+    const productId = req.params.id;
+    const { increment, user } = req.body;
+
+    // Validation
+    if (!increment || isNaN(increment) || increment <= 0) {
+        return res.status(400).json({ error: "Invalid increment value" });
+    }
+
     try {
-        const { id } = req.params;
-        const { quantity } = req.body;
-        const sql = 'UPDATE products SET quantity = ? WHERE id = ?';
-        
-        await db.query(sql, [quantity, id]);
-        res.send('Restocked successfully');
+        // SQL 1: Update the quantity
+        const updateSql = 'UPDATE products SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?';
+        // SQL 2: Log the change in history
+        const historySql = 'INSERT INTO stock_history (product_id, user_name, change_amount, action_type) VALUES (?, ?, ?, "restock")';
+
+        const [result] = await db.query(updateSql, [increment, productId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // Log the activity
+        await db.query(historySql, [productId, user || 'Unknown User', increment]);
+
+        res.send('Restock logged and updated successfully');
     } catch (err) {
-        console.error("Restock Route Error:", err);
-        res.status(500).json({ error: "Restock failed" });
+        console.error("Restock Error:", err);
+        res.status(500).json({ error: "Restock operation failed" });
     }
 });
 

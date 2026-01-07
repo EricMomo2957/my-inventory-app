@@ -61,6 +61,16 @@
             border-color: #9ca3af;
         }
 
+        /* User Pill for History Log */
+        .user-pill {
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
         /* Specific Badge Colors for Schedule */
         .badge-supplier-meeting { background-color: #ff5e5e !important; color: white !important; }
         .badge-inventory-check { background-color: #00d4ff !important; color: white !important; }
@@ -188,6 +198,27 @@
                     </div>
                 </section>
             </div>
+
+            <section class="table-card" style="margin-top: 30px;">
+                <div class="mini-table-header">
+                    <h2>📜 Recent Restock Activity</h2>
+                    <button class="view-all-link" onclick="loadRestockHistory()" style="background:none; border:none; cursor:pointer;">🔄 Refresh Log</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Product</th>
+                                <th>Added Qty</th>
+                                <th>Processed By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -203,26 +234,17 @@
                 if (!response.ok) throw new Error(`Failed to load ${path}`);
                 const text = await response.text();
                 document.getElementById(id).innerHTML = text;
-                
-                if (localStorage.getItem('darkMode') === 'enabled') {
-                    document.body.classList.add('dark-mode');
-                }
             } catch (err) { console.error("Component Load Error:", err); }
         }
 
         // --- CLEAR SEARCH FUNCTION ---
         function clearSearch() {
             const searchInput = document.getElementById('searchInput');
-            searchInput.value = ''; // Reset input text
-            
-            // Trigger the search handler to refresh the table
-            if (typeof handleSearch === "function") {
-                handleSearch(); 
-            } else if (typeof fetchInventory === "function") {
-                fetchInventory(); // Fallback to full fetch
+            searchInput.value = '';
+            if (typeof loadInventory === "function") {
+                loadInventory(); 
             }
-            
-            searchInput.focus(); // Return focus to input
+            searchInput.focus();
         }
 
         // --- DASHBOARD API LOADERS ---
@@ -236,7 +258,7 @@
                 const schedules = await schedRes.json();
                 const users = await userRes.json();
 
-                // 1. Schedule Table
+                // 1. Render Schedules
                 document.getElementById('dashboardScheduleTable').innerHTML = schedules.slice(0, 5).map(s => {
                     const rawDate = s.date || s.event_date;
                     const dateObj = new Date(rawDate);
@@ -252,7 +274,7 @@
                     `;
                 }).join('');
 
-                // 2. User Table
+                // 2. Render Users
                 document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => `
                     <tr>
                         <td>${u.full_name || 'User'}</td>
@@ -270,9 +292,11 @@
             loadComponent('sidenav-placeholder', 'components/sidenav.html');
             loadComponent('addModal-placeholder', 'components/addModal.html');
             loadComponent('editModal-placeholder', 'components/editModal.html');
-            loadDashboardSummaries();
             
-            if (typeof fetchInventory === "function") fetchInventory();
+            // Core Data Loads
+            loadDashboardSummaries();
+            if (typeof loadInventory === "function") loadInventory();
+            if (typeof loadRestockHistory === "function") loadRestockHistory();
         });
     </script>
 </body>

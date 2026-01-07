@@ -1,14 +1,9 @@
 /**
  * GLOBAL STATE & SELECTORS
  */
-const tableBody = document.getElementById('inventoryTable');
 let currentCategory = ''; 
 let showLowStockOnly = false;
 let debounceTimer;
-
-/**
- * 1. SECURITY & ROLE HELPERS
- */
 
 // Immediate security check
 const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -16,6 +11,9 @@ if (!currentUser && !window.location.pathname.includes('login.html')) {
     window.location.href = 'login.html';
 }
 
+/**
+ * 1. SECURITY & ROLE HELPERS
+ */
 function applyRolePermissions() {
     if (!currentUser) return;
     const role = currentUser.role;
@@ -43,9 +41,8 @@ function logout() {
 }
 
 /**
- * 2. FORMATTING HELPERS
+ * 2. FORMATTING & UI HELPERS
  */
-
 function formatCurrency(amount) {
     return "₱" + Number(amount).toLocaleString('en-PH', {
         minimumFractionDigits: 2,
@@ -60,12 +57,10 @@ function updateFilterStatusBadge() {
 
     if (currentCategory !== '' || searchTerm !== '' || showLowStockOnly) {
         if (statusContainer) statusContainer.style.display = 'block';
-        
         let message = "Applied: ";
         if (currentCategory) message += ` [${currentCategory}]`;
         if (searchTerm) message += ` "${searchTerm}"`;
         if (showLowStockOnly) message += ` [Low Stock]`;
-        
         if (filterText) filterText.innerText = message;
     } else {
         if (statusContainer) statusContainer.style.display = 'none';
@@ -93,14 +88,14 @@ async function loadInventory() {
             if (counts.hasOwnProperty(p.category)) counts[p.category] += qty;
         });
 
-        // UPDATE UI
-        document.getElementById('totalItems').innerText = totalItems;
-        document.getElementById('totalValue').innerText = formatCurrency(totalValue);
-        document.getElementById('lowStockCount').innerText = lowStockCount;
-        document.getElementById('countVegetables').innerText = counts.Vegetables;
-        document.getElementById('countFruits').innerText = counts.Fruits;
-        document.getElementById('countSupplies').innerText = counts.Supplies;
-        document.getElementById('countCanned').innerText = counts["Canned Goods"];
+        // UPDATE UI TILES
+        if(document.getElementById('totalItems')) document.getElementById('totalItems').innerText = totalItems;
+        if(document.getElementById('totalValue')) document.getElementById('totalValue').innerText = formatCurrency(totalValue);
+        if(document.getElementById('lowStockCount')) document.getElementById('lowStockCount').innerText = lowStockCount;
+        if(document.getElementById('countVegetables')) document.getElementById('countVegetables').innerText = counts.Vegetables;
+        if(document.getElementById('countFruits')) document.getElementById('countFruits').innerText = counts.Fruits;
+        if(document.getElementById('countSupplies')) document.getElementById('countSupplies').innerText = counts.Supplies;
+        if(document.getElementById('countCanned')) document.getElementById('countCanned').innerText = counts["Canned Goods"];
 
         // APPLY FILTERS
         if (currentCategory !== '') products = products.filter(p => p.category === currentCategory);
@@ -108,6 +103,8 @@ async function loadInventory() {
 
         // RENDER TABLE
         const tableBody = document.getElementById('inventoryTable');
+        if (!tableBody) return;
+
         if (products.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:50px; color:#888;">🔍 No matching products found.</td></tr>`;
         } else {
@@ -129,10 +126,10 @@ async function loadInventory() {
                         </td>
                         <td>${formatCurrency(p.price)}</td>
                         <td style="font-size: 0.75rem; color: #888;">
-                            ${p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Never'}
+                            ${p.updated_at || p.last_updated ? new Date(p.updated_at || p.last_updated).toLocaleString() : 'Never'}
                         </td>
                         <td class="action-cell">
-                            <button class="btn-table restock-btn" onclick="restockProduct(${p.id}, ${qty})">
+                            <button class="btn-table restock-btn" onclick="restockProduct(${p.id})">
                                 <span>🔄</span> Restock
                             </button>
                             <button class="btn-table edit-btn" onclick="openEditModal(${p.id}, '${p.name}', ${qty}, ${p.price}, '${p.category}')">
@@ -155,10 +152,42 @@ async function loadInventory() {
 }
 
 /**
- * 4. FILTER & SEARCH HANDLERS
+ * 4. RESTOCK HISTORY LOGIC
  */
+async function loadRestockHistory() {
+    try {
+        const res = await fetch('/api/history');
+        const history = await res.json();
+        
+        const historyTable = document.getElementById('historyTable');
+        if (!historyTable) return;
 
-// Handle the input event for real-time search
+        if (history.length === 0) {
+            historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#888;">No recent activity.</td></tr>`;
+            return;
+        }
+
+        historyTable.innerHTML = history.map(item => {
+            const date = new Date(item.created_at);
+            return `
+                <tr>
+                    <td style="font-size: 0.85rem; color: #666;">
+                        ${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </td>
+                    <td><strong>${item.product_name}</strong></td>
+                    <td><span style="color: #28c76f; font-weight: bold;">+${item.change_amount}</span></td>
+                    <td><span class="user-pill">${item.user_name}</span></td>
+                </tr>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error("Failed to load history:", err);
+    }
+}
+
+/**
+ * 5. FILTER & SEARCH HANDLERS
+ */
 document.addEventListener('input', (e) => {
     if (e.target.id === 'searchInput') {
         clearTimeout(debounceTimer);
@@ -169,7 +198,6 @@ document.addEventListener('input', (e) => {
 function setCategory(category) {
     currentCategory = category;
     document.querySelectorAll('.filter-btn').forEach(btn => {
-        // Match by text content to toggle active class
         btn.classList.toggle('active-filter', 
             (category === '' && btn.innerText === 'All') || btn.innerText === category
         );
@@ -187,24 +215,47 @@ function toggleLowStock() {
     loadInventory();
 }
 
-function clearAllFilters() {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) searchInput.value = '';
-    currentCategory = '';
-    showLowStockOnly = false;
+/**
+ * 6. PRODUCT ACTIONS (ADD, EDIT, DELETE, RESTOCK)
+ */
+async function restockProduct(id) {
+    const amount = prompt("Enter quantity to add to stock:");
+    if (amount === null) return;
     
-    const lowStockBtn = document.getElementById('lowStockToggle');
-    if (lowStockBtn) {
-        lowStockBtn.innerText = "Show Low Stock Only";
-        lowStockBtn.classList.remove('active-filter');
+    const increment = parseInt(amount);
+    if (isNaN(increment) || increment <= 0) {
+        alert("Please enter a valid positive number.");
+        return;
     }
-    setCategory(''); 
+
+    try {
+        const response = await fetch(`/api/products/restock/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                increment: increment,
+                user: currentUser.full_name 
+            })
+        });
+
+        if (response.ok) {
+            loadInventory();
+            loadRestockHistory(); // Refresh the log immediately
+            alert(`Successfully added ${increment} units!`);
+        }
+    } catch (err) {
+        console.error("Restock error:", err);
+    }
 }
 
-/**
- * 5. MODAL & PRODUCT ACTIONS
- */
+async function deleteProduct(id) {
+    if (confirm('Permanently delete this item?')) {
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        loadInventory();
+    }
+}
 
+// Global listener for Product Form (Add New)
 document.addEventListener('submit', async (e) => {
     if (e.target && e.target.id === 'productForm') {
         e.preventDefault();
@@ -228,17 +279,13 @@ document.addEventListener('submit', async (e) => {
     }
 });
 
-function openAddModal() { 
-    const modal = document.getElementById('addModal');
-    if (modal) modal.style.display = 'flex'; 
-}
-
+/**
+ * 7. MODAL CONTROL & THEME
+ */
+function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
 function closeAddModal() { 
-    const modal = document.getElementById('addModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.getElementById('productForm')?.reset();
-    }
+    document.getElementById('addModal').style.display = 'none';
+    document.getElementById('productForm')?.reset();
 }
 
 function openEditModal(id, name, qty, price, category) {
@@ -250,10 +297,7 @@ function openEditModal(id, name, qty, price, category) {
     document.getElementById('editModal').style.display = 'flex';
 }
 
-function closeModal() { 
-    const modal = document.getElementById('editModal');
-    if (modal) modal.style.display = 'none'; 
-}
+function closeModal() { document.getElementById('editModal').style.display = 'none'; }
 
 async function saveEdit() {
     const id = document.getElementById('editId').value;
@@ -273,65 +317,7 @@ async function saveEdit() {
     if (res.ok) { closeModal(); loadInventory(); }
 }
 
-async function deleteProduct(id) {
-    if (confirm('Permanently delete this item?')) {
-        await fetch(`/api/products/${id}`, { method: 'DELETE' });
-        loadInventory();
-    }
-}
-
-async function restockProduct(id, currentQty) {
-    const response = await fetch(`/api/products/restock/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quantity: Number(currentQty) + 10 })
-    });
-    if (response.ok) loadInventory();
-}
-
-/**
- * 6. THEME & INITIALIZATION
- */
-function toggleDarkMode() {
-    const targetTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', targetTheme);
-    localStorage.setItem('theme', targetTheme);
-    const btn = document.getElementById('themeToggle');
-    if (btn) btn.innerText = targetTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
-}
-
-async function restockProduct(id) {
-    const amount = prompt("Enter quantity to add to stock:");
-    if (amount === null) return;
-    
-    const increment = parseInt(amount);
-    const user = JSON.parse(localStorage.getItem('currentUser'));
-
-    if (isNaN(increment) || increment <= 0) {
-        alert("Please enter a valid positive number.");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/products/restock/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                increment: increment,
-                user: user.full_name // Sending the current user's name
-            })
-        });
-
-        if (response.ok) {
-            loadInventory();
-            alert(`Successfully added ${increment} units!`);
-        }
-    } catch (err) {
-        console.error("Restock error:", err);
-    }
-}
-
-// Global click handler to close modals when clicking outside
+// Global click handler for modals
 window.onclick = (e) => {
     if (e.target.classList.contains('modal')) {
         closeModal();
@@ -339,7 +325,10 @@ window.onclick = (e) => {
     }
 };
 
-
-
-// Start the application logic
-loadInventory();
+/**
+ * 8. INITIALIZATION
+ */
+window.addEventListener('DOMContentLoaded', () => {
+    loadInventory();
+    loadRestockHistory();
+});
