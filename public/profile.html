@@ -6,11 +6,50 @@
     <link rel="stylesheet" href="css/style.css">
     <title>My Profile - Inventory Pro</title>
     <script>
-        // NAVIGATION GUARD
+        // NAVIGATION GUARD: Keep this at the top
         (function() {
             if (!localStorage.getItem('currentUser')) window.location.href = 'login.html';
         })();
     </script>
+    <style>
+        .profile-header-card {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .profile-avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+        }
+        #profileImg {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .upload-hint {
+            font-size: 0.75rem;
+            color: #4361ee;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .profile-details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .profile-details-table td {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .profile-details-table .label { color: #888; width: 30%; }
+    </style>
 </head>
 <body>
     <div class="dashboard-wrapper">
@@ -21,21 +60,27 @@
                 <h1>👤 My Profile</h1>
             </header>
 
+            <div class="profile-header-card">
+                <div class="profile-avatar-container">
+                    <img src="assets/default-avatar.png" id="profileImg" alt="Profile">
+                    <input type="file" id="imageUpload" hidden accept="image/*">
+                </div>
+                <h2 id="displayHeaderName">User Name</h2>
+                <p class="upload-hint" onclick="document.getElementById('imageUpload').click()">Change Photo</p>
+                <button class="add-main-btn" style="margin: 20px auto; display: block; background: #f0f2f5; color: #333;" 
+                        onclick="openEditProfileModal()">Edit Profile</button>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <section class="table-card" style="padding: 25px;">
-                    <h2 style="margin-bottom: 15px;">Account Details</h2>
-                    <div class="profile-info-item">
-                        <label style="color: #888; font-size: 0.8rem;">Full Name</label>
-                        <p id="profFullName" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">-</p>
-                    </div>
-                    <div class="profile-info-item">
-                        <label style="color: #888; font-size: 0.8rem;">Username</label>
-                        <p id="profUsername" style="margin-bottom: 15px;">-</p>
-                    </div>
-                    <div class="profile-info-item">
-                        <label style="color: #888; font-size: 0.8rem;">Access Level</label>
-                        <div><span id="profRole" class="category-badge">-</span></div>
-                    </div>
+                    <h2 style="margin-bottom: 15px;">Profile Details</h2>
+                    <table class="profile-details-table">
+                        <tr><td class="label">Full Name</td> <td id="profFullName">-</td></tr>
+                        <tr><td class="label">Email</td> <td id="profEmail">-</td></tr>
+                        <tr><td class="label">Admin ID</td> <td id="profAdminId">-</td></tr>
+                        <tr><td class="label">Department</td> <td id="profDept">-</td></tr>
+                        <tr><td class="label">Role</td> <td id="profRole">-</td></tr>
+                    </table>
                 </section>
 
                 <section class="table-card" style="padding: 25px;">
@@ -61,12 +106,43 @@
         </main>
     </div>
 
+    <div id="editProfileModal" class="modal">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Edit Personal Info</h2>
+                <span class="close-btn" onclick="document.getElementById('editProfileModal').style.display='none'">&times;</span>
+            </header>
+            <form id="editProfileForm">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editFullname" required>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="input-group">
+                    <label>Department</label>
+                    <input type="text" id="editDept" required>
+                </div>
+                <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; justify-content: center;">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script src="js/profile.js"></script>
     <script>
+        // COMPONENT LOADER: This makes the sidebar appear
         async function loadComponent(id, path) {
-            const res = await fetch(path);
-            const text = await res.text();
-            document.getElementById(id).innerHTML = text;
+            try {
+                const res = await fetch(path);
+                const text = await res.text();
+                document.getElementById(id).innerHTML = text;
+            } catch (err) {
+                console.error("Failed to load component:", err);
+            }
         }
         window.addEventListener('DOMContentLoaded', () => {
             loadComponent('sidenav-placeholder', 'components/sidenav.html');

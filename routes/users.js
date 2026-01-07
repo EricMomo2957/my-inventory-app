@@ -71,4 +71,24 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// UPDATE User Profile
+router.put('/profile/:id', async (req, res) => {
+    try {
+        const { full_name, email, department, profile_image } = req.body;
+        const { id } = req.params;
+
+        const sql = `
+            UPDATE users 
+            SET full_name = ?, email = ?, department = ?, profile_image = ? 
+            WHERE id = ?`;
+            
+        await db.query(sql, [full_name, email, department, profile_image, id]);
+        
+        res.json({ success: true, message: "Profile updated successfully" });
+    } catch (err) {
+        console.error("PROFILE UPDATE ERROR:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
