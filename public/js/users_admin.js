@@ -1,180 +1,148 @@
 /**
- * ADMIN USER MANAGEMENT
- * Handles fetching, creating, updating, and deleting users from the database.
- */
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial Load
-    fetchUsers();
-
-    // 1. HANDLE NEW USER CREATION
-    const userForm = document.getElementById('userForm');
-    if (userForm) {
-        userForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const newUser = {
-                username: document.getElementById('regUser').value,
-                full_name: document.getElementById('regFullName').value,
-                password: document.getElementById('regPass').value,
-                role: document.getElementById('regRole').value
-            };
-
-            try {
-                const res = await fetch('http://localhost:3000/api/users/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newUser)
-                });
-                
-                const data = await res.json();
-
-                if (res.ok) {
-                    alert("User created successfully!");
-                    document.getElementById('userModal').style.display = 'none';
-                    userForm.reset();
-                    fetchUsers(); // Refresh the table list
-                } else {
-                    alert("Error: " + (data.message || "Could not save user"));
-                }
-            } catch (err) {
-                console.error("Connection error during registration:", err);
-                alert("Server connection failed.");
-            }
-        });
-    }
-
-    // 2. HANDLE USER UPDATES (Edit Form Submission)
-    const editUserForm = document.getElementById('editUserForm');
-    if (editUserForm) {
-        editUserForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const userId = document.getElementById('editUserId').value;
-            const password = document.getElementById('editPassword').value;
-
-            const updatedData = {
-                username: document.getElementById('editUsername').value,
-                full_name: document.getElementById('editFullName').value,
-                role: document.getElementById('editRole').value
-            };
-
-            // Only include password in the update if the admin actually typed something
-            if (password && password.trim() !== "") {
-                updatedData.password = password;
-            }
-
-            try {
-                // Note: Using the admin-update route to allow role changes
-                const res = await fetch(`http://localhost:3000/api/users/admin-update/${userId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
-                });
-
-                if (res.ok) {
-                    alert("User updated successfully!");
-                    document.getElementById('editUserModal').style.display = 'none';
-                    fetchUsers(); // Refresh the table
-                } else {
-                    const error = await res.json();
-                    alert("Update failed: " + (error.message || "Unknown error"));
-                }
-            } catch (err) {
-                console.error("Update error:", err);
-                alert("Server error during update.");
-            }
-        });
-    }
-});
-
-/**
- * 3. FETCH ALL USERS FROM DATABASE
- * Populates the table with user records and action buttons
+ * 1. FETCH AND DISPLAY USERS
  */
 async function fetchUsers() {
     try {
-        const res = await fetch('http://localhost:3000/api/users/all');
-        
-        if (!res.ok) throw new Error("Could not fetch user list");
-        
+        // Updated to match the backend route: router.get('/all')
+        const res = await fetch('/api/users/all'); 
         const users = await res.json();
         const tableBody = document.getElementById('userTableBody');
         
         if (!tableBody) return;
         tableBody.innerHTML = '';
 
+        if (users.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No users found.</td></tr>';
+            return;
+        }
+
         users.forEach(user => {
             const row = document.createElement('tr');
-            
-            // Format role for badge CSS
-            const roleClass = `category-badge badge-${user.role.toLowerCase()}`;
-            
             row.innerHTML = `
                 <td><strong>${user.username}</strong></td>
                 <td>${user.full_name || '-'}</td>
-                <td><span class="${roleClass}">${user.role}</span></td>
+                <td><span class="category-badge badge-${user.role.toLowerCase()}">${user.role}</span></td>
                 <td>
-                    <button class="edit-btn" 
-                        onclick='openEditModal(${JSON.stringify(user).replace(/'/g, "&apos;")})'
-                        style="background: #4361ee; color: white; padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer;">
+                    <button class="btn-table" 
+                        onclick='openEditUserModal(${JSON.stringify(user).replace(/'/g, "&apos;")})' 
+                        style="background: #4361ee; color: white; margin-right: 5px; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">
                         ✏️ Edit
                     </button>
-                    <button class="delete-btn" 
-                        onclick="deleteUser(${user.id})" 
+                    <button class="delete-btn" onclick="deleteUser(${user.id})" 
                         style="color: #dc3545; background: none; border: none; cursor: pointer; margin-left: 10px;">
-                        🗑️ Delete
+                        🗑️ Remove
                     </button>
                 </td>
             `;
             tableBody.appendChild(row);
         });
     } catch (err) {
-        console.error("Fetch users error:", err);
+        console.error("Fetch error:", err);
+        const tableBody = document.getElementById('userTableBody');
+        if (tableBody) tableBody.innerHTML = '<tr><td colspan="4" style="color:red;">Error loading users. Check console.</td></tr>';
     }
 }
 
 /**
- * 4. OPEN EDIT MODAL & PREFILL DATA
- * Triggered by the 'Edit' button in the table
+ * 2. CREATE USER SUBMISSION
  */
-function openEditModal(user) {
-    const modal = document.getElementById('editUserModal');
-    if (!modal) return;
-
-    document.getElementById('editUserId').value = user.id;
-    document.getElementById('editUsername').value = user.username;
-    document.getElementById('editFullName').value = user.full_name || '';
-    document.getElementById('editRole').value = user.role;
+document.getElementById('userForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
     
-    // Clear the password field for security (admins only enter a new one if changing it)
-    document.getElementById('editPassword').value = ''; 
-    
-    modal.style.display = 'flex';
-}
-
-/**
- * 5. DELETE USER
- * Permanently removes a user account
- */
-async function deleteUser(id) {
-    // Prevent admin from accidentally deleting themselves if desired, 
-    // but for now, we follow the confirm prompt logic.
-    if (!confirm("Are you sure you want to delete this user? This cannot be undone.")) return;
+    const data = {
+        username: document.getElementById('regUser').value,
+        full_name: document.getElementById('regFullName').value,
+        password: document.getElementById('regPass').value,
+        role: document.getElementById('regRole').value
+    };
 
     try {
-        const res = await fetch(`http://localhost:3000/api/users/${id}`, { 
-            method: 'DELETE' 
+        const res = await fetch('/api/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         });
 
         if (res.ok) {
-            alert("User deleted successfully.");
-            fetchUsers(); // Refresh the list
+            alert("User saved successfully!");
+            document.getElementById('userModal').style.display = 'none';
+            document.getElementById('userForm').reset();
+            fetchUsers(); // Refresh the table
         } else {
-            alert("Failed to delete user.");
+            const errData = await res.json();
+            alert("Error: " + (errData.error || "Could not save user"));
         }
     } catch (err) {
-        console.error("Delete error:", err);
-        alert("Server error during deletion.");
+        console.error("Connection error:", err);
+    }
+});
+
+/**
+ * 3. EDIT LOGIC: POPULATE MODAL
+ */
+function openEditUserModal(user) {
+    document.getElementById('editUserId').value = user.id;
+    document.getElementById('editUsername').value = user.username;
+    document.getElementById('editFullName').value = user.full_name;
+    document.getElementById('editRole').value = user.role;
+    document.getElementById('editPassword').value = ''; // Clear password field for security
+    document.getElementById('editUserModal').style.display = 'flex';
+}
+
+/**
+ * 4. EDIT LOGIC: SUBMIT UPDATE
+ */
+document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editUserId').value;
+    const payload = {
+        username: document.getElementById('editUsername').value,
+        full_name: document.getElementById('editFullName').value,
+        role: document.getElementById('editRole').value,
+        password: document.getElementById('editPassword').value
+    };
+
+    try {
+        // Pointing to the specific admin-update route we added to routes/users.js
+        const res = await fetch(`/api/users/admin-update/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            alert("User updated successfully!");
+            document.getElementById('editUserModal').style.display = 'none';
+            fetchUsers(); // Refresh table
+        } else {
+            const errData = await res.json();
+            alert("Update failed: " + (errData.message || "Unknown error"));
+        }
+    } catch (err) {
+        console.error("Update error:", err);
+    }
+});
+
+/**
+ * 5. DELETE USER
+ */
+async function deleteUser(id) {
+    if (confirm("Are you sure you want to remove this user's access?")) {
+        try {
+            const res = await fetch(`/api/users/${id}`, { 
+                method: 'DELETE' 
+            });
+
+            if (res.ok) {
+                fetchUsers();
+            } else {
+                alert("Failed to delete user.");
+            }
+        } catch (err) {
+            console.error("Delete error:", err);
+        }
     }
 }
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', fetchUsers);
