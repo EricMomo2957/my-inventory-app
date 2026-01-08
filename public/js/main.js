@@ -16,19 +16,19 @@ if (!currentUser && !window.location.pathname.includes('login.html')) {
  */
 function applyRolePermissions() {
     if (!currentUser) return;
-    const role = currentUser.role;
+    const role = (currentUser.role || '').toLowerCase();
 
+    // If the user is a clerk, hide management buttons
     if (role === 'clerk') {
-        // Clerks can RESTOCK but not ADD, EDIT, or DELETE
         document.querySelectorAll('.add-main-btn, .edit-btn, .delete-btn').forEach(btn => {
-            btn.style.display = 'none';
+            btn.style.setProperty('display', 'none', 'important');
         });
     } 
     
+    // Auditors are Read-Only (hide all actions)
     if (role === 'auditor') {
-        // Auditors are Read-Only
-        document.querySelectorAll('.add-main-btn, .btn-table').forEach(btn => {
-            btn.style.display = 'none';
+        document.querySelectorAll('.add-main-btn, .btn-table, .action-cell').forEach(btn => {
+            btn.style.setProperty('display', 'none', 'important');
         });
     }
 }
@@ -129,21 +129,24 @@ async function loadInventory() {
                             ${p.updated_at || p.last_updated ? new Date(p.updated_at || p.last_updated).toLocaleString() : 'Never'}
                         </td>
                         <td class="action-cell">
-                            <button class="btn-table restock-btn" onclick="restockProduct(${p.id})">
-                                <span>🔄</span> Restock
-                            </button>
-                            <button class="btn-table edit-btn" onclick="openEditModal(${p.id}, '${p.name}', ${qty}, ${p.price}, '${p.category}')">
-                                <span>✏️</span> Edit
-                            </button>
-                            <button class="btn-table delete-btn" onclick="deleteProduct(${p.id})">
-                                <span>🗑️</span> Delete
-                            </button>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="btn-table restock-btn" onclick="restockProduct(${p.id})" style="background:#28c76f; color:white;">
+                                    <span>🔄</span> Restock
+                                </button>
+                                <button class="btn-table edit-btn" onclick="openEditModal(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${qty}, ${p.price}, '${p.category}')" style="background:#4361ee; color:white;">
+                                    <span>✏️</span>
+                                </button>
+                                <button class="btn-table delete-btn" onclick="deleteProduct(${p.id})" style="background:#ea5455; color:white;">
+                                    <span>🗑️</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>`;
             }).join('');
         }
 
         updateFilterStatusBadge();
+        // Run permission check after table is built
         applyRolePermissions();
 
     } catch (err) {
@@ -168,15 +171,15 @@ async function loadRestockHistory() {
         }
 
         historyTable.innerHTML = history.map(item => {
-            const date = new Date(item.created_at);
+            const date = new Date(item.created_at || item.time);
             return `
                 <tr>
                     <td style="font-size: 0.85rem; color: #666;">
-                        ${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        ${date.toLocaleString([], {month: 'numeric', day: 'numeric', year: 'numeric', hour: '2-digit', minute:'2-digit'})}
                     </td>
-                    <td><strong>${item.product_name}</strong></td>
-                    <td><span style="color: #28c76f; font-weight: bold;">+${item.change_amount}</span></td>
-                    <td><span class="user-pill">${item.user_name}</span></td>
+                    <td><strong>${item.product_name || item.name}</strong></td>
+                    <td><span style="color: #28c76f; font-weight: bold;">+${item.change_amount || item.added_qty}</span></td>
+                    <td><span class="user-pill">${item.user_name || item.processed_by}</span></td>
                 </tr>
             `;
         }).join('');
@@ -188,12 +191,10 @@ async function loadRestockHistory() {
 /**
  * 5. FILTER & SEARCH HANDLERS
  */
-document.addEventListener('input', (e) => {
-    if (e.target.id === 'searchInput') {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => loadInventory(), 300);
-    }
-});
+function handleSearch() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => loadInventory(), 300);
+}
 
 function setCategory(category) {
     currentCategory = category;
@@ -210,13 +211,13 @@ function toggleLowStock() {
     const btn = document.getElementById('lowStockToggle');
     if (btn) {
         btn.innerText = showLowStockOnly ? "Show All Items" : "Show Low Stock Only";
-        btn.classList.toggle('active-filter', showLowStockOnly);
+        btn.classList.toggle('warning-btn-active', showLowStockOnly);
     }
     loadInventory();
 }
 
 /**
- * 6. PRODUCT ACTIONS (ADD, EDIT, DELETE, RESTOCK)
+ * 6. PRODUCT ACTIONS
  */
 async function restockProduct(id) {
     const amount = prompt("Enter quantity to add to stock:");
@@ -234,13 +235,13 @@ async function restockProduct(id) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 increment: increment,
-                user: currentUser.full_name 
+                user: currentUser.full_name || currentUser.username
             })
         });
 
         if (response.ok) {
             loadInventory();
-            loadRestockHistory(); // Refresh the log immediately
+            loadRestockHistory();
             alert(`Successfully added ${increment} units!`);
         }
     } catch (err) {
@@ -249,13 +250,71 @@ async function restockProduct(id) {
 }
 
 async function deleteProduct(id) {
-    if (confirm('Permanently delete this item?')) {
-        await fetch(`/api/products/${id}`, { method: 'DELETE' });
-        loadInventory();
+    if (confirm('Permanently delete this item? This cannot be undone.')) {
+        try {
+            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            if(res.ok) {
+                loadInventory();
+            } else {
+                alert("Error deleting product.");
+            }
+        } catch (e) { console.error(e); }
     }
 }
 
-// Global listener for Product Form (Add New)
+/**
+ * 7. MODAL CONTROL
+ */
+function openAddModal() { 
+    const modal = document.getElementById('addModal');
+    if(modal) modal.style.display = 'flex'; 
+}
+
+function closeAddModal() { 
+    const modal = document.getElementById('addModal');
+    if(modal) modal.style.display = 'none';
+    document.getElementById('productForm')?.reset();
+}
+
+function openEditModal(id, name, qty, price, category) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editQty').value = qty;
+    document.getElementById('editPrice').value = price;
+    document.getElementById('editCategory').value = category;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeModal() { 
+    document.getElementById('editModal').style.display = 'none'; 
+}
+
+async function saveEdit() {
+    const id = document.getElementById('editId').value;
+    const data = {
+        name: document.getElementById('editName').value,
+        quantity: document.getElementById('editQty').value,
+        price: document.getElementById('editPrice').value,
+        category: document.getElementById('editCategory').value
+    };
+
+    try {
+        const res = await fetch(`/api/products/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) { 
+            closeModal(); 
+            loadInventory(); 
+        } else {
+            alert("Failed to save changes.");
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Global Form Submit for ADD
 document.addEventListener('submit', async (e) => {
     if (e.target && e.target.id === 'productForm') {
         e.preventDefault();
@@ -278,52 +337,6 @@ document.addEventListener('submit', async (e) => {
         }
     }
 });
-
-/**
- * 7. MODAL CONTROL & THEME
- */
-function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
-function closeAddModal() { 
-    document.getElementById('addModal').style.display = 'none';
-    document.getElementById('productForm')?.reset();
-}
-
-function openEditModal(id, name, qty, price, category) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editName').value = name;
-    document.getElementById('editQty').value = qty;
-    document.getElementById('editPrice').value = price;
-    document.getElementById('editCategory').value = category;
-    document.getElementById('editModal').style.display = 'flex';
-}
-
-function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-
-async function saveEdit() {
-    const id = document.getElementById('editId').value;
-    const data = {
-        name: document.getElementById('editName').value,
-        quantity: document.getElementById('editQty').value,
-        price: document.getElementById('editPrice').value,
-        category: document.getElementById('editCategory').value
-    };
-
-    const res = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-
-    if (res.ok) { closeModal(); loadInventory(); }
-}
-
-// Global click handler for modals
-window.onclick = (e) => {
-    if (e.target.classList.contains('modal')) {
-        closeModal();
-        closeAddModal();
-    }
-};
 
 /**
  * 8. INITIALIZATION

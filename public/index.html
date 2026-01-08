@@ -248,59 +248,42 @@
         }
 
         // --- DASHBOARD API LOADERS ---
-        // --- DASHBOARD API LOADERS ---
         async function loadDashboardSummaries() {
             try {
-                // Updated endpoints to match your app.js and routes/users.js
                 const [schedRes, userRes] = await Promise.all([
                     fetch('/api/schedules'),
-                    fetch('/api/users/all') // Added /all to match your backend route
+                    fetch('/api/users')
                 ]);
                 
                 const schedules = await schedRes.json();
                 const users = await userRes.json();
 
-                // 1. Render Upcoming Schedule
-                const schedTable = document.getElementById('dashboardScheduleTable');
-                if (schedules && schedules.length > 0) {
-                    schedTable.innerHTML = schedules.slice(0, 5).map(s => {
-                        // Support multiple naming conventions from DB
-                        const rawDate = s.date || s.event_date || s.created_at;
-                        const dateObj = new Date(rawDate);
-                        const displayDate = (isNaN(dateObj) || !rawDate) ? "TBA" : dateObj.toLocaleDateString();
-                        
-                        // Match the CSS classes we defined in <style>
-                        const typeClass = (s.type || 'general').toLowerCase().replace(/\s+/g, '-');
-                        const eventName = s.event || s.title || s.event_name || 'Untitled Event';
+                // 1. Render Schedules
+                document.getElementById('dashboardScheduleTable').innerHTML = schedules.slice(0, 5).map(s => {
+                    const rawDate = s.date || s.event_date;
+                    const dateObj = new Date(rawDate);
+                    const displayDate = (isNaN(dateObj) || !rawDate) ? "TBA" : dateObj.toLocaleDateString();
+                    const typeClass = (s.type || '').toLowerCase().replace(/\s+/g, '-');
 
-                        return `
-                            <tr>
-                                <td>${displayDate}</td>
-                                <td><strong>${eventName}</strong></td>
-                                <td><span class="category-badge badge-${typeClass}">${s.type || 'General'}</span></td>
-                            </tr>
-                        `;
-                    }).join('');
-                } else {
-                    schedTable.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">No upcoming events</td></tr>';
-                }
-
-                // 2. Render System Users
-                const userTable = document.getElementById('dashboardUserTable');
-                if (users && users.length > 0) {
-                    userTable.innerHTML = users.slice(0, 5).map(u => `
+                    return `
                         <tr>
-                            <td>${u.full_name || 'User'}</td>
-                            <td>@${u.username || 'unknown'}</td>
-                            <td><span style="color: #28c76f; font-size: 0.8rem;">● ${u.role || 'Active'}</span></td>
+                            <td>${displayDate}</td>
+                            <td>${s.title || s.event_name || 'Untitled Event'}</td>
+                            <td><span class="category-badge badge-${typeClass}">${s.type || 'General'}</span></td>
                         </tr>
-                    `).join('');
-                } else {
-                    userTable.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px;">No users found</td></tr>';
-                }
+                    `;
+                }).join('');
+
+                // 2. Render Users
+                document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => `
+                    <tr>
+                        <td>${u.full_name || 'User'}</td>
+                        <td>@${u.username || 'unknown'}</td>
+                        <td><span style="color: #28c76f;">● Active</span></td>
+                    </tr>
+                `).join('');
             } catch (e) { 
-                console.error("Dashboard summary load failed:", e); 
-                document.getElementById('dashboardScheduleTable').innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
+                console.warn("Dashboard summary error:", e); 
             }
         }
 
