@@ -1,5 +1,5 @@
 const mysql = require('mysql2');
-require('dotenv').config(); // This loads the .env variables
+require('dotenv').config(); 
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -11,4 +11,5 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
+// This is correct: it converts callbacks into Promises
 module.exports = pool.promise();

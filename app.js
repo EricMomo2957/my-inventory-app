@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); // Required to fix the connection error
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const scheduleRoutes = require('./routes/schedules'); 
@@ -7,13 +8,13 @@ const db = require('./config/db');
 require('dotenv').config({ quiet: true });
 
 const app = express();
-app.use(express.json());
-app.use(express.static('public'));
 
-/**
- * API ROUTES
- * Note: Restock is now handled inside productRoutes (/api/products/restock/:id)
- */
+// --- MIDDLEWARE ---
+app.use(cors()); // Allows your frontend to communicate with this server
+app.use(express.json()); // Parses incoming JSON payloads
+app.use(express.static('public')); // Serves your HTML/CSS/JS files
+
+// --- API ROUTES ---
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/schedules', scheduleRoutes); 
@@ -38,6 +39,6 @@ app.get('/api/history', async (req, res) => {
     }
 });
 
-// START SERVER
+// --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
