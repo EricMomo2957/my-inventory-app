@@ -109,4 +109,14 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Matches fetch('/api/users/all')
+router.get('/all', async (req, res) => {
+    try {
+        const [rows] = await db.execute('SELECT * FROM users');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

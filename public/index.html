@@ -252,13 +252,13 @@
             try {
                 const [schedRes, userRes] = await Promise.all([
                     fetch('/api/schedules'),
-                    fetch('/api/users')
+                    fetch('/api/users/all') // Correctly hits your router.get('/all') route
                 ]);
                 
                 const schedules = await schedRes.json();
-                const users = await userRes.json();
+                const users = await userRes.json(); // Array from SELECT * FROM users
 
-                // 1. Render Schedules
+                // 1. Render Schedules (Existing logic)
                 document.getElementById('dashboardScheduleTable').innerHTML = schedules.slice(0, 5).map(s => {
                     const rawDate = s.date || s.event_date;
                     const dateObj = new Date(rawDate);
@@ -274,16 +274,38 @@
                     `;
                 }).join('');
 
-                // 2. Render Users
-                document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => `
-                    <tr>
-                        <td>${u.full_name || 'User'}</td>
-                        <td>@${u.username || 'unknown'}</td>
-                        <td><span style="color: #28c76f;">● Active</span></td>
-                    </tr>
-                `).join('');
+                // 2. Render Users (Updated for your specific database columns)
+                document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => {
+                    // Handle profile image from LONGTEXT column
+                    const imgPath = u.profile_image && u.profile_image !== "NULL" 
+                                    ? u.profile_image 
+                                    : 'assets/default-avatar.png';
+                    
+                    return `
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="${imgPath}" 
+                                        style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;"
+                                        onerror="this.src='assets/default-avatar.png'">
+                                    <span style="font-weight: 500;">${u.full_name || 'System User'}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="color: #2563eb;">@${u.username}</div>
+                                <small style="color: #888; font-size: 0.75rem;">${u.department || 'Staff'}</small>
+                            </td>
+                            <td>
+                                <span class="user-pill" style="font-size: 0.7rem; text-transform: capitalize;">
+                                    ${u.role}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             } catch (e) { 
-                console.warn("Dashboard summary error:", e); 
+                console.error("Dashboard Load Error:", e);
+                document.getElementById('dashboardUserTable').innerHTML = '<tr><td colspan="3">Failed to load system users.</td></tr>';
             }
         }
 
