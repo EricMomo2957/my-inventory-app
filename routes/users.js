@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); // Points to your pool.promise()
-const bcrypt = require('bcrypt');
+
+const bcrypt = require('bcryptjs');
 
 // 1. LOGIN ROUTE
 router.post('/login', async (req, res) => {

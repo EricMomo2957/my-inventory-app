@@ -4,7 +4,7 @@ const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const scheduleRoutes = require('./routes/schedules'); 
 const db = require('./config/db'); 
-
+const orderRoutes = require('./routes/orders');
 require('dotenv').config({ quiet: true });
 
 const app = express();
@@ -13,7 +13,7 @@ const app = express();
 app.use(cors()); // Allows your frontend to communicate with this server
 app.use(express.json()); // Parses incoming JSON payloads
 app.use(express.static('public')); // Serves your HTML/CSS/JS files
-
+app.use('/api/orders', orderRoutes);
 // --- API ROUTES ---
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
