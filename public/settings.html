@@ -6,16 +6,18 @@
     <link rel="stylesheet" href="css/style.css">
     <title>Settings - Inventory Pro</title>
     <script>
-        // 1. PREVENT WHITE FLASH: Apply dark mode before body renders
         (function() {
-            if (!localStorage.getItem('currentUser')) {
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
-            
-            // Check if dark mode was enabled in a previous session or tab
+
+            // Immediately apply the dark mode class if enabled
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
             }
         })();
     </script>

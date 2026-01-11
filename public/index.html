@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="css/style.css">
     <title>Inventory Manager Pro</title>
     <script>
-        // 1. AUTH & THEME GUARD: Run immediately before page renders
         (function() {
             const user = localStorage.getItem('currentUser');
             if (!user) {
@@ -14,8 +13,11 @@
                 return;
             }
 
+            // Immediately apply the dark mode class if enabled
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
             }
         })();
     </script>

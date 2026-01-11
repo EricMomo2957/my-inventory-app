@@ -6,11 +6,20 @@
     <link rel="stylesheet" href="css/style.css">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <title>Delivery Schedule - Inventory Pro</title>
+   
     <script>
         (function() {
-            if (!localStorage.getItem('currentUser')) window.location.href = 'login.html';
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Immediately apply the dark mode class if enabled
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
             }
         })();
     </script>

@@ -5,7 +5,7 @@
 
     <div class="nav-profile">
         <div class="side-avatar-wrapper">
-            <img src="assets/default-avatar.png" id="sideNavAvatar" alt="Profile">
+            <img src="assets/default-avatar.png" id="sideNavAvatar" alt="Profile" onerror="this.src='assets/default-avatar.png'">
         </div>
         <div class="profile-info">
             <span id="sideNavName">User Name</span>
@@ -21,7 +21,7 @@
         <p class="section-title">User Account</p>
         <a href="profile.html" class="nav-item">👤 Profile</a>
         <a href="settings.html" class="nav-item">⚙️ Settings</a>
-        <a href="admin_management.html" class="nav-item admin-link" style="color: #ff9f43;">🛡️ Admin Management</a>
+        <a href="admin_management.html" class="nav-item admin-link" style="color: #ff9f43; display: none;">🛡️ Admin Management</a>
     </div>
 
     <div class="nav-footer">
@@ -31,114 +31,144 @@
 </nav>
 
 <style>
-    /* Profile Section Styling */
+    /* Theme Variables */
+    :root {
+        --side-bg: #ffffff;
+        --side-text: #333333;
+        --side-hover: #f0f2f5;
+        --side-profile-bg: rgba(0, 0, 0, 0.05);
+        --side-border: #eeeeee;
+    }
+
+    /* Dark Mode Variables */
+    .dark-mode {
+        --side-bg: #1e293b;
+        --side-text: #f8fafc;
+        --side-hover: rgba(255, 255, 255, 0.1);
+        --side-profile-bg: rgba(255, 255, 255, 0.08);
+        --side-border: #334155;
+    }
+
+    .sidenav {
+        width: 260px;
+        height: 100vh;
+        background: var(--side-bg);
+        color: var(--side-text);
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--side-border);
+        transition: background 0.3s, color 0.3s;
+    }
+
+    .nav-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--side-border); }
+
     .nav-profile {
         display: flex;
         align-items: center;
         padding: 15px;
-        margin: 10px 15px;
-        background: rgba(255, 255, 255, 0.08);
+        margin: 15px;
+        background: var(--side-profile-bg);
         border-radius: 12px;
         gap: 12px;
     }
 
-    .side-avatar-wrapper {
-        position: relative;
-        width: 42px;
-        height: 42px;
-    }
+    .side-avatar-wrapper { width: 45px; height: 45px; }
+    #sideNavAvatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #4361ee; }
 
-    #sideNavAvatar {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #4361ee;
-    }
-
-    .profile-info {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    #sideNavName {
-        font-weight: 600;
-        font-size: 0.85rem;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    #sideNavRole {
-        font-size: 0.7rem;
-        opacity: 0.6;
-        text-transform: capitalize;
-    }
-
-    .section-title {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 20px 20px 10px;
-        opacity: 0.5;
-    }
+    .nav-links { flex-grow: 1; overflow-y: auto; }
+    .section-title { font-size: 0.7rem; text-transform: uppercase; margin: 20px 20px 10px; opacity: 0.6; }
 
     .nav-item {
-        display: block;
+        display: flex;
+        align-items: center;
         padding: 12px 20px;
         text-decoration: none;
-        color: inherit;
-        transition: 0.3s;
+        color: var(--side-text);
+        transition: 0.2s;
+        gap: 10px;
     }
 
-    .nav-item:hover {
-        background: rgba(255, 255, 255, 0.1);
+    .nav-item:hover { background: var(--side-hover); }
+
+    .nav-footer { padding: 15px; border-top: 1px solid var(--side-border); display: flex; flex-direction: column; gap: 10px; }
+    .nav-btn {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: var(--side-profile-bg);
+        color: var(--side-text);
+        font-weight: 500;
+        transition: 0.2s;
     }
+    .nav-btn:hover { background: var(--side-hover); }
+    .logout-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    #sideNavName {
+    color: var(--text-main); /* Now turns white in dark mode */
+}
+#sideNavRole {
+    color: var(--text-muted); /* Now turns light gray in dark mode */
+}
+.nav-item {
+    color: var(--text-main);
+}
 </style>
 
 <script>
     /**
+     * DARK MODE LOGIC
+     */
+    function toggleDarkMode() {
+        const isDark = document.documentElement.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        updateThemeButton(isDark);
+    }
+
+    function updateThemeButton(isDark) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            btn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+    }
+
+    /**
      * UI SYNC LOGIC
-     * This runs every time the sidebar is loaded into a page
      */
     function syncSidebarUI() {
         const user = JSON.parse(localStorage.getItem('currentUser'));
         if (!user) return;
 
-        // Update Name and Role
-        const nameEl = document.getElementById('sideNavName');
-        const roleEl = document.getElementById('sideNavRole');
-        if (nameEl) nameEl.innerText = user.full_name || user.username;
-        if (roleEl) roleEl.innerText = user.role || 'clerk';
-
-        // Update Avatar
-        const sideAvatar = document.getElementById('sideNavAvatar');
-        if (sideAvatar) {
-            // Check LocalStorage for the Base64 image
-            const savedAvatar = user.profile_image || localStorage.getItem('userAvatar');
-            if (savedAvatar && savedAvatar.startsWith('data:image')) {
-                sideAvatar.src = savedAvatar;
-            }
+        // Apply theme from preference
+        const darkMode = localStorage.getItem('darkMode');
+        if (darkMode === 'enabled') {
+            document.documentElement.classList.add('dark-mode');
+            updateThemeButton(true);
         }
 
-        // Hide Admin Link if user is not an admin
+        // Update Name and Role
+        document.getElementById('sideNavName').innerText = user.full_name || user.username;
+        document.getElementById('sideNavRole').innerText = user.role || 'clerk';
+
+        // Update Avatar from MySQL profile_image column
+        const sideAvatar = document.getElementById('sideNavAvatar');
+        if (sideAvatar && user.profile_image && user.profile_image !== "NULL") {
+            sideAvatar.src = user.profile_image;
+        }
+
+        // Role-based Access Control
         const adminLink = document.querySelector('.admin-link');
-        if (adminLink && user.role !== 'admin') {
-            adminLink.style.display = 'none';
+        if (adminLink && user.role === 'admin') {
+            adminLink.style.display = 'block';
         }
     }
 
-    // Global Logout Function
     function logout() {
         localStorage.removeItem('currentUser');
-        localStorage.removeItem('userAvatar');
         window.location.href = 'login.html';
     }
 
-    // Initial Sync
+    // Run on load
     syncSidebarUI();
-
-    // Re-sync if profile is updated in another tab/window
-    window.addEventListener('storage', syncSidebarUI);
 </script>

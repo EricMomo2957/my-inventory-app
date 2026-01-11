@@ -338,6 +338,21 @@ document.addEventListener('submit', async (e) => {
     }
 });
 
+function toggleDarkMode() {
+    const html = document.documentElement;
+    const isDark = html.classList.toggle('dark-mode');
+    
+    // Save preference
+    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+    
+    // Update Sidebar Button Text if it exists
+    const themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) {
+        themeBtn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+}
+
+
 /**
  * 8. INITIALIZATION
  */

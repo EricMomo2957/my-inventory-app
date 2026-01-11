@@ -1,28 +1,70 @@
 /* ==========================================================================
    1. CORE VARIABLES & THEMES
    ========================================================================== */
+
+/* 1. DEFINE LIGHT MODE COLORS (DEFAULT) */
 :root {
-    --bg-color: #ffffff;
-    --text-color: #333333;
-    --card-bg: #f8f9fa;
-    --table-border: #dee2e6;
-    --header-bg: #f1f1f1;
-    --accent-blue: #007bff;
-    --accent-green: #28a745;
-    --accent-red: #dc3545;
-    --sidenav-bg: #2c3e50;
+    --bg-body: #f4f7fe;
+    --bg-card: #ffffff;
+    --text-main: #2d3748;    /* Dark gray for readability */
+    --text-muted: #718096;   /* Medium gray for labels */
+    --border-color: #e2e8f0;
+    --accent-color: #4361ee;
 }
 
-[data-theme="dark"] {
-    --bg-color: #1a1a1a;
-    --text-color: #e0e0e0;
-    --card-bg: #2d2d2d;
-    --table-border: #444444;
-    --header-bg: #333333;
-    --sidenav-bg: #000000;
+/* 2. DEFINE DARK MODE COLORS (WHEN .dark-mode IS ACTIVE) */
+.dark-mode {
+    --bg-body: #0b1120;      /* Very dark blue/black */
+    --bg-card: #161e31;      /* Darker blue for cards */
+    --text-main: #f8fafc;    /* Off-white for readability */
+    --text-muted: #94a3b8;   /* Light gray for labels */
+    --border-color: #1e293b;
+    --accent-color: #4361ee;
 }
 
-* { box-sizing: border-box; }
+/* 3. APPLY VARIABLES TO ALL ELEMENTS */
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    transition: background 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, strong, b, span, p, td, th {
+    color: var(--text-main); /* Forces all text to follow the theme */
+}
+
+small, .text-muted, .section-title {
+    color: var(--text-muted);
+}
+
+/* 4. CARD AND TABLE STYLING */
+.table-card, .stat-tile, .stat-tile .tile-content p {
+    background-color: var(--bg-card);
+    color: var(--text-main);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    border-bottom: 2px solid var(--border-color);
+}
+
+td {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+/* Fix for Inputs (Profile/Settings pages) */
+input, select, textarea {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+}
 
 body {
     font-family: 'Segoe UI', sans-serif;
@@ -878,4 +920,66 @@ td:nth-child(5) {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Theme Variable Definitions */
+:root {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --table-hover: #f1f5f9;
+}
+
+/* Dark Mode Overrides */
+.dark-mode {
+    --bg-main: #0f172a;      /* Deep dark blue/black */
+    --bg-card: #1e293b;      /* Slightly lighter blue for cards */
+    --text-primary: #f8fafc;  /* White/light gray text */
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --table-hover: #1e293b;
+}
+
+/* Global Styles using the variables */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.main-content {
+    background-color: var(--bg-main);
+}
+
+/* Apply to Cards and Tables in all pages */
+.table-card, .stat-tile, .profile-card, .settings-group {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+table {
+    color: var(--text-primary);
+}
+
+th {
+    background-color: var(--table-hover);
+    border-bottom: 2px solid var(--border-color);
+}
+
+td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+tr:hover {
+    background-color: var(--table-hover);
+}
+
+/* Inputs and Selects for Settings/Profile pages */
+input, select, textarea {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
