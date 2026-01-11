@@ -85,7 +85,10 @@
 
         <main class="main-content">
             <header class="dashboard-header">
-                <h1>Inventory Dashboard</h1>
+                <div class="header-text">
+                    <h1 id="welcomeMessage">Welcome back, Admin!</h1>
+                    <p class="text-muted" id="currentDateDisplay"></p>
+                </div>
                 <div class="action-bar">
                     <button class="add-main-btn" onclick="openAddModal()">
                         <span class="btn-icon">➕</span> Add New Product
@@ -275,6 +278,22 @@
                         </tr>
                     `;
                 }).join('');
+
+                function initializeDashboard() {
+                    const user = JSON.parse(localStorage.getItem('currentUser'));
+                    if (user) {
+                        // Update greeting with Full Name or Username
+                        const name = user.full_name || user.username;
+                        document.getElementById('welcomeMessage').innerText = `Welcome back, ${name}! 👋`;
+                    }
+
+                    // Set today's date
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString(undefined, options);
+                }
+
+                // Call this function when the DOM loads
+                window.addEventListener('DOMContentLoaded', initializeDashboard);
 
                 // 2. Render Users (Updated for your specific database columns)
                 document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => {

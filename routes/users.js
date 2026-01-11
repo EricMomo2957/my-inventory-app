@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db'); // Points to your pool.promise()
+const bcrypt = require('bcrypt');
 
 // 1. LOGIN ROUTE
 router.post('/login', async (req, res) => {
@@ -116,6 +117,44 @@ router.get('/all', async (req, res) => {
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/update-profile', async (req, res) => {
+    const { userId, full_name, profile_image } = req.body;
+    try {
+        await db.execute(
+            'UPDATE users SET full_name = ?, profile_image = ? WHERE id = ?',
+            [full_name, profile_image, userId]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update Password Route
+router.post('/update-password', async (req, res) => {
+    const { userId, newPassword } = req.body;
+
+    try {
+        // 1. Hash the new password (10 salt rounds)
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // 2. Update the database
+        const [result] = await db.execute(
+            'UPDATE users SET password = ? WHERE id = ?',
+            [hashedPassword, userId]
+        );
+
+        if (result.affectedRows > 0) {
+            res.json({ success: true, message: 'Password updated successfully' });
+        } else {
+            res.status(404).json({ success: false, message: 'User not found' });
+        }
+    } catch (err) {
+        console.error('Password Update Error:', err);
+        res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
