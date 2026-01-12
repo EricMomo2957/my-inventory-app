@@ -59,6 +59,22 @@
             #receiptArea, #receiptArea * { visibility: visible; }
             #receiptArea { display: block; position: absolute; left: 0; top: 0; width: 100%; color: black !important; }
         }
+
+        /* ... existing styles ... */
+    .product-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        background: #f1f5f9; /* Placeholder color while loading */
+    }
+    .product-card {
+        transition: transform 0.2s;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
     </style>
 </head>
 <body>
@@ -120,16 +136,20 @@
             } catch (err) { console.error("Error loading products:", err); }
         }
 
-        function renderProducts(productsToRender) {
+            function renderProducts(productsToRender) {
             const container = document.getElementById('productContainer');
             container.innerHTML = productsToRender.map(prod => `
                 <div class="product-card">
                     <div>
+                        <img src="${prod.image_url || 'https://via.placeholder.com/300x180?text=No+Image'}" 
+                            alt="${prod.name}" 
+                            class="product-image">
+                        
                         <h3>${prod.name}</h3>
                         <span style="color: #94a3b8;">📦 Stock: ${prod.quantity}</span>
                         <span class="price-tag">$${parseFloat(prod.price).toFixed(2)}</span>
                     </div>
-                    <div style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
                         <input type="number" class="order-input" id="qty-${prod.id}" value="1" min="1" max="${prod.quantity}" style="width: 60px;">
                         <button class="btn-add-item" id="btn-${prod.id}" onclick="updateBasket(${prod.id})">Add</button>
                     </div>

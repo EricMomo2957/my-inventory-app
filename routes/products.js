@@ -1,9 +1,42 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const multer = require('multer');
+const path = require('path');
+
+// 1. Configure storage for Multer
+const storage = multer.diskStorage({
+    destination: './public/images/', // Ensure this folder exists
+    filename: (req, file, cb) => {
+        // Creates a unique filename: 17123456789.png
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 /**
- * 1. GET Products (with Search support)
+ * 2. POST (Add Product with Image Upload)
+ * This handles the FormData from your addModal.html
+ */
+router.post('/add', upload.single('productImage'), async (req, res) => {
+    const { name, qty, price, category } = req.body;
+    
+    // Check if a file was uploaded, otherwise use placeholder
+    const imageUrl = req.file ? `/images/${req.file.filename}` : '/images/placeholder.png';
+
+    try {
+        const sql = 'INSERT INTO products (name, quantity, price, category, image_url) VALUES (?, ?, ?, ?, ?)';
+        await db.execute(sql, [name, qty, price, category, imageUrl]);
+        res.json({ success: true, message: "Product added successfully" });
+    } catch (err) {
+        console.error("Upload Error:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * 3. GET Products (with Search support)
  */
 router.get('/', async (req, res) => {
     try {
@@ -18,22 +51,8 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * 2. POST (Add Product)
- */
-router.post('/', async (req, res) => {
-    try {
-        const { name, quantity, price, category } = req.body;
-        const sql = 'INSERT INTO products (name, quantity, price, category) VALUES (?, ?, ?, ?)';
-        await db.query(sql, [name, quantity, price, category]);
-        res.status(201).send('Product added successfully');
-    } catch (err) {
-        console.error("POST Error:", err);
-        res.status(500).json({ error: "Failed to add product" });
-    }
-});
-
-/**
- * 3. PUT (Update Product)
+ * 4. PUT (Update Product)
+ * Note: If you want to update images too, you would add upload.single here as well
  */
 router.put('/:id', async (req, res) => {
     try {
@@ -53,7 +72,7 @@ router.put('/:id', async (req, res) => {
 });
 
 /**
- * 4. DELETE Product
+ * 5. DELETE Product
  */
 router.delete('/:id', async (req, res) => {
     try {
@@ -67,21 +86,18 @@ router.delete('/:id', async (req, res) => {
 });
 
 /**
- * 5. PATCH (Quick Restock + History Logging)
+ * 6. PATCH (Quick Restock + History Logging)
  */
 router.patch('/restock/:id', async (req, res) => {
     const productId = req.params.id;
     const { increment, user } = req.body;
 
-    // Validation
     if (!increment || isNaN(increment) || increment <= 0) {
         return res.status(400).json({ error: "Invalid increment value" });
     }
 
     try {
-        // SQL 1: Update the quantity
         const updateSql = 'UPDATE products SET quantity = quantity + ?, updated_at = NOW() WHERE id = ?';
-        // SQL 2: Log the change in history
         const historySql = 'INSERT INTO stock_history (product_id, user_name, change_amount, action_type) VALUES (?, ?, ?, "restock")';
 
         const [result] = await db.query(updateSql, [increment, productId]);
@@ -90,9 +106,7 @@ router.patch('/restock/:id', async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        // Log the activity
         await db.query(historySql, [productId, user || 'Unknown User', increment]);
-
         res.send('Restock logged and updated successfully');
     } catch (err) {
         console.error("Restock Error:", err);
