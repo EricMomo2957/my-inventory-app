@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Pro | Smart Stock Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
         :root {
@@ -16,7 +17,7 @@
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0;
             color: #334155;
             line-height: 1.6;
@@ -28,8 +29,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 8%;
-            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 8%;
+            background: rgba(255, 255, 255, 0.9);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -37,7 +38,7 @@
             backdrop-filter: blur(10px);
         }
 
-        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
 
         .nav-links a {
             text-decoration: none;
@@ -54,13 +55,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 100px 8%;
+            padding: 80px 8%;
             background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+            min-height: 70vh;
         }
 
         .hero-text { max-width: 550px; }
-        .hero-text h1 { font-size: 3.5rem; color: var(--dark); line-height: 1.1; margin-bottom: 20px; }
-        .hero-text p { font-size: 1.25rem; margin-bottom: 30px; color: var(--text-light); }
+        .hero-text h1 { font-size: 3.5rem; color: var(--dark); line-height: 1.1; margin-bottom: 20px; font-weight: 800; }
+        .hero-text p { font-size: 1.2rem; margin-bottom: 30px; color: var(--text-light); }
 
         .cta-button {
             background: var(--primary);
@@ -77,19 +79,18 @@
 
         .cta-button:hover { 
             transform: translateY(-3px); 
-            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
             background: #3651d1;
         }
 
-        /* --- Workflow Section --- */
+        /* --- Features/Workflow --- */
         .workflow { padding: 100px 8%; text-align: center; }
-        .workflow h2 { font-size: 2.5rem; margin-bottom: 50px; }
+        .workflow h2 { font-size: 2.5rem; margin-bottom: 50px; color: var(--dark); }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
-            margin-top: 40px;
         }
 
         .card {
@@ -113,7 +114,7 @@
         .contact-section { padding: 100px 8%; background-color: #f1f5f9; }
         .contact-container {
             display: grid;
-            grid-template-columns: 1fr 1.5fr;
+            grid-template-columns: 1fr 1.2fr;
             gap: 60px;
             align-items: center;
         }
@@ -126,49 +127,66 @@
             padding: 40px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            min-height: 450px;
+            min-height: 400px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            position: relative;
         }
 
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: var(--dark); }
         
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit;
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 0.95rem;
         }
 
-        /* --- Success State --- */
+        /* --- Success Message --- */
         #successMessage {
             display: none;
             text-align: center;
-            animation: fadeIn 0.5s ease-in-out;
+            animation: slideIn 0.5s forwards;
         }
 
-        .success-icon {
-            font-size: 4rem;
-            color: #10b981;
-            margin-bottom: 20px;
+        .success-icon { font-size: 4rem; margin-bottom: 10px; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
+        /* --- Scroll to Top --- */
+        #scrollTopBtn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            z-index: 1001;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 1.2rem;
         }
 
-        footer { background: var(--dark); color: white; padding: 40px 8%; text-align: center; }
+        footer { background: var(--dark); color: white; padding: 40px 8%; text-align: center; font-size: 0.9rem; }
 
+        /* Responsive */
         @media (max-width: 900px) {
             .contact-container, .hero { grid-template-columns: 1fr; flex-direction: column; text-align: center; }
             .form-row { grid-template-columns: 1fr; }
             .hero-text { margin-bottom: 50px; }
+            .hero-text h1 { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
+
+    <button id="scrollTopBtn" onclick="scrollToTop()">↑</button>
 
     <nav>
         <a href="#" class="logo">📦 Inventory Pro</a>
@@ -182,32 +200,31 @@
     <header class="hero">
         <div class="hero-text">
             <h1>Master Your Stock Level.</h1>
-            <p>The smartest way to manage inventory, track sales, and generate reports in real-time.</p>
+            <p>The smartest way to manage inventory, track sales, and generate reports in real-time. Built for growth-minded businesses.</p>
             <a href="login.html" class="cta-button">Launch Dashboard</a>
         </div>
         <div class="hero-graphic">
-            <img src="https://via.placeholder.com/600x400/4361ee/ffffff?text=Inventory+Dashboard+Preview" alt="Dashboard UI" style="border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12);">
+            <img src="https://via.placeholder.com/550x380/4361ee/ffffff?text=Inventory+Dashboard+Preview" alt="Dashboard" style="border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); width: 100%;">
         </div>
     </header>
 
     <section id="workflow" class="workflow">
-        <h2>Everything you need</h2>
-        
+        <h2>Optimized Features</h2>
         <div class="features-grid">
             <div class="card">
                 <div class="icon-box">⚡</div>
-                <h3>Real-time Sync</h3>
-                <p>Never oversell again. Your stock updates across all devices instantly.</p>
+                <h3>Real-time Tracking</h3>
+                <p>Never lose track of a single item. Every stock update is synchronized across your team instantly.</p>
             </div>
             <div class="card">
                 <div class="icon-box">📊</div>
-                <h3>CSV Exports</h3>
-                <p>One-click export for all your order data directly into Excel.</p>
+                <h3>Advanced Reports</h3>
+                <p>Generate CSV and Excel reports with one click. Analyze your sales and low-stock alerts with ease.</p>
             </div>
             <div class="card">
                 <div class="icon-box">🛡️</div>
                 <h3>Secure Access</h3>
-                <p>Role-based permissions to keep your data safe and organized.</p>
+                <p>Assign specific roles to your staff. Control who can edit products, view sales, or manage users.</p>
             </div>
         </div>
     </section>
@@ -215,62 +232,98 @@
     <section id="contact" class="contact-section">
         <div class="contact-container">
             <div class="contact-info">
-                <h2>Contact Us</h2>
-                <p>Reach out to our specialists to help you set up your warehouse management system.</p>
-                <div class="info-item"><span>📍</span> 123 Tech Plaza, Manila</div>
-                <div class="info-item"><span>📧</span> hello@inventorypro.com</div>
+                <h2>Get In Touch</h2>
+                <p>Ready to upgrade your warehouse? Send us a message and our specialists will reach out to you.</p>
+                <div class="info-item"><span>📍</span> Tech Plaza, Manila, PH</div>
+                <div class="info-item"><span>📧</span> support@inventorypro.com</div>
             </div>
 
             <div class="contact-card">
-                <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                <form id="contactForm">
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="contactName" required placeholder="Jane Smith">
+                            <label>Name</label>
+                            <input type="text" name="name" required placeholder="John Doe">
                         </div>
                         <div class="form-group">
                             <label>Email</label>
-                            <input type="email" id="contactEmail" required placeholder="jane@company.com">
+                            <input type="email" name="email" required placeholder="john@example.com">
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Message</label>
-                        <textarea id="contactMessage" rows="4" required placeholder="Tell us what you need..."></textarea>
+                        <textarea name="message" rows="4" required placeholder="Tell us how we can help..."></textarea>
                     </div>
                     <button type="submit" class="cta-button" style="width: 100%; cursor: pointer;">Send Message</button>
                 </form>
 
                 <div id="successMessage">
                     <div class="success-icon">✅</div>
-                    <h3>Message Sent!</h3>
-                    <p>Thank you for reaching out. Our team will contact you within 24 hours.</p>
-                    <button onclick="resetForm()" class="btn-outline" style="margin-top: 20px; cursor: pointer; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px;">Send another message</button>
+                    <h3>Thank You!</h3>
+                    <p>Your message has been received. We'll get back to you within 24 hours.</p>
+                    <button onclick="resetContactForm()" class="cta-button" style="margin-top:20px; background:#e2e8f0; color:#334155;">New Message</button>
                 </div>
             </div>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2026 Inventory Pro | Built for high-efficiency teams.</p>
+        <p>&copy; 2026 Inventory Pro Systems. All rights reserved.</p>
     </footer>
 
     <script>
-        function handleContactSubmit(event) {
-            event.preventDefault();
-            
-            // Hide form and show success message
-            document.getElementById('contactForm').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
+        // 1. Handle Form Submission via Node.js Backend
+        const form = document.getElementById('contactForm');
+        const success = document.getElementById('successMessage');
 
-            // Optional: Log data or send to API here
-            console.log("Form Submitted Successfully");
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            // Collect data into an object for JSON transmission
+            const formData = {
+                name: form.name.value,
+                email: form.email.value,
+                message: form.message.value
+            };
+
+            try {
+                // Send to your local Node.js API
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    form.style.display = 'none';
+                    success.style.display = 'block';
+                    form.reset();
+                } else {
+                    const result = await response.json();
+                    alert("Server Error: " + (result.message || "Could not save message."));
+                }
+            } catch (error) {
+                alert("Connection Error: Make sure your Node.js server (app.js) is running.");
+            }
+        };
+
+        function resetContactForm() {
+            form.style.display = 'block';
+            success.style.display = 'none';
         }
 
-        function resetForm() {
-            // Reset and show form again
-            document.getElementById('contactForm').reset();
-            document.getElementById('contactForm').style.display = 'block';
-            document.getElementById('successMessage').style.display = 'none';
+        // 2. Scroll to Top Logic
+        const topBtn = document.getElementById("scrollTopBtn");
+        window.onscroll = () => {
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                topBtn.style.display = "block";
+            } else {
+                topBtn.style.display = "none";
+            }
+        };
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>

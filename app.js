@@ -1,27 +1,28 @@
 const express = require('express');
-const cors = require('cors'); // Required to fix the connection error
+const cors = require('cors'); 
+const db = require('./config/db');
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const scheduleRoutes = require('./routes/schedules'); 
-const db = require('./config/db'); 
 const orderRoutes = require('./routes/orders');
 require('dotenv').config({ quiet: true });
 
 const app = express();
 
 // --- MIDDLEWARE ---
-app.use(cors()); // Allows your frontend to communicate with this server
-app.use(express.json()); // Parses incoming JSON payloads
-app.use(express.static('public')); // Serves your HTML/CSS/JS files
-app.use('/api/orders', orderRoutes);
+app.use(cors()); // Allows frontend/backend communication
+app.use(express.json()); // Essential for parsing the JSON form data from landing-page.html
+app.use(express.static('public')); // Serves landing-page.html, CSS, and JS
+
 // --- API ROUTES ---
+app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/schedules', scheduleRoutes); 
 
 /**
  * HISTORY FETCH ROUTE
- * Fetches the most recent 10 stock movements for the dashboard history table.
+ * Fetches recent stock movements for the dashboard.
  */
 app.get('/api/history', async (req, res) => {
     try {
@@ -39,6 +40,39 @@ app.get('/api/history', async (req, res) => {
     }
 });
 
+/**
+ * CONTACT FORM ROUTE
+ * Saves "Get In Touch" messages to the database.
+ */
+app.post('/api/contact', async (req, res) => {
+    const { name, email, message } = req.body;
+
+    // Basic validation to ensure fields aren't empty
+    if (!name || !email || !message) {
+        return res.status(400).json({ status: "error", message: "All fields are required" });
+    }
+
+    try {
+        const sql = "INSERT INTO contact_requests (name, email, message) VALUES (?, ?, ?)";
+        
+        // Use 'await' to match your 'db' promise-based configuration
+        await db.query(sql, [name, email, message]);
+        
+        console.log(`New contact request from: ${email}`);
+        res.json({ status: "success" });
+    } catch (err) {
+        // If you get a "Table not found" error, ensure you ran the SQL CREATE command
+        console.error("Database Contact Error:", err);
+        res.status(500).json({ status: "error", message: "Database failure" });
+    }
+});
+
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`-------------------------------------------`);
+    console.log(`✅ Inventory Pro Server is running!`);
+    console.log(`🚀 URL: http://localhost:${PORT}`);
+    console.log(`📂 Serving files from: /public`);
+    console.log(`-------------------------------------------`);
+});
