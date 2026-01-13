@@ -1,40 +1,122 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        
-        <h2>Edit Product</h2>
+        <div class="modal-header">
+            <h2>✏️ Edit Product</h2>
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+        </div>
         <hr>
         
         <input type="hidden" id="editId">
         
-        <div class="input-group">
-            <label for="editName">Product Name</label>
-            <input type="text" id="editName" placeholder="Enter product name">
+        <div class="modal-body">
+            <div class="input-group">
+                <label for="editName">Product Name</label>
+                <input type="text" id="editName" placeholder="Enter product name" required>
+            </div>
+
+            <div class="input-group">
+                <label for="editProductImage">Product Photo</label>
+                <input type="file" id="editProductImage" accept="image/*" onchange="handleEditFileSelect(event)">
+                <small class="helper-text">Select a new file to update the photo, or leave empty to keep the current one.</small>
+                
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                    <img id="editPreview" src="/images/placeholder.png" 
+                         style="display:block; width:60px; height:60px; border-radius:8px; object-fit: cover; border: 1px solid #ddd;"
+                         onerror="this.src='/images/placeholder.png'">
+                    
+                    <a id="editDownloadBtn" href="#" download="product-photo" class="download-link" style="display: none;">
+                        📥 Download Photo
+                    </a>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="editCategory">Category</label>
+                <select id="editCategory">
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Canned Goods">Canned Goods</option>
+                </select>
+            </div>
+            
+            <div class="grid-inputs">
+                <div class="input-group">
+                    <label for="editQty">Current Stock</label>
+                    <input type="number" id="editQty" placeholder="0" min="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="editPrice">Price (₱)</label>
+                    <input type="number" id="editPrice" step="0.01" placeholder="0.00" min="0">
+                </div>
+            </div>
         </div>
         
-        <div class="input-group">
-            <label for="editCategory">Category</label>
-            <select id="editCategory">
-                <option value="Vegetables">Vegetables</option>
-                <option value="Fruits">Fruits</option>
-                <option value="Supplies">Supplies</option>
-                <option value="Canned Goods">Canned Goods</option>
-            </select>
-        </div>
-        
-        <div class="input-group">
-            <label for="editQty">Quantity</label>
-            <input type="number" id="editQty" placeholder="0">
-        </div>
-        
-        <div class="input-group">
-            <label for="editPrice">Price (₱)</label>
-            <input type="number" id="editPrice" step="0.01" placeholder="0.00">
-        </div>
-        
-        <div class="modal-buttons">
-            <button class="save-btn" onclick="saveEdit()">Save Changes</button>
-            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        <div class="modal-footer">
+            <button type="button" class="save-btn" onclick="saveEdit()">Save Changes</button>
+            <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 </div>
+
+<script>
+/**
+ * Handles previewing the newly selected file in the Edit Modal
+ */
+function handleEditFileSelect(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('editPreview');
+    const downloadBtn = document.getElementById('editDownloadBtn');
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            downloadBtn.href = e.target.result;
+            downloadBtn.style.display = 'inline-block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+/**
+ * Logic to update the preview when the modal opens with existing data
+ */
+function setEditPreview(existingUrl) {
+    const preview = document.getElementById('editPreview');
+    const downloadBtn = document.getElementById('editDownloadBtn');
+    
+    preview.src = existingUrl || '/images/placeholder.png';
+
+    if (existingUrl && existingUrl.trim() !== "" && existingUrl !== '/images/placeholder.png') {
+        downloadBtn.href = existingUrl;
+        downloadBtn.style.display = 'inline-block';
+    } else {
+        downloadBtn.style.display = 'none';
+    }
+}
+</script>
+
+<style>
+    .modal-body { padding: 15px 0; }
+    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .helper-text { display: block; font-size: 0.75rem; color: #888; margin-top: 4px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+
+    .download-link {
+        font-size: 0.85rem;
+        color: #4b4b4b;
+        text-decoration: none;
+        background: #f1f1f1;
+        padding: 5px 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        transition: background 0.2s;
+    }
+    .download-link:hover {
+        background: #e2e2e2;
+        color: #000;
+    }
+</style>

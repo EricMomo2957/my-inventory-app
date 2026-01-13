@@ -18,14 +18,12 @@ function applyRolePermissions() {
     if (!currentUser) return;
     const role = (currentUser.role || '').toLowerCase();
 
-    // If the user is a clerk, hide management buttons
     if (role === 'clerk') {
         document.querySelectorAll('.add-main-btn, .edit-btn, .delete-btn').forEach(btn => {
             btn.style.setProperty('display', 'none', 'important');
         });
     } 
     
-    // Auditors are Read-Only (hide all actions)
     if (role === 'auditor') {
         document.querySelectorAll('.add-main-btn, .btn-table, .action-cell').forEach(btn => {
             btn.style.setProperty('display', 'none', 'important');
@@ -76,7 +74,6 @@ async function loadInventory() {
         const res = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
         let products = await res.json();
         
-        // DASHBOARD CALCULATIONS
         let totalItems = 0, totalValue = 0, lowStockCount = 0;
         let counts = { Vegetables: 0, Fruits: 0, Supplies: 0, "Canned Goods": 0 };
 
@@ -88,34 +85,39 @@ async function loadInventory() {
             if (counts.hasOwnProperty(p.category)) counts[p.category] += qty;
         });
 
-        // UPDATE UI TILES
-        if(document.getElementById('totalItems')) document.getElementById('totalItems').innerText = totalItems;
-        if(document.getElementById('totalValue')) document.getElementById('totalValue').innerText = formatCurrency(totalValue);
-        if(document.getElementById('lowStockCount')) document.getElementById('lowStockCount').innerText = lowStockCount;
-        if(document.getElementById('countVegetables')) document.getElementById('countVegetables').innerText = counts.Vegetables;
-        if(document.getElementById('countFruits')) document.getElementById('countFruits').innerText = counts.Fruits;
-        if(document.getElementById('countSupplies')) document.getElementById('countSupplies').innerText = counts.Supplies;
-        if(document.getElementById('countCanned')) document.getElementById('countCanned').innerText = counts["Canned Goods"];
+        const updateText = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val; };
+        updateText('totalItems', totalItems);
+        updateText('totalValue', formatCurrency(totalValue));
+        updateText('lowStockCount', lowStockCount);
+        updateText('countVegetables', counts.Vegetables);
+        updateText('countFruits', counts.Fruits);
+        updateText('countSupplies', counts.Supplies);
+        updateText('countCanned', counts["Canned Goods"]);
 
-        // APPLY FILTERS
         if (currentCategory !== '') products = products.filter(p => p.category === currentCategory);
         if (showLowStockOnly) products = products.filter(p => p.quantity < 5);
 
-        // RENDER TABLE
         const tableBody = document.getElementById('inventoryTable');
         if (!tableBody) return;
 
         if (products.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:50px; color:#888;">🔍 No matching products found.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:50px; color:#888;">🔍 No matching products found.</td></tr>`;
         } else {
             tableBody.innerHTML = products.map(p => {
                 const qty = Number(p.quantity);
                 const categoryClass = p.category.toLowerCase().replace(/\s+/g, '-');
                 const percentage = Math.min((qty / 50) * 100, 100);
                 const barClass = qty < 5 ? 'bar-low' : (qty < 15 ? 'bar-medium' : 'bar-high');
+                const photoUrl = p.image_url && p.image_url !== '' ? p.image_url : '/images/placeholder.png';
 
                 return `
                     <tr class="${qty < 5 ? 'low-stock' : ''}">
+                        <td>
+                            <img src="${photoUrl}" 
+                                 class="product-img-cell"
+                                 style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid #eee;"
+                                 onerror="this.src='/images/placeholder.png'">
+                        </td>
                         <td><strong>${p.name}</strong></td>
                         <td><span class="category-badge badge-${categoryClass}">${p.category}</span></td>
                         <td>
@@ -126,17 +128,19 @@ async function loadInventory() {
                         </td>
                         <td>${formatCurrency(p.price)}</td>
                         <td style="font-size: 0.75rem; color: #888;">
-                            ${p.updated_at || p.last_updated ? new Date(p.updated_at || p.last_updated).toLocaleString() : 'Never'}
+                            ${p.updated_at ? new Date(p.updated_at).toLocaleString() : 'Never'}
                         </td>
                         <td class="action-cell">
                             <div style="display: flex; gap: 5px;">
-                                <button class="btn-table restock-btn" onclick="restockProduct(${p.id})" style="background:#28c76f; color:white;">
-                                    <span>🔄</span> Restock
+                                <button class="btn-table restock-btn" onclick="restockProduct(${p.id})" title="Restock">
+                                    <span>🔄</span>
                                 </button>
-                                <button class="btn-table edit-btn" onclick="openEditModal(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${qty}, ${p.price}, '${p.category}')" style="background:#4361ee; color:white;">
+                                <button class="btn-table edit-btn" 
+                                    onclick="openEditModal(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${qty}, ${p.price}, '${p.category}', '${photoUrl}')" 
+                                    title="Edit">
                                     <span>✏️</span>
                                 </button>
-                                <button class="btn-table delete-btn" onclick="deleteProduct(${p.id})" style="background:#ea5455; color:white;">
+                                <button class="btn-table delete-btn" onclick="deleteProduct(${p.id})" title="Delete">
                                     <span>🗑️</span>
                                 </button>
                             </div>
@@ -146,7 +150,6 @@ async function loadInventory() {
         }
 
         updateFilterStatusBadge();
-        // Run permission check after table is built
         applyRolePermissions();
 
     } catch (err) {
@@ -161,7 +164,6 @@ async function loadRestockHistory() {
     try {
         const res = await fetch('/api/history');
         const history = await res.json();
-        
         const historyTable = document.getElementById('historyTable');
         if (!historyTable) return;
 
@@ -180,8 +182,7 @@ async function loadRestockHistory() {
                     <td><strong>${item.product_name || item.name}</strong></td>
                     <td><span style="color: #28c76f; font-weight: bold;">+${item.change_amount || item.added_qty}</span></td>
                     <td><span class="user-pill">${item.user_name || item.processed_by}</span></td>
-                </tr>
-            `;
+                </tr>`;
         }).join('');
     } catch (err) {
         console.error("Failed to load history:", err);
@@ -200,7 +201,7 @@ function setCategory(category) {
     currentCategory = category;
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.toggle('active-filter', 
-            (category === '' && btn.innerText === 'All') || btn.innerText === category
+            (category === '' && (btn.innerText === 'All' || btn.innerText === '')) || btn.innerText === category
         );
     });
     loadInventory();
@@ -222,7 +223,6 @@ function toggleLowStock() {
 async function restockProduct(id) {
     const amount = prompt("Enter quantity to add to stock:");
     if (amount === null) return;
-    
     const increment = parseInt(amount);
     if (isNaN(increment) || increment <= 0) {
         alert("Please enter a valid positive number.");
@@ -242,7 +242,6 @@ async function restockProduct(id) {
         if (response.ok) {
             loadInventory();
             loadRestockHistory();
-            alert(`Successfully added ${increment} units!`);
         }
     } catch (err) {
         console.error("Restock error:", err);
@@ -253,56 +252,79 @@ async function deleteProduct(id) {
     if (confirm('Permanently delete this item? This cannot be undone.')) {
         try {
             const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-            if(res.ok) {
-                loadInventory();
-            } else {
-                alert("Error deleting product.");
-            }
+            if(res.ok) loadInventory();
+            else alert("Error deleting product.");
         } catch (e) { console.error(e); }
     }
 }
 
 /**
- * 7. MODAL CONTROL
+ * 7. MODAL CONTROL & PHOTO HANDLING
  */
 function openAddModal() { 
     const modal = document.getElementById('addModal');
-    if(modal) modal.style.display = 'flex'; 
+    if(modal) {
+        modal.style.display = 'flex';
+        // Reset preview to default
+        document.getElementById('addPreview').src = '/images/placeholder.png';
+        document.getElementById('downloadBtn').style.display = 'none';
+    }
 }
 
 function closeAddModal() { 
     const modal = document.getElementById('addModal');
-    if(modal) modal.style.display = 'none';
-    document.getElementById('productForm')?.reset();
+    if(modal) {
+        modal.style.display = 'none';
+        document.getElementById('productForm')?.reset();
+    }
 }
 
-function openEditModal(id, name, qty, price, category) {
+function openEditModal(id, name, qty, price, category, imageUrl) {
     document.getElementById('editId').value = id;
     document.getElementById('editName').value = name;
     document.getElementById('editQty').value = qty;
     document.getElementById('editPrice').value = price;
     document.getElementById('editCategory').value = category;
+    
+    // Call the helper from the Edit Modal script to set current photo
+    if (typeof setEditPreview === "function") {
+        setEditPreview(imageUrl);
+    }
+    
     document.getElementById('editModal').style.display = 'flex';
 }
 
 function closeModal() { 
-    document.getElementById('editModal').style.display = 'none'; 
+    const modal = document.getElementById('editModal');
+    if(modal) {
+        modal.style.display = 'none';
+        // Reset file input so same file can be picked again if needed
+        const fileInput = document.getElementById('editProductImage');
+        if(fileInput) fileInput.value = '';
+    }
 }
 
+/**
+ * 8. SAVING DATA (FILE UPLOAD VERSION)
+ */
 async function saveEdit() {
     const id = document.getElementById('editId').value;
-    const data = {
-        name: document.getElementById('editName').value,
-        quantity: document.getElementById('editQty').value,
-        price: document.getElementById('editPrice').value,
-        category: document.getElementById('editCategory').value
-    };
+    const formData = new FormData();
+    
+    formData.append('name', document.getElementById('editName').value);
+    formData.append('quantity', document.getElementById('editQty').value);
+    formData.append('price', document.getElementById('editPrice').value);
+    formData.append('category', document.getElementById('editCategory').value);
+    
+    const fileInput = document.getElementById('editProductImage');
+    if (fileInput.files.length > 0) {
+        formData.append('productImage', fileInput.files[0]);
+    }
 
     try {
         const res = await fetch(`/api/products/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+            body: formData // Browser sets correct Content-Type for FormData
         });
 
         if (res.ok) { 
@@ -311,50 +333,42 @@ async function saveEdit() {
         } else {
             alert("Failed to save changes.");
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Update error:", e); }
 }
 
-// Global Form Submit for ADD
+// Handler for the "Add Product" form using FormData
 document.addEventListener('submit', async (e) => {
     if (e.target && e.target.id === 'productForm') {
         e.preventDefault();
-        const data = {
-            name: document.getElementById('name').value,
-            quantity: document.getElementById('qty').value,
-            price: document.getElementById('price').value,
-            category: document.getElementById('category').value
-        };
+        
+        const formData = new FormData(e.target);
 
-        const res = await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                body: formData
+            });
 
-        if (res.ok) {
-            closeAddModal();
-            loadInventory();
-        }
+            if (res.ok) {
+                closeAddModal();
+                loadInventory();
+            } else {
+                alert("Error adding product.");
+            }
+        } catch (err) { console.error("Add Error:", err); }
     }
 });
 
 function toggleDarkMode() {
     const html = document.documentElement;
     const isDark = html.classList.toggle('dark-mode');
-    
-    // Save preference
     localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-    
-    // Update Sidebar Button Text if it exists
     const themeBtn = document.getElementById('themeToggle');
-    if (themeBtn) {
-        themeBtn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
-    }
+    if (themeBtn) themeBtn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
 }
 
-
 /**
- * 8. INITIALIZATION
+ * 9. INITIALIZATION
  */
 window.addEventListener('DOMContentLoaded', () => {
     loadInventory();

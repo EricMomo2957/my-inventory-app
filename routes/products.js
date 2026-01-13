@@ -3,12 +3,22 @@ const router = express.Router();
 const db = require('../config/db');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 
-// 1. Configure storage for Multer
+/**
+ * 1. CONFIGURE STORAGE FOR MULTER
+ */
 const storage = multer.diskStorage({
-    destination: './public/images/', // Ensure this folder exists
+    destination: (req, file, cb) => {
+        const dir = './public/images/products/';
+        // Automatically create folder if it doesn't exist
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
     filename: (req, file, cb) => {
-        // Creates a unique filename: 17123456789.png
+        // Creates a unique filename: timestamp + original extension
         cb(null, Date.now() + path.extname(file.originalname));
     }
 });
@@ -16,27 +26,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 /**
- * 2. POST (Add Product with Image Upload)
- * This handles the FormData from your addModal.html
- */
-router.post('/add', upload.single('productImage'), async (req, res) => {
-    const { name, qty, price, category } = req.body;
-    
-    // Check if a file was uploaded, otherwise use placeholder
-    const imageUrl = req.file ? `/images/${req.file.filename}` : '/images/placeholder.png';
-
-    try {
-        const sql = 'INSERT INTO products (name, quantity, price, category, image_url) VALUES (?, ?, ?, ?, ?)';
-        await db.execute(sql, [name, qty, price, category, imageUrl]);
-        res.json({ success: true, message: "Product added successfully" });
-    } catch (err) {
-        console.error("Upload Error:", err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-/**
- * 3. GET Products (with Search support)
+ * 2. GET PRODUCTS (With Search)
  */
 router.get('/', async (req, res) => {
     try {
@@ -51,28 +41,61 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * 4. PUT (Update Product)
- * Note: If you want to update images too, you would add upload.single here as well
+ * 3. POST (Add Product with Image Upload)
+ * Note: 'productImage' matches formData.append('productImage', ...) in main.js
  */
-router.put('/:id', async (req, res) => {
+router.post('/', upload.single('productImage'), async (req, res) => {
     try {
-        const { id } = req.params;
         const { name, quantity, price, category } = req.body;
-        const sql = 'UPDATE products SET name = ?, quantity = ?, price = ?, category = ? WHERE id = ?';
-        const [result] = await db.query(sql, [name, quantity, price, category, id]);
         
-        if (result.affectedRows === 0) {
-            return res.status(404).send('Product not found');
-        }
-        res.send('Product updated successfully');
+        // If file uploaded, use path. Otherwise use placeholder.
+        const imageUrl = req.file ? `/images/products/${req.file.filename}` : '/images/placeholder.png';
+
+        const sql = 'INSERT INTO products (name, quantity, price, category, image_url) VALUES (?, ?, ?, ?, ?)';
+        await db.execute(sql, [name, quantity, price, category, imageUrl]);
+        
+        res.status(201).json({ success: true, message: "Product added successfully" });
     } catch (err) {
-        console.error("PUT Error:", err);
-        res.status(500).json({ error: "Failed to update product" });
+        console.error("POST Error:", err);
+        res.status(500).json({ success: false, error: "Server Error" });
     }
 });
 
 /**
- * 5. DELETE Product
+ * 4. PUT (Update Product with Optional Image Upload)
+ */
+router.put('/:id', upload.single('productImage'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, quantity, price, category } = req.body;
+        
+        // Start building the dynamic query
+        let sql = 'UPDATE products SET name = ?, quantity = ?, price = ?, category = ?';
+        let params = [name, quantity, price, category];
+
+        // If a new image was uploaded, add it to the update list
+        if (req.file) {
+            sql += ', image_url = ?';
+            params.push(`/images/products/${req.file.filename}`);
+        }
+
+        sql += ' WHERE id = ?';
+        params.push(id);
+
+        const [result] = await db.query(sql, params);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        res.json({ success: true, message: 'Updated successfully' });
+    } catch (err) {
+        console.error("PUT Error:", err);
+        res.status(500).json({ error: "Update failed" });
+    }
+});
+
+/**
+ * 5. DELETE PRODUCT
  */
 router.delete('/:id', async (req, res) => {
     try {

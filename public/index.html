@@ -76,6 +76,15 @@
         /* Specific Badge Colors for Schedule */
         .badge-supplier-meeting { background-color: #ff5e5e !important; color: white !important; }
         .badge-inventory-check { background-color: #00d4ff !important; color: white !important; }
+        
+        /* Table Image Preview */
+        .product-img-cell {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
@@ -151,6 +160,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Photo</th> 
                                 <th>Name</th>
                                 <th>Category</th>
                                 <th>Quantity</th>
@@ -219,8 +229,7 @@
                                 <th>Processed By</th>
                             </tr>
                         </thead>
-                        <tbody id="historyTable">
-                            </tbody>
+                        <tbody id="historyTable"></tbody>
                     </table>
                 </div>
             </section>
@@ -242,28 +251,43 @@
             } catch (err) { console.error("Component Load Error:", err); }
         }
 
-        // --- CLEAR SEARCH FUNCTION ---
-        function clearSearch() {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.value = '';
-            if (typeof loadInventory === "function") {
-                loadInventory(); 
+        // --- UI INITIALIZATION ---
+        function initializeGreeting() {
+            const userStr = localStorage.getItem('currentUser');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                const name = user.full_name || user.username;
+                const welcomeEl = document.getElementById('welcomeMessage');
+                if (welcomeEl) welcomeEl.innerText = `Welcome back, ${name}! 👋`;
             }
-            searchInput.focus();
+
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateEl = document.getElementById('currentDateDisplay');
+            if (dateEl) dateEl.innerText = new Date().toLocaleDateString(undefined, options);
         }
 
-        // --- DASHBOARD API LOADERS ---
+        // --- CLEAR SEARCH ---
+        function clearSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+                if (typeof loadInventory === "function") loadInventory();
+                searchInput.focus();
+            }
+        }
+
+        // --- DASHBOARD API LOADER ---
         async function loadDashboardSummaries() {
             try {
                 const [schedRes, userRes] = await Promise.all([
                     fetch('/api/schedules'),
-                    fetch('/api/users/all') // Correctly hits your router.get('/all') route
+                    fetch('/api/users/all')
                 ]);
                 
                 const schedules = await schedRes.json();
-                const users = await userRes.json(); // Array from SELECT * FROM users
+                const users = await userRes.json();
 
-                // 1. Render Schedules (Existing logic)
+                // 1. Render Schedules
                 document.getElementById('dashboardScheduleTable').innerHTML = schedules.slice(0, 5).map(s => {
                     const rawDate = s.date || s.event_date;
                     const dateObj = new Date(rawDate);
@@ -275,29 +299,11 @@
                             <td>${displayDate}</td>
                             <td>${s.title || s.event_name || 'Untitled Event'}</td>
                             <td><span class="category-badge badge-${typeClass}">${s.type || 'General'}</span></td>
-                        </tr>
-                    `;
+                        </tr>`;
                 }).join('');
 
-                function initializeDashboard() {
-                    const user = JSON.parse(localStorage.getItem('currentUser'));
-                    if (user) {
-                        // Update greeting with Full Name or Username
-                        const name = user.full_name || user.username;
-                        document.getElementById('welcomeMessage').innerText = `Welcome back, ${name}! 👋`;
-                    }
-
-                    // Set today's date
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString(undefined, options);
-                }
-
-                // Call this function when the DOM loads
-                window.addEventListener('DOMContentLoaded', initializeDashboard);
-
-                // 2. Render Users (Updated for your specific database columns)
+                // 2. Render Users
                 document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => {
-                    // Handle profile image from LONGTEXT column
                     const imgPath = u.profile_image && u.profile_image !== "NULL" 
                                     ? u.profile_image 
                                     : 'assets/default-avatar.png';
@@ -321,22 +327,28 @@
                                     ${u.role}
                                 </span>
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 }).join('');
             } catch (e) { 
                 console.error("Dashboard Load Error:", e);
-                document.getElementById('dashboardUserTable').innerHTML = '<tr><td colspan="3">Failed to load system users.</td></tr>';
+                const userTable = document.getElementById('dashboardUserTable');
+                if (userTable) userTable.innerHTML = '<tr><td colspan="3">Failed to load summaries.</td></tr>';
             }
         }
 
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', () => {
-            loadComponent('sidenav-placeholder', 'components/sidenav.html');
-            loadComponent('addModal-placeholder', 'components/addModal.html');
-            loadComponent('editModal-placeholder', 'components/editModal.html');
+        // --- INITIALIZATION ON DOM LOAD ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Load HTML Components
+            await Promise.all([
+                loadComponent('sidenav-placeholder', 'components/sidenav.html'),
+                loadComponent('addModal-placeholder', 'components/addModal.html'),
+                loadComponent('editModal-placeholder', 'components/editModal.html')
+            ]);
             
-            // Core Data Loads
+            // Initialize UI text
+            initializeGreeting();
+            
+            // Load Dynamic Data
             loadDashboardSummaries();
             if (typeof loadInventory === "function") loadInventory();
             if (typeof loadRestockHistory === "function") loadRestockHistory();

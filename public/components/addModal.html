@@ -1,39 +1,59 @@
 <div id="addModal" class="modal">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeAddModal()">&times;</span>
-        <h2>Add New Product</h2>
+        <div class="modal-header">
+            <h2>📦 Add New Product</h2>
+            <span class="close-btn" onclick="closeAddModal()">&times;</span>
+        </div>
         <hr>
-        <form id="productForm">
-            <div class="input-group">
-                <label>Item Name</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            
-            <div class="input-group">
-                <label>Product Photo</label>
-                <input type="file" id="productImage" name="productImage" accept="image/*" onchange="previewImage(event)">
-                <img id="imgPreview" src="#" style="display:none; width:100px; margin-top:10px; border-radius:8px;">
+
+        <form id="productForm" enctype="multipart/form-data">
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" id="name" name="name" placeholder="e.g., Fresh Red Apples" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="productImage">Product Photo</label>
+                    <input type="file" id="productImage" name="productImage" accept="image/*" onchange="handleFileSelect(event)">
+                    <small class="helper-text">Admin tip: Select a high-quality JPG or PNG.</small>
+                    
+                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                        <img id="addPreview" src="/images/placeholder.png" 
+                             style="display:block; width:80px; height:80px; border-radius:8px; object-fit: cover; border: 1px solid #ddd;">
+                        
+                        <a id="downloadBtn" href="#" download="selected-product-photo" class="download-link" style="display: none;">
+                            📥 Download Selected Photo
+                        </a>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="" disabled selected>Select a category</option>
+                        <option value="Vegetables">Vegetables</option>
+                        <option value="Fruits">Fruits</option>
+                        <option value="Supplies">Supplies</option>
+                        <option value="Canned Goods">Canned Goods</option>
+                    </select>
+                </div>
+
+                <div class="grid-inputs">
+                    <div class="input-group">
+                        <label for="qty">Initial Quantity</label>
+                        <input type="number" id="qty" name="quantity" placeholder="0" min="0" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="price">Unit Price (₱)</label>
+                        <input type="number" id="price" name="price" step="0.01" placeholder="0.00" min="0" required>
+                    </div>
+                </div>
             </div>
 
-            <div class="input-group">
-                <label>Quantity</label>
-                <input type="number" id="qty" name="qty" required>
-            </div>
-            <div class="input-group">
-                <label>Price (₱)</label>
-                <input type="number" id="price" name="price" step="0.01" required>
-            </div>
-            <div class="input-group">
-                <label>Category</label>
-                <select id="category" name="category" required>
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Supplies">Supplies</option>
-                    <option value="Canned Goods">Canned Goods</option>
-                </select>
-            </div>
-            <div class="modal-buttons">
-                <button type="submit" class="save-btn">Add Product</button>
+            <div class="modal-footer">
+                <button type="submit" class="add-btn">Add to Inventory</button>
                 <button type="button" class="cancel-btn" onclick="closeAddModal()">Cancel</button>
             </div>
         </form>
@@ -41,28 +61,65 @@
 </div>
 
 <script>
-function previewImage(event) {
-    const reader = new FileReader();
-    reader.onload = () => {
-        const preview = document.getElementById('imgPreview');
-        preview.src = reader.result;
-        preview.style.display = 'block';
-    };
-    reader.readAsDataURL(event.target.files[0]);
-}
+/**
+ * Handles the file selection, generates a preview, and prepares the download link
+ */
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('addPreview');
+    const downloadBtn = document.getElementById('downloadBtn');
 
-document.getElementById('productForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-
-    const response = await fetch('/api/products/add', {
-        method: 'POST',
-        body: formData // No Headers needed, FormData sets them automatically
-    });
-    const result = await response.json();
-    if (result.success) {
-        alert("Product added!");
-        location.reload();
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Update preview image
+            preview.src = e.target.result;
+            
+            // Set up download link
+            downloadBtn.href = e.target.result;
+            downloadBtn.style.display = 'inline-block';
+        };
+        
+        reader.readAsDataURL(file);
+    } else {
+        preview.src = '/images/placeholder.png';
+        downloadBtn.style.display = 'none';
     }
-};
+}
 </script>
+
+<style>
+    .modal-body { padding: 15px 0; }
+    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .helper-text { display: block; font-size: 0.75rem; color: #888; margin-top: 4px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+    
+    .download-link {
+        font-size: 0.85rem;
+        color: #4b4b4b;
+        text-decoration: none;
+        background: #f1f1f1;
+        padding: 8px 12px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .download-link:hover {
+        background: #e2e2e2;
+        color: #000;
+    }
+
+    .add-btn {
+        background-color: #28c76f;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .add-btn:hover { background-color: #21a35c; }
+</style>
