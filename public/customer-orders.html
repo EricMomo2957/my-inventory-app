@@ -19,8 +19,13 @@
 
         <main class="main-content">
             <header class="content-header">
-                <h1>🛒 Customer Orders</h1>
-                <p>View and manage all outgoing customer transactions.</p>
+                <div>
+                    <h1>🛒 Customer Orders</h1>
+                    <p>View and manage all outgoing customer transactions.</p>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="orderSearch" placeholder="Search Order ID or Product..." onkeyup="filterOrders()">
+                </div>
             </header>
 
             <div class="table-container">
@@ -52,7 +57,6 @@
             .then(res => res.text())
             .then(data => {
                 document.getElementById('sidebar-container').innerHTML = data;
-                // Re-run the UI sync logic for the sidebar once it's loaded
                 if (window.syncSidebarUI) syncSidebarUI();
             });
 
@@ -70,7 +74,6 @@
                     return;
                 }
 
-                // Mapping matches your updated SQL query results
                 tableBody.innerHTML = orders.map(o => `
                     <tr>
                         <td><span class="order-id">#ORD-${o.order_id}</span></td>
@@ -91,11 +94,59 @@
             }
         }
 
-        // Initialize on page load
+        /**
+         * 3. Search Filter Logic
+         */
+        function filterOrders() {
+            const input = document.getElementById('orderSearch');
+            const filter = input.value.toLowerCase();
+            const tableBody = document.getElementById('ordersTableBody');
+            const rows = tableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                // Column 0: Order ID | Column 1: Product Name
+                const idCell = rows[i].getElementsByTagName('td')[0];
+                const nameCell = rows[i].getElementsByTagName('td')[1];
+                
+                if (idCell && nameCell) {
+                    const idText = idCell.textContent || idCell.innerText;
+                    const nameText = nameCell.textContent || nameCell.innerText;
+                    
+                    if (idText.toLowerCase().includes(filter) || nameText.toLowerCase().includes(filter)) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
         window.onload = loadOrders;
     </script>
 
     <style>
+        /* Header Layout for Search box */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-box input {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            width: 300px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #4361ee;
+        }
+
         /* Table Styling Tweaks */
         .order-id { 
             font-family: 'Courier New', monospace; 
@@ -123,7 +174,13 @@
             color: #166534; 
         }
 
-        /* Dark Mode Support for the table */
+        /* Dark Mode Support */
+        .dark-mode .search-box input {
+            background: #1e293b;
+            border-color: #334155;
+            color: white;
+        }
+
         .dark-mode .category-badge {
             background: #334155;
             color: #f8fafc;
