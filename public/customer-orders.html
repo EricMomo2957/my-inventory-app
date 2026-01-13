@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Orders | Inventory Manager</title>
+    <script>
+        (function() {
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div> 
+
+        <main class="main-content">
+            <header class="content-header">
+                <h1>🛒 Customer Orders</h1>
+                <p>View and manage all outgoing customer transactions.</p>
+            </header>
+
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /**
+         * 1. Load the Sidebar dynamically
+         */
+        fetch('components/sidenav.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                // Re-run the UI sync logic for the sidebar once it's loaded
+                if (window.syncSidebarUI) syncSidebarUI();
+            });
+
+        /**
+         * 2. Fetch and Display Orders
+         */
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/orders');
+                const orders = await res.json();
+                const tableBody = document.getElementById('ordersTableBody');
+
+                if (!orders || orders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td></tr>';
+                    return;
+                }
+
+                // Mapping matches your updated SQL query results
+                tableBody.innerHTML = orders.map(o => `
+                    <tr>
+                        <td><span class="order-id">#ORD-${o.order_id}</span></td>
+                        <td><strong>${o.product_name}</strong></td>
+                        <td><span class="category-badge">${o.category}</span></td>
+                        <td>${o.order_qty}</td>
+                        <td>₱${Number(o.price).toLocaleString()}</td>
+                        <td>₱${Number(o.total_item_price).toLocaleString()}</td>
+                        <td>${new Date(o.order_date).toLocaleString()}</td>
+                        <td><span class="status-badge completed">${o.status}</span></td>
+                    </tr>
+                `).join('');
+                
+            } catch (err) {
+                console.error("Failed to load orders:", err);
+                document.getElementById('ordersTableBody').innerHTML = 
+                    '<tr><td colspan="8" style="text-align:center; color: #ef4444; padding: 20px;">Error loading orders. Please check your database connection.</td></tr>';
+            }
+        }
+
+        // Initialize on page load
+        window.onload = loadOrders;
+    </script>
+
+    <style>
+        /* Table Styling Tweaks */
+        .order-id { 
+            font-family: 'Courier New', monospace; 
+            font-weight: bold; 
+            color: #4361ee; 
+        }
+
+        .category-badge {
+            background: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.completed { 
+            background: #dcfce7; 
+            color: #166534; 
+        }
+
+        /* Dark Mode Support for the table */
+        .dark-mode .category-badge {
+            background: #334155;
+            color: #f8fafc;
+        }
+        
+        .dark-mode .order-id {
+            color: #7089ff;
+        }
+    </style>
+</body>
+</html>
