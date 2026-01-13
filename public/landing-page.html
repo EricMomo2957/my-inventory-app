@@ -110,6 +110,18 @@
             justify-content: center; margin-bottom: 20px; color: white; font-size: 1.5rem;
         }
 
+        /* --- FAQ Section --- */
+        .faq-section { padding: 100px 8%; background: white; }
+        .faq-card {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--primary);
+            transition: 0.3s;
+        }
+        .faq-card:hover { transform: translateX(5px); background: #f1f5f9; }
+
         /* --- Contact Section --- */
         .contact-section { padding: 100px 8%; background-color: #f1f5f9; }
         .contact-container {
@@ -192,6 +204,7 @@
         <a href="#" class="logo">📦 Inventory Pro</a>
         <div class="nav-links">
             <a href="#workflow">Features</a>
+            <a href="#faq-display">FAQ</a>
             <a href="#contact">Contact</a>
             <a href="login.html" class="cta-button" style="padding: 10px 25px;">Sign In</a>
         </div>
@@ -204,7 +217,7 @@
             <a href="login.html" class="cta-button">Launch Dashboard</a>
         </div>
         <div class="hero-graphic">
-            <img src="https://via.placeholder.com/550x380/4361ee/ffffff?text=Inventory+Dashboard+Preview" alt="Dashboard" style="border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); width: 100%;">
+            <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" alt="Warehouse Management" style="border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); width: 100%;">
         </div>
     </header>
 
@@ -229,6 +242,13 @@
         </div>
     </section>
 
+    <section id="faq-display" class="faq-section">
+        <h2 style="text-align: center; font-size: 2.5rem; color: var(--dark);">Frequently Asked Questions</h2>
+        <div id="faqList" style="max-width: 800px; margin: 0 auto; margin-top: 40px;">
+            <p style="text-align: center; color: var(--text-light);">Loading FAQs...</p>
+        </div>
+    </section>
+
     <section id="contact" class="contact-section">
         <div class="contact-container">
             <div class="contact-info">
@@ -236,6 +256,7 @@
                 <p>Ready to upgrade your warehouse? Send us a message and our specialists will reach out to you.</p>
                 <div class="info-item"><span>📍</span> T.Padilla, Cebu City, PH</div>
                 <div class="info-item"><span>📧</span> support@inventorypro.com</div>
+                <div class="info-item"><span>📞</span> +63 912 345 6789</div>
             </div>
 
             <div class="contact-card">
@@ -272,22 +293,43 @@
     </footer>
 
     <script>
-        // 1. Handle Form Submission via Node.js Backend
-        const form = document.getElementById('contactForm');
-        const success = document.getElementById('successMessage');
+        // 1. Load Dynamic FAQs from Database
+        async function loadFAQs() {
+            try {
+                const response = await fetch('/api/faqs');
+                const faqs = await response.json();
+                const list = document.getElementById('faqList');
+                
+                if (faqs.length === 0) {
+                    list.innerHTML = `<p style="text-align:center; color: var(--text-light);">No FAQs available at the moment.</p>`;
+                    return;
+                }
 
-        form.onsubmit = async (e) => {
+                list.innerHTML = faqs.map(f => `
+                    <div class="faq-card">
+                        <h4 style="margin: 0; color: var(--dark); font-size: 1.1rem;">${f.question}</h4>
+                        <p style="margin-top: 10px; color: var(--text-light); font-size: 0.95rem;">${f.answer}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("FAQ Load Error:", err);
+            }
+        }
+
+        // 2. Handle Contact Form Submission
+        const contactForm = document.getElementById('contactForm');
+        const successDiv = document.getElementById('successMessage');
+
+        contactForm.onsubmit = async (e) => {
             e.preventDefault();
             
-            // Collect data into an object for JSON transmission
             const formData = {
-                name: form.name.value,
-                email: form.email.value,
-                message: form.message.value
+                name: contactForm.name.value,
+                email: contactForm.email.value,
+                message: contactForm.message.value
             };
 
             try {
-                // Send to your local Node.js API
                 const response = await fetch('/api/contact', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -295,27 +337,26 @@
                 });
 
                 if (response.ok) {
-                    form.style.display = 'none';
-                    success.style.display = 'block';
-                    form.reset();
+                    contactForm.style.display = 'none';
+                    successDiv.style.display = 'block';
+                    contactForm.reset();
                 } else {
-                    const result = await response.json();
-                    alert("Server Error: " + (result.message || "Could not save message."));
+                    alert("Submission failed. Please try again.");
                 }
             } catch (error) {
-                alert("Connection Error: Make sure your Node.js server (app.js) is running.");
+                alert("Connection error. Is the server running?");
             }
         };
 
         function resetContactForm() {
-            form.style.display = 'block';
-            success.style.display = 'none';
+            contactForm.style.display = 'block';
+            successDiv.style.display = 'none';
         }
 
-        // 2. Scroll to Top Logic
+        // 3. Scroll to Top Behavior
         const topBtn = document.getElementById("scrollTopBtn");
         window.onscroll = () => {
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
                 topBtn.style.display = "block";
             } else {
                 topBtn.style.display = "none";
@@ -325,6 +366,9 @@
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // Initialize components
+        window.onload = loadFAQs;
     </script>
 </body>
 </html>

@@ -14,12 +14,9 @@
                 window.location.href = 'login.html';
                 return;
             }
-
-            // Immediately apply the dark mode class if enabled
+            // Apply dark mode immediately to prevent white flash
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
-            } else {
-                document.documentElement.classList.remove('dark-mode');
             }
         })();
     </script>

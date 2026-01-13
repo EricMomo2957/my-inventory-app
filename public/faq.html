@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage FAQ - Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .faq-admin-container { max-width: 900px; margin: 40px auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { background: #4361ee; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #3651d1; }
+        
+        .faq-list-section { margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        .delete-btn { background: #ef4444; font-size: 0.8rem; padding: 6px 12px; }
+        .delete-btn:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="faq-admin-container">
+        <a href="index.html" style="text-decoration: none; color: #64748b;">← Back to Dashboard</a>
+        <h2>Add New FAQ</h2>
+        <form id="faqForm">
+            <div class="form-group">
+                <label>Question</label>
+                <input type="text" id="question" required placeholder="e.g., How do I reset my password?">
+            </div>
+            <div class="form-group">
+                <label>Answer</label>
+                <textarea id="answer" rows="3" required placeholder="Provide the answer here..."></textarea>
+            </div>
+            <button type="submit">Post to Landing Page</button>
+        </form>
+
+        <div class="faq-list-section">
+            <h3>Current FAQs</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="faqTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Load existing FAQs on startup
+        async function loadFaqs() {
+            const response = await fetch('/api/faqs');
+            const faqs = await response.json();
+            const tableBody = document.getElementById('faqTableBody');
+            
+            tableBody.innerHTML = faqs.map(f => `
+                <tr>
+                    <td><strong>${f.question}</strong></td>
+                    <td><button class="delete-btn" onclick="deleteFaq(${f.id})">Delete</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // Add new FAQ
+        document.getElementById('faqForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = {
+                question: document.getElementById('question').value,
+                answer: document.getElementById('answer').value
+            };
+
+            const response = await fetch('/api/faqs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert("FAQ Added Successfully!");
+                document.getElementById('faqForm').reset();
+                loadFaqs(); // Refresh the table
+            }
+        };
+
+        // Delete FAQ
+        async function deleteFaq(id) {
+            if (confirm("Are you sure you want to remove this FAQ?")) {
+                const response = await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadFaqs(); // Refresh the table
+                }
+            }
+        }
+
+        loadFaqs();
+    </script>
+</body>
+</html>
