@@ -12,80 +12,281 @@
                 window.location.href = 'login.html';
                 return;
             }
-
-            // Immediately apply the dark mode class if enabled
+            // Apply dark mode immediately to prevent white flash
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
-            } else {
-                document.documentElement.classList.remove('dark-mode');
             }
         })();
     </script>
+    <style>
+        .settings-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .settings-section {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .section-header {
+            padding: 15px 25px;
+            border-bottom: 1px solid #f0f0f0;
+            font-weight: 600;
+            background: #fafafa;
+            color: #333;
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #f9f9f9;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info h4 { margin: 0; font-size: 1rem; color: #444; }
+        .setting-info p { margin: 5px 0 0; font-size: 0.85rem; color: #888; }
+        
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #4361ee; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .btn-outline {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .btn-outline:hover { background: #f5f5f5; border-color: #ccc; }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Modal Styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease-out;
+        }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        
+        /* Dark Mode Adjustments */
+        .dark-mode .settings-section, .dark-mode .modal-content { background: #1e293b; color: white; border: none; }
+        .dark-mode .section-header { background: #1a2233; color: #eee; border-bottom-color: #334155; }
+        .dark-mode .setting-row { border-bottom-color: #334155; }
+        .dark-mode .setting-info h4 { color: #eee; }
+        .dark-mode .btn-outline { background: #334155; border-color: #475569; color: white; }
+        .dark-mode .form-group input { background: #0f172a; border-color: #334155; color: white; }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-wrapper">
         <div id="sidenav-placeholder"></div>
 
         <main class="main-content">
-            <header class="dashboard-header">
-                <h1>⚙️ System Settings</h1>
+            <header class="dashboard-header" style="margin-bottom: 30px;">
+                <h1>Settings</h1>
             </header>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <section class="table-card" style="padding: 25px;">
-                    <h2>App Preferences</h2>
-                    <div class="input-group" style="margin-top: 15px;">
-                        <label>Low Stock Alert Threshold</label>
-                        <input type="number" id="lowStockThreshold" value="10" min="1">
-                        <small style="color: #888;">Items below this quantity will highlight in red on the dashboard.</small>
+            <div class="settings-container">
+                <section class="settings-section">
+                    <div class="section-header">Display</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Font Size</h4>
+                            <p>Adjust the interface text size.</p>
+                        </div>
+                        <select id="fontSizeSelect" class="btn-outline">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
                     </div>
-                    <button class="add-main-btn" style="margin-top: 20px;" onclick="savePreferences()">Save Preferences</button>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Dark Mode</h4>
+                            <p>Switch between light and dark themes.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </section>
 
-                <section class="table-card" style="padding: 25px;">
-                    <h2>System Information</h2>
-                    <p><strong>Version:</strong> 1.0.4-Stable</p>
-                    <p><strong>Environment:</strong> Local Development</p>
-                    <p><strong>Database:</strong> MySQL 8.0</p>
-                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-                    <p style="font-size: 0.85rem; color: #888;">Inventory Manager Pro &copy; 2026</p>
+                <section class="settings-section">
+                    <div class="section-header">Inventory Preferences</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Low Stock Threshold</h4>
+                            <p>Current threshold: <span id="thresholdDisplay">10</span> units</p>
+                        </div>
+                        <input type="number" id="lowStockThreshold" style="width: 80px; padding: 5px;" min="1">
+                    </div>
                 </section>
+
+                <section class="settings-section">
+                    <div class="section-header">Language</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Interface Language</h4>
+                            <p>Select your preferred language.</p>
+                        </div>
+                        <button class="btn-outline">English</button>
+                    </div>
+                </section>
+
+                <section class="settings-section">
+                    <div class="section-header">Account Management</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Change Password</h4>
+                            <p>Ensure your account stays secure.</p>
+                        </div>
+                        <button class="btn-outline" onclick="togglePasswordModal(true)">Change Password</button>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Deactivate Account</h4>
+                            <p>Permanently remove your access.</p>
+                        </div>
+                        <button class="btn-danger">Deactivate Account</button>
+                    </div>
+                </section>
+                
+                <div style="text-align: right; padding-bottom: 40px;">
+                    <p style="color: #888; font-size: 0.8rem;">Version 1.0.4-Stable | &copy; 2026</p>
+                </div>
             </div>
         </main>
     </div>
 
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔒 Change Password</h3>
+                <button style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:#888;" onclick="togglePasswordModal(false)">&times;</button>
+            </div>
+            <form onsubmit="handlePasswordUpdate(event)">
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPass" required placeholder="Min 8 characters">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirmPass" required placeholder="Repeat password">
+                </div>
+                <div style="display:flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn-outline" onclick="togglePasswordModal(false)">Cancel</button>
+                    <button type="submit" class="btn-outline" style="background:#4361ee; color:white; border:none;">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        // Standard component loader
-        async function loadComponent(id, path) {
-            try {
-                const res = await fetch(path);
-                const text = await res.text();
-                document.getElementById(id).innerHTML = text;
-                
-                // Re-sync dark mode class to the body after sidebar loads
-                if (localStorage.getItem('darkMode') === 'enabled') {
-                    document.body.classList.add('dark-mode');
-                }
-            } catch (err) {
-                console.error("Failed to load sidebar:", err);
-            }
+        async function loadSidebar() {
+            const res = await fetch('components/sidenav.html');
+            const html = await res.text();
+            document.getElementById('sidenav-placeholder').innerHTML = html;
+            if(window.syncSidebarUI) syncSidebarUI();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadComponent('sidenav-placeholder', 'components/sidenav.html');
+        function togglePasswordModal(show) {
+            document.getElementById('passwordModal').style.display = show ? 'flex' : 'none';
+        }
+
+        function handlePasswordUpdate(e) {
+            e.preventDefault();
+            const p1 = document.getElementById('newPass').value;
+            const p2 = document.getElementById('confirmPass').value;
+            if(p1 !== p2) return alert("Passwords do not match!");
+            if(p1.length < 8) return alert("Password too short!");
             
-            // Load saved threshold from memory
-            const saved = localStorage.getItem('lowStockThreshold');
-            if(saved) {
-                document.getElementById('lowStockThreshold').value = saved;
-            }
-        });
-
-        function savePreferences() {
-            const val = document.getElementById('lowStockThreshold').value;
-            localStorage.setItem('lowStockThreshold', val);
-            alert("Preferences saved! Dashboard will now use this threshold.");
+            alert("Password updated successfully!");
+            togglePasswordModal(false);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSidebar();
+
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const thresholdInput = document.getElementById('lowStockThreshold');
+            const thresholdDisplay = document.getElementById('thresholdDisplay');
+
+            if (localStorage.getItem('darkMode') === 'enabled') darkModeToggle.checked = true;
+
+            const savedThreshold = localStorage.getItem('lowStockThreshold') || '10';
+            thresholdInput.value = savedThreshold;
+            thresholdDisplay.innerText = savedThreshold;
+
+            darkModeToggle.addEventListener('change', () => {
+                const isDark = darkModeToggle.checked;
+                document.documentElement.classList.toggle('dark-mode', isDark);
+                localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+            });
+
+            thresholdInput.addEventListener('change', () => {
+                localStorage.setItem('lowStockThreshold', thresholdInput.value);
+                thresholdDisplay.innerText = thresholdInput.value;
+            });
+        });
     </script>
 </body>
 </html>
