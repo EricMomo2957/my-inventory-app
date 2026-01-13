@@ -2,26 +2,144 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage FAQ - Admin</title>
+    
+    <script>
+        // AUTH & THEME GUARD
+        (function() {
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            // Apply dark mode immediately to prevent white flash
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+    
     <link rel="stylesheet" href="css/style.css">
+    
     <style>
-        .faq-admin-container { max-width: 900px; margin: 40px auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 15px; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-top: 5px; box-sizing: border-box; }
-        button { background: #4361ee; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #3651d1; }
+        /* --- THEME VARIABLES --- */
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+        }
+
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background 0.3s ease;
+        }
+
+        .faq-admin-container { 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 30px; 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        h2, h3 { color: var(--text-main); margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-muted); }
+
+        input, textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; 
+            background: var(--input-bg);
+            color: var(--text-main);
+            box-sizing: border-box; 
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #4361ee;
+        }
+
+        button { 
+            background: #4361ee; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600;
+            transition: 0.3s; 
+        }
+
+        button:hover { background: #3651d1; transform: translateY(-1px); }
         
-        .faq-list-section { margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+        .faq-list-section { 
+            margin-top: 40px; 
+            border-top: 2px solid var(--border-color); 
+            padding-top: 30px; 
+        }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
-        .delete-btn { background: #ef4444; font-size: 0.8rem; padding: 6px 12px; }
+        
+        th { 
+            text-align: left; 
+            padding: 12px; 
+            color: var(--text-muted); 
+            border-bottom: 2px solid var(--border-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        td { 
+            padding: 16px 12px; 
+            border-bottom: 1px solid var(--border-color); 
+            color: var(--text-main);
+        }
+
+        .delete-btn { 
+            background: #ef4444; 
+            font-size: 0.8rem; 
+            padding: 8px 16px; 
+        }
+
         .delete-btn:hover { background: #dc2626; }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: #4361ee; }
     </style>
 </head>
 <body>
     <div class="faq-admin-container">
-        <a href="index.html" style="text-decoration: none; color: #64748b;">← Back to Dashboard</a>
+        <a href="index.html" class="back-link">← Back to Dashboard</a>
         <h2>Add New FAQ</h2>
+        
         <form id="faqForm">
             <div class="form-group">
                 <label>Question</label>
@@ -29,7 +147,7 @@
             </div>
             <div class="form-group">
                 <label>Answer</label>
-                <textarea id="answer" rows="3" required placeholder="Provide the answer here..."></textarea>
+                <textarea id="answer" rows="4" required placeholder="Provide the answer here..."></textarea>
             </div>
             <button type="submit">Post to Landing Page</button>
         </form>
@@ -40,7 +158,7 @@
                 <thead>
                     <tr>
                         <th>Question</th>
-                        <th>Action</th>
+                        <th style="width: 100px;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="faqTableBody">
@@ -52,45 +170,69 @@
     <script>
         // Load existing FAQs on startup
         async function loadFaqs() {
-            const response = await fetch('/api/faqs');
-            const faqs = await response.json();
-            const tableBody = document.getElementById('faqTableBody');
-            
-            tableBody.innerHTML = faqs.map(f => `
-                <tr>
-                    <td><strong>${f.question}</strong></td>
-                    <td><button class="delete-btn" onclick="deleteFaq(${f.id})">Delete</button></td>
-                </tr>
-            `).join('');
+            try {
+                const response = await fetch('/api/faqs');
+                const faqs = await response.json();
+                const tableBody = document.getElementById('faqTableBody');
+                
+                if (faqs.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No FAQs found.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = faqs.map(f => `
+                    <tr>
+                        <td><strong>${f.question}</strong></td>
+                        <td><button class="delete-btn" onclick="deleteFaq(${f.id})">Delete</button></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Load FAQs error:", err);
+            }
         }
 
         // Add new FAQ
         document.getElementById('faqForm').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = "Posting...";
+            btn.disabled = true;
+
             const data = {
                 question: document.getElementById('question').value,
                 answer: document.getElementById('answer').value
             };
 
-            const response = await fetch('/api/faqs', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            try {
+                const response = await fetch('/api/faqs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            if (response.ok) {
-                alert("FAQ Added Successfully!");
-                document.getElementById('faqForm').reset();
-                loadFaqs(); // Refresh the table
+                if (response.ok) {
+                    alert("✅ FAQ Added Successfully!");
+                    document.getElementById('faqForm').reset();
+                    loadFaqs(); 
+                }
+            } catch (err) {
+                alert("Error connecting to server.");
+            } finally {
+                btn.innerText = "Post to Landing Page";
+                btn.disabled = false;
             }
         };
 
         // Delete FAQ
         async function deleteFaq(id) {
             if (confirm("Are you sure you want to remove this FAQ?")) {
-                const response = await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
-                if (response.ok) {
-                    loadFaqs(); // Refresh the table
+                try {
+                    const response = await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        loadFaqs();
+                    }
+                } catch (err) {
+                    alert("Failed to delete.");
                 }
             }
         }
