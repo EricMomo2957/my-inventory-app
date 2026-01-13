@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Pro | Smart Stock Management</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --dark: #0f172a;
+            --light-bg: #f8faff;
+            --text-light: #64748b;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            margin: 0;
+            color: #334155;
+            line-height: 1.6;
+            background: white;
+        }
+
+        /* --- Navigation --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 8%;
+            background: rgba(255, 255, 255, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary); text-decoration: none; }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-light);
+            margin-left: 30px;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
+        /* --- Hero Section --- */
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 100px 8%;
+            background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+        }
+
+        .hero-text { max-width: 550px; }
+        .hero-text h1 { font-size: 3.5rem; color: var(--dark); line-height: 1.1; margin-bottom: 20px; }
+        .hero-text p { font-size: 1.25rem; margin-bottom: 30px; color: var(--text-light); }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            padding: 14px 35px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: 0.3s;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .cta-button:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
+            background: #3651d1;
+        }
+
+        /* --- Workflow Section --- */
+        .workflow { padding: 100px 8%; text-align: center; }
+        .workflow h2 { font-size: 2.5rem; margin-bottom: 50px; }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+            transition: 0.3s;
+        }
+
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+        .icon-box { 
+            width: 50px; height: 50px; background: var(--primary); 
+            border-radius: 12px; display: flex; align-items: center; 
+            justify-content: center; margin-bottom: 20px; color: white; font-size: 1.5rem;
+        }
+
+        /* --- Contact Section --- */
+        .contact-section { padding: 100px 8%; background-color: #f1f5f9; }
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .contact-info h2 { font-size: 2.5rem; color: var(--dark); margin-bottom: 20px; }
+        .info-item { display: flex; align-items: center; gap: 15px; margin-top: 20px; font-weight: 500; }
+
+        .contact-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            min-height: 450px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit;
+        }
+
+        /* --- Success State --- */
+        #successMessage {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        footer { background: var(--dark); color: white; padding: 40px 8%; text-align: center; }
+
+        @media (max-width: 900px) {
+            .contact-container, .hero { grid-template-columns: 1fr; flex-direction: column; text-align: center; }
+            .form-row { grid-template-columns: 1fr; }
+            .hero-text { margin-bottom: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" class="logo">📦 Inventory Pro</a>
+        <div class="nav-links">
+            <a href="#workflow">Features</a>
+            <a href="#contact">Contact</a>
+            <a href="login.html" class="cta-button" style="padding: 10px 25px;">Sign In</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-text">
+            <h1>Master Your Stock Level.</h1>
+            <p>The smartest way to manage inventory, track sales, and generate reports in real-time.</p>
+            <a href="login.html" class="cta-button">Launch Dashboard</a>
+        </div>
+        <div class="hero-graphic">
+            <img src="https://via.placeholder.com/600x400/4361ee/ffffff?text=Inventory+Dashboard+Preview" alt="Dashboard UI" style="border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12);">
+        </div>
+    </header>
+
+    <section id="workflow" class="workflow">
+        <h2>Everything you need</h2>
+        
+        <div class="features-grid">
+            <div class="card">
+                <div class="icon-box">⚡</div>
+                <h3>Real-time Sync</h3>
+                <p>Never oversell again. Your stock updates across all devices instantly.</p>
+            </div>
+            <div class="card">
+                <div class="icon-box">📊</div>
+                <h3>CSV Exports</h3>
+                <p>One-click export for all your order data directly into Excel.</p>
+            </div>
+            <div class="card">
+                <div class="icon-box">🛡️</div>
+                <h3>Secure Access</h3>
+                <p>Role-based permissions to keep your data safe and organized.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <div class="contact-container">
+            <div class="contact-info">
+                <h2>Contact Us</h2>
+                <p>Reach out to our specialists to help you set up your warehouse management system.</p>
+                <div class="info-item"><span>📍</span> 123 Tech Plaza, Manila</div>
+                <div class="info-item"><span>📧</span> hello@inventorypro.com</div>
+            </div>
+
+            <div class="contact-card">
+                <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="contactName" required placeholder="Jane Smith">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="contactEmail" required placeholder="jane@company.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="contactMessage" rows="4" required placeholder="Tell us what you need..."></textarea>
+                    </div>
+                    <button type="submit" class="cta-button" style="width: 100%; cursor: pointer;">Send Message</button>
+                </form>
+
+                <div id="successMessage">
+                    <div class="success-icon">✅</div>
+                    <h3>Message Sent!</h3>
+                    <p>Thank you for reaching out. Our team will contact you within 24 hours.</p>
+                    <button onclick="resetForm()" class="btn-outline" style="margin-top: 20px; cursor: pointer; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px;">Send another message</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Inventory Pro | Built for high-efficiency teams.</p>
+    </footer>
+
+    <script>
+        function handleContactSubmit(event) {
+            event.preventDefault();
+            
+            // Hide form and show success message
+            document.getElementById('contactForm').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+
+            // Optional: Log data or send to API here
+            console.log("Form Submitted Successfully");
+        }
+
+        function resetForm() {
+            // Reset and show form again
+            document.getElementById('contactForm').reset();
+            document.getElementById('contactForm').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
