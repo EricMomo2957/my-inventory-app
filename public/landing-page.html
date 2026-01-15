@@ -83,6 +83,28 @@
             background: #3651d1;
         }
 
+        /* --- About Section --- */
+        .about-section {
+            padding: 100px 8%;
+            background-color: #f8fafc;
+        }
+
+        .about-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .about-image img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .about-content h2 { font-size: 2.5rem; color: var(--dark); margin-bottom: 20px; }
+        .about-content p { color: var(--text-light); font-size: 1.1rem; margin-bottom: 20px; }
+
         /* --- Features/Workflow --- */
         .workflow { padding: 100px 8%; text-align: center; }
         .workflow h2 { font-size: 2.5rem; margin-bottom: 50px; color: var(--dark); }
@@ -189,7 +211,7 @@
 
         /* Responsive */
         @media (max-width: 900px) {
-            .contact-container, .hero { grid-template-columns: 1fr; flex-direction: column; text-align: center; }
+            .contact-container, .hero, .about-container { grid-template-columns: 1fr; flex-direction: column; text-align: center; }
             .form-row { grid-template-columns: 1fr; }
             .hero-text { margin-bottom: 50px; }
             .hero-text h1 { font-size: 2.5rem; }
@@ -203,6 +225,7 @@
     <nav>
         <a href="#" class="logo">📦 Inventory Pro</a>
         <div class="nav-links">
+            <a href="#about">About</a>
             <a href="#workflow">Features</a>
             <a href="#faq-display">FAQ</a>
             <a href="#contact">Contact</a>
@@ -220,6 +243,19 @@
             <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" alt="Warehouse Management" style="border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.12); width: 100%;">
         </div>
     </header>
+
+    <section id="about" class="about-section">
+        <div class="about-container">
+            <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80" alt="About Inventory Pro">
+            </div>
+            <div class="about-content">
+                <h2>Our Mission</h2>
+                <p>Inventory Pro was founded with a simple goal: to eliminate the chaos of manual stock counting and outdated spreadsheets. We empower small to medium enterprises with enterprise-grade tools to streamline their operations.</p>
+                <p>From local retail shops to regional distribution centers, our platform provides the clarity needed to make data-driven decisions, reduce waste, and increase profitability through precision tracking.</p>
+            </div>
+        </div>
+    </section>
 
     <section id="workflow" class="workflow">
         <h2>Optimized Features</h2>
