@@ -160,7 +160,7 @@
                     <label>Department</label>
                     <input type="text" id="editDept" required>
                 </div>
-                <button type="button" class="add-main-btn" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="saveProfile()">
+                <button type="button" class="add-main-btn" onclick="saveProfile()">
                     Save Changes
                 </button>
             </form>
@@ -168,12 +168,13 @@
     </div>
 
     <script>
-        // --- UI INITIALIZATION ---
+        // --- 1. UI INITIALIZATION ---
+        // Populates the page and the modal with current user data from localStorage
         function initProfile() {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (!user) return;
 
-            // Header & Details
+            // Update Page Headers & Table
             document.getElementById('displayHeaderName').innerText = user.full_name || user.username;
             document.getElementById('displayHeaderRole').innerText = user.role || 'Staff';
             document.getElementById('profFullName').innerText = user.full_name || '-';
@@ -182,66 +183,81 @@
             document.getElementById('profDept').innerText = user.department || '-';
             document.getElementById('profRole').innerText = user.role || '-';
 
-            // Avatars
-            if (user.profile_image && user.profile_image !== "NULL") {
-                document.getElementById('profileImg').src = user.profile_image;
-                document.getElementById('profilePreview').src = user.profile_image;
-            }
+            // Update Avatars (if they exist)
+            const avatar = user.profile_image || 'assets/default-avatar.png';
+            document.getElementById('profileImg').src = avatar;
+            document.getElementById('profilePreview').src = avatar;
 
-            // Inputs for Modal
+            // Pre-fill Modal Inputs
             document.getElementById('editFullName').value = user.full_name || '';
             document.getElementById('editEmail').value = user.email || '';
             document.getElementById('editDept').value = user.department || '';
         }
 
+        // --- 2. MODAL CONTROL ---
         function openEditProfileModal() { document.getElementById('editProfileModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('editProfileModal').style.display = 'none'; }
 
-        // --- IMAGE LOGIC ---
+        // --- 3. IMAGE PREVIEW LOGIC ---
+        // Converts the uploaded file into a Base64 string for previewing and saving
         function previewImage(event) {
             const reader = new FileReader();
             reader.onload = function() {
+                // Update the preview image source with the Base64 string
                 document.getElementById('profilePreview').src = reader.result;
             };
-            if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
-        }
-
-        // --- PROFILE SAVE LOGIC ---
-        async function saveProfile() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const previewImg = document.getElementById('profilePreview').src;
-            const fullName = document.getElementById('editFullName').value;
-            const email = document.getElementById('editEmail').value;
-            const dept = document.getElementById('editDept').value;
-
-            try {
-                const response = await fetch('/api/users/update-profile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        full_name: fullName,
-                        email: email,
-                        department: dept,
-                        profile_image: previewImg
-                    })
-                });
-
-                if (response.ok) {
-                    user.full_name = fullName;
-                    user.email = email;
-                    user.department = dept;
-                    user.profile_image = previewImg;
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    alert('✅ Profile updated successfully!');
-                    window.location.reload();
-                }
-            } catch (err) {
-                alert('Failed to save profile.');
+            if(event.target.files[0]) {
+                reader.readAsDataURL(event.target.files[0]);
             }
         }
 
-        // --- PASSWORD UPDATE LOGIC ---
+        // --- 4. PROFILE SAVE LOGIC ---
+        // Sends a PUT request to update user details in the database
+        async function saveProfile() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || !user.id) {
+                alert("Session expired. Please log in again.");
+                return;
+            }
+
+            // Collect values from the modal
+            const updatedData = {
+                full_name: document.getElementById('editFullName').value,
+                email: document.getElementById('editEmail').value,
+                department: document.getElementById('editDept').value,
+                profile_image: document.getElementById('profilePreview').src // The Base64 string
+            };
+
+            try {
+                // IMPORTANT: Matches backend route router.put('/profile/:id')
+                const response = await fetch(`/api/users/profile/${user.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update Local Storage so the UI reflects changes immediately
+                    const newUserObj = { ...user, ...updatedData };
+                    localStorage.setItem('currentUser', JSON.stringify(newUserObj));
+                    
+                    // Sync avatar for the sidenav
+                    localStorage.setItem('userAvatar', updatedData.profile_image);
+
+                    alert('✅ Profile updated successfully!');
+                    window.location.reload(); 
+                } else {
+                    alert('❌ Update failed: ' + result.error);
+                }
+            } catch (err) {
+                console.error("Save Error:", err);
+                alert('Failed to connect to the server.');
+            }
+        }
+
+        // --- 5. PASSWORD UPDATE LOGIC ---
         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -274,17 +290,27 @@
             }
         });
 
-        // --- COMPONENT LOADER ---
+        // --- 6. COMPONENT LOADER & PAGE START ---
         async function loadComponent(id, path) {
-            const res = await fetch(path);
-            const text = await res.text();
-            document.getElementById(id).innerHTML = text;
+            try {
+                const res = await fetch(path);
+                const text = await res.text();
+                document.getElementById(id).innerHTML = text;
+            } catch (err) {
+                console.warn("Could not load sidenav:", err);
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             loadComponent('sidenav-placeholder', 'components/sidenav.html');
             initProfile();
         });
+
+        // Close modal if clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('editProfileModal');
+            if (event.target == modal) closeModal();
+        }
     </script>
 </body>
 </html>

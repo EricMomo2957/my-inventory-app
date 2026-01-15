@@ -64,22 +64,24 @@ router.get('/', async (req, res) => {
 });
 
 // 4. UPDATE PROFILE (For the Edit Profile modal)
+// 4. UPDATE PROFILE (Matches the script above)
 router.put('/profile/:id', async (req, res) => {
     const { full_name, email, department, profile_image } = req.body;
     const userId = req.params.id;
 
     try {
-        // profile_image uses LONGTEXT to store Base64 strings
         const sql = `
             UPDATE users 
             SET full_name = ?, email = ?, department = ?, profile_image = ? 
             WHERE id = ?`;
             
-        await db.execute(sql, [full_name, email, department, profile_image, userId]);
+        // Use await db.query if your config/db.js exports a promise-based pool
+        await db.query(sql, [full_name, email, department, profile_image, userId]);
+        
         res.json({ success: true, message: "Profile updated successfully" });
     } catch (err) {
         console.error("Profile Update Error:", err);
-        res.status(500).json({ error: "Failed to update profile: " + err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
