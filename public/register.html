@@ -17,24 +17,34 @@
             <div class="input-group" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: 600;">Full Name</label>
                 <input type="text" id="regName" placeholder="Enter your full name" required 
-                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
             </div>
 
             <div class="input-group" style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: 600;">Username</label>
                 <input type="text" id="regUsername" placeholder="Choose a username" required
-                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+            </div>
+
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Select Role</label>
+                <select id="regRole" required 
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer; box-sizing: border-box;">
+                    <option value="" disabled selected>Choose your account type</option>
+                    <option value="clerk">Clerk (Staff)</option>
+                    <option value="user">User (Customer)</option>
+                </select>
             </div>
 
             <div class="input-group" style="margin-bottom: 25px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: 600;">Password</label>
                 <input type="password" id="regPassword" placeholder="Create a password" required
-                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
             </div>
 
             <button type="submit" class="login-btn" 
                     style="width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                Register
+                Register Account
             </button>
         </form>
 
@@ -43,6 +53,43 @@
         </div>
     </div>
 
-    <script src="js/register.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 1. Collect data from inputs
+            // We use 'full_name' here to match your MySQL table column name
+            const payload = {
+                full_name: document.getElementById('regName').value,
+                username: document.getElementById('regUsername').value,
+                role: document.getElementById('regRole').value,
+                password: document.getElementById('regPassword').value
+            };
+
+            try {
+                // 2. Send data to the server
+                // Note: Your app.js defines app.use('/api/users', userRoutes), 
+                // so the registration endpoint is /api/users/register
+                const response = await fetch('/api/users/register', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                // 3. Handle the server's response
+                if (data.success) {
+                    alert('Registration successful! You are now registered as: ' + payload.role);
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
+                alert('Connection error. Is your server running at http://localhost:3000?');
+            }
+        });
+    </script>
 </body>
 </html>

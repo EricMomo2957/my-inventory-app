@@ -28,33 +28,27 @@ router.post('/login', async (req, res) => {
 });
 
 // 2. REGISTER NEW USER
+// 2. REGISTER NEW USER
 router.post('/register', async (req, res) => {
-    const { full_name, username, password } = req.body;
+    const { full_name, username, password, role } = req.body;
+
+    if (!full_name || !username || !password || !role) {
+        return res.status(400).json({ success: false, error: "All fields are required" });
+    }
 
     try {
-        // Check if username already exists
-        const [exists] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
-        if (exists.length > 0) {
-            return res.status(400).json({ error: "Username already taken" });
-        }
+        // --- ADDED: Hash the password before saving ---
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert into specific columns based on your database structure
-        const sql = `INSERT INTO users (full_name, username, password, role, admin_id, department) 
-                     VALUES (?, ?, ?, ?, ?, ?)`;
+        // Updated query to use hashedPassword
+        const sql = "INSERT INTO users (full_name, username, password, role, email) VALUES (?, ?, ?, ?, ?)";
+        await db.query(sql, [full_name, username, hashedPassword, role, username]);
         
-        await db.execute(sql, [
-            full_name, 
-            username, 
-            password, 
-            'clerk',     // Default value from your ENUM
-            '0000',      // Default temporary Admin ID
-            'General'    // Default placeholder department
-        ]);
-
-        res.status(201).json({ success: true, message: "Registration successful!" });
+        res.json({ success: true, message: "User registered successfully!" });
     } catch (err) {
-        console.error("Database Error:", err);
-        res.status(500).json({ error: "Server error: " + err.message });
+        console.error("Registration Error:", err);
+        // Error here is likely due to the ENUM missing the 'user' value in MySQL
+        res.status(500).json({ success: false, error: "Database error. Ensure the 'user' role is allowed in the ENUM list." });
     }
 });
 
