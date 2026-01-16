@@ -3,150 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
-    <title>Reports - Inventory Pro</title>
+    <title>Business Intelligence - Inventory Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --card-bg: #ffffff; --text-main: #1e293b; --border: #e2e8f0; --page-bg: #f8fafc; }
-        .dark-mode { --card-bg: #1e293b; --text-main: #f8fafc; --border: #334155; --page-bg: #0f172a; }
-
-        body { background: var(--page-bg); color: var(--text-main); font-family: 'Inter', sans-serif; display: flex; margin: 0; }
-        .main-content { flex-grow: 1; padding: 40px; max-width: 1200px; margin: 0 auto; }
-
-        /* Stats Cards */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .stat-card h3 { margin: 0; font-size: 0.9rem; opacity: 0.7; text-transform: uppercase; }
-        .stat-card .value { font-size: 1.8rem; font-weight: 800; margin-top: 10px; color: #4361ee; }
-
-        /* Charts Layout */
-        .charts-container { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-        .chart-box { 
-            background: var(--card-bg); 
-            padding: 25px; 
-            border-radius: 20px; 
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        :root {
+            --primary: #4361ee;
+            --page-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
         }
-        .chart-box h2 { margin-top: 0; font-size: 1.1rem; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
-        @media (max-width: 900px) { .charts-container { grid-template-columns: 1fr; } }
+        body { background: var(--page-bg); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; }
+        .main-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+
+        /* Header & Filters */
+        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .filter-bar { 
+            background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); 
+            display: flex; gap: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+        }
+
+        /* Stats Dashboard */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-card small { color: var(--text-muted); text-transform: uppercase; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.5px; }
+        .stat-card .value { font-size: 1.6rem; font-weight: 800; margin-top: 5px; color: var(--primary); }
+
+        /* Chart Layout */
+        .charts-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 30px; }
+        .chart-box { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border); min-height: 350px; }
+        .chart-box h3 { margin-top: 0; font-size: 0.95rem; color: var(--text-muted); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
+
+        /* Top Products Table */
+        .table-box { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: var(--text-muted); border-bottom: 2px solid var(--border); font-size: 0.85rem; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+        @media (max-width: 1024px) { .charts-container { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
-    <div id="sidebar-target"></div>
 
     <div class="main-content">
-        <header style="margin-bottom: 30px;">
-            <h1>Analytics Dashboard</h1>
-            <p style="color: #64748b;">Real-time overview of your inventory health and sales distribution.</p>
-        </header>
+        <div class="report-header">
+            <div>
+                <h1>Business Intelligence</h1>
+                <p style="color: var(--text-muted); margin: 0;">Analyzing data from Products, Orders, and Stock History.</p>
+            </div>
+            <div class="filter-bar">
+                <select id="dateRange" onchange="refreshData()" style="padding:10px; border-radius:8px; border:1px solid var(--border);">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                </select>
+                <button onclick="window.print()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:600;">Export Report</button>
+            </div>
+        </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Products</h3>
-                <div class="value" id="statTotalItems">0</div>
+                <small>Total Sales Revenue</small>
+                <div class="value" id="statRev">₱0.00</div>
             </div>
             <div class="stat-card">
-                <h3>Inventory Value</h3>
-                <div class="value" id="statTotalValue">₱0.00</div>
+                <small>Current Inventory Value</small>
+                <div class="value" id="statInv">₱0.00</div>
             </div>
             <div class="stat-card">
-                <h3>Low Stock Items</h3>
-                <div class="value" id="statLowStock" style="color: #ef4444;">0</div>
+                <small>Inventory Fluctuations</small>
+                <div class="value" id="statFlucts">0</div>
+            </div>
+            <div class="stat-card">
+                <small>Low Stock Items</small>
+                <div class="value" id="statAlerts" style="color:var(--danger);">0</div>
             </div>
         </div>
 
         <div class="charts-container">
             <div class="chart-box">
-                <h2>Stock Levels per Product</h2>
-                <canvas id="stockBarChart"></canvas>
+                <h3>Revenue Contribution by Product</h3>
+                <canvas id="revenueBarChart"></canvas>
             </div>
-
             <div class="chart-box">
-                <h2>Stock by Category</h2>
+                <h3>Stock Volume Trends (Fluctuation)</h3>
+                <canvas id="movementLineChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Stock Distribution by Category</h3>
                 <canvas id="categoryPieChart"></canvas>
             </div>
+            <div class="chart-box">
+                <h3>Current Stock Levels (Units)</h3>
+                <canvas id="stockLevelChart"></canvas>
+            </div>
+        </div>
+
+        <div class="table-box">
+            <h3>⭐ Top Performance Summary</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Units Sold</th>
+                        <th>Revenue Earned</th>
+                    </tr>
+                </thead>
+                <tbody id="topProductsBody"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // Fetch Data and Initialize Charts
-        async function initDashboard() {
-            try {
-                const response = await fetch('/api/products');
-                const products = await response.json();
-                
-                updateStats(products);
-                renderBarChart(products);
-                renderPieChart(products);
-            } catch (err) {
-                console.error("Error loading report data:", err);
-            }
+    let charts = {};
+
+    async function refreshData() {
+        const days = document.getElementById('dateRange').value;
+        
+        try {
+            // Updated fetch to match the merged server.js routes
+            const [prodRes, salesRes, histRes] = await Promise.all([
+                fetch('/api/products/report'),           // Changed from /api/products
+                fetch(`/api/reports/sales?days=${days}`),
+                fetch(`/api/reports/stock-history?days=${days}`)
+            ]);
+
+            const products = await prodRes.json();
+            const salesItems = await salesRes.json();
+            const history = await histRes.json();
+
+            // Safety: If data is missing or server errored, provide empty arrays
+            renderDashboard(products || [], salesItems || [], history || []);
+        } catch (err) {
+            console.error("Dashboard Sync Error:", err);
+            // Optional: Alert the user or show a "No Data" message
         }
+    }
 
-        function updateStats(products) {
-            const totalItems = products.length;
-            const totalValue = products.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-            const lowStock = products.filter(p => p.quantity < 10).length;
+    function renderDashboard(products, sales, history) {
+        // 1. DATA AGGREGATION
+        const totalRev = sales.reduce((sum, item) => sum + (item.quantity * item.price_at_time), 0);
+        // Ensure price is treated as a number
+        const invValue = products.reduce((sum, p) => sum + (p.quantity * parseFloat(p.price || 0)), 0);
+        const lowStockCount = products.filter(p => p.quantity < 10).length;
 
-            document.getElementById('statTotalItems').innerText = totalItems;
-            document.getElementById('statTotalValue').innerText = `₱${totalValue.toLocaleString()}`;
-            document.getElementById('statLowStock').innerText = lowStock;
-        }
+        document.getElementById('statRev').innerText = `₱${totalRev.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        document.getElementById('statInv').innerText = `₱${invValue.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        document.getElementById('statAlerts').innerText = lowStockCount;
+        document.getElementById('statFlucts').innerText = history.length;
 
-        function renderBarChart(products) {
-            const ctx = document.getElementById('stockBarChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: products.map(p => p.name),
-                    datasets: [{
-                        label: 'Current Stock',
-                        data: products.map(p => p.quantity),
-                        backgroundColor: '#4361ee',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        }
+        // Clear old charts to prevent overlapping when filtering
+        Object.values(charts).forEach(c => { if(c) c.destroy(); });
 
-        function renderPieChart(products) {
-            const ctx = document.getElementById('categoryPieChart').getContext('2d');
-            
-            // Group data by category
-            const categories = {};
-            products.forEach(p => {
-                const cat = p.category || 'Uncategorized';
-                categories[cat] = (categories[cat] || 0) + p.quantity;
-            });
+        // 2. REVENUE BAR CHART
+        const revData = {};
+        sales.forEach(s => {
+            revData[s.name] = (revData[s.name] || 0) + (s.quantity * s.price_at_time);
+        });
 
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(categories),
-                    datasets: [{
-                        data: Object.values(categories),
-                        backgroundColor: ['#4361ee', '#4cc9f0', '#f72585', '#7209b7', '#3a0ca3'],
-                        borderWidth: 2,
-                        borderColor: 'transparent'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
-                    }
-                }
-            });
-        }
+        charts.rev = new Chart(document.getElementById('revenueBarChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(revData),
+                datasets: [{ label: 'Revenue ₱', data: Object.values(revData), backgroundColor: '#10b981' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
 
-        document.addEventListener('DOMContentLoaded', initDashboard);
-    </script>
+        // 3. STOCK MOVEMENT LINE
+        const histLabels = history.map(h => new Date(h.created_at).toLocaleDateString());
+        const histValues = history.map(h => h.change_amount);
+
+        charts.move = new Chart(document.getElementById('movementLineChart'), {
+            type: 'line',
+            data: {
+                labels: histLabels,
+                datasets: [{ 
+                    label: 'Stock Change', 
+                    data: histValues, 
+                    borderColor: '#4361ee', 
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    tension: 0.3, 
+                    fill: true 
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 4. CATEGORY PIE
+        const catData = {};
+        products.forEach(p => {
+            const cat = p.category || 'Uncategorized';
+            catData[cat] = (catData[cat] || 0) + p.quantity;
+        });
+
+        charts.pie = new Chart(document.getElementById('categoryPieChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(catData),
+                datasets: [{ data: Object.values(catData), backgroundColor: ['#4361ee', '#4cc9f0', '#f72585', '#7209b7', '#ff9f43'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 5. CURRENT STOCK BAR
+        charts.stock = new Chart(document.getElementById('stockLevelChart'), {
+            type: 'bar',
+            data: {
+                labels: products.map(p => p.name),
+                datasets: [{ label: 'Units', data: products.map(p => p.quantity), backgroundColor: '#4361ee' }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        // 6. TOP PRODUCTS TABLE
+        const topProducts = Object.entries(revData)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+
+        document.getElementById('topProductsBody').innerHTML = topProducts.length > 0 
+            ? topProducts.map(([name, rev]) => {
+                const prod = products.find(p => p.name === name) || {};
+                const sold = sales.filter(s => s.name === name).reduce((a, b) => a + b.quantity, 0);
+                return `
+                    <tr>
+                        <td><strong>${name}</strong></td>
+                        <td>${prod.category || 'General'}</td>
+                        <td>${sold}</td>
+                        <td>₱${rev.toLocaleString()}</td>
+                    </tr>
+                `;
+            }).join('')
+            : '<tr><td colspan="4" style="text-align:center;">No sales found for this period</td></tr>';
+    }
+
+    document.addEventListener('DOMContentLoaded', refreshData);
+</script>
 </body>
 </html>
