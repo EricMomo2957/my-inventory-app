@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage FAQ - Admin</title>
+    <title>Manage FAQ | Inventory Pro</title>
     
     <script>
         // AUTH & THEME GUARD
@@ -20,17 +20,20 @@
         })();
     </script>
     
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- THEME VARIABLES --- */
         :root {
+            --primary: #4361ee;
+            --primary-light: #4361ee15;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
             --input-bg: #ffffff;
+            --sidebar-width: 260px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
 
         .dark-mode {
@@ -40,166 +43,279 @@
             --text-muted: #94a3b8;
             --border-color: #334155;
             --input-bg: #0f172a;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            transition: background 0.3s ease;
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            display: flex; 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            min-height: 100vh; 
+            transition: background 0.3s;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .nav-item { margin-bottom: 8px; }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-muted);
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background: var(--primary-light); color: var(--primary); }
+        .nav-link.active { background: var(--primary); color: white; }
+
+        /* --- MAIN AREA --- */
+        .main-wrapper { 
+            margin-left: var(--sidebar-width); 
+            flex-grow: 1; 
+            padding: 40px; 
+            display: flex; 
+            justify-content: center; 
         }
 
         .faq-admin-container { 
+            width: 100%; 
             max-width: 900px; 
-            margin: 40px auto; 
-            padding: 30px; 
+            padding: 40px; 
             background: var(--card-bg); 
-            border-radius: 12px; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
+            border-radius: 16px; 
+            box-shadow: var(--shadow); 
+            border: 1px solid var(--border-color); 
         }
 
-        h2, h3 { color: var(--text-main); margin-bottom: 20px; }
+        h2 { font-size: 1.75rem; font-weight: 700; margin-top: 0; }
+        
+        .form-row { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr; 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
 
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-muted); }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; }
 
-        input, textarea { 
+        input, textarea, select { 
             width: 100%; 
             padding: 12px; 
             border: 1px solid var(--border-color); 
-            border-radius: 8px; 
-            background: var(--input-bg);
-            color: var(--text-main);
-            box-sizing: border-box; 
+            border-radius: 10px; 
+            background: var(--input-bg); 
+            color: var(--text-main); 
+            font-family: inherit;
             transition: border-color 0.2s;
         }
 
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             outline: none;
-            border-color: #4361ee;
+            border-color: var(--primary);
         }
 
-        button { 
-            background: #4361ee; 
+        .btn-post { 
+            background: var(--primary); 
             color: white; 
             border: none; 
-            padding: 12px 24px; 
-            border-radius: 8px; 
+            padding: 14px; 
+            border-radius: 10px; 
+            font-weight: 700; 
             cursor: pointer; 
-            font-weight: 600;
-            transition: 0.3s; 
+            width: 100%; 
+            transition: transform 0.2s;
         }
 
-        button:hover { background: #3651d1; transform: translateY(-1px); }
+        .btn-post:hover { transform: translateY(-1px); opacity: 0.9; }
         
-        .faq-list-section { 
-            margin-top: 40px; 
-            border-top: 2px solid var(--border-color); 
-            padding-top: 30px; 
+        /* Category Tag Style */
+        .tag { 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            padding: 4px 10px; 
+            border-radius: 20px; 
+            background: var(--primary-light); 
+            color: var(--primary); 
+            text-transform: uppercase;
         }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
         th { 
             text-align: left; 
             padding: 12px; 
             color: var(--text-muted); 
-            border-bottom: 2px solid var(--border-color);
-            font-size: 0.9rem;
-            text-transform: uppercase;
+            border-bottom: 2px solid var(--border-color); 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
         }
-
-        td { 
-            padding: 16px 12px; 
-            border-bottom: 1px solid var(--border-color); 
-            color: var(--text-main);
-        }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border-color); }
 
         .delete-btn { 
-            background: #ef4444; 
-            font-size: 0.8rem; 
-            padding: 8px 16px; 
+            background: #fee2e2; 
+            color: #ef4444; 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: 0.2s;
         }
+        .delete-btn:hover { background: #ef4444; color: white; }
 
-        .delete-btn:hover { background: #dc2626; }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-weight: 500;
-            transition: color 0.2s;
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; padding: 20px 10px; } 
+            .logo span, .nav-link span:last-child { display: none; }
+            .main-wrapper { margin-left: 80px; }
+            .form-row { grid-template-columns: 1fr; }
         }
-
-        .back-link:hover { color: #4361ee; }
     </style>
 </head>
 <body>
-    <div class="faq-admin-container">
-        <a href="index.html" class="back-link">← Back to Dashboard</a>
-        <h2>Add New FAQ</h2>
-        
-        <form id="faqForm">
-            <div class="form-group">
-                <label>Question</label>
-                <input type="text" id="question" required placeholder="e.g., How do I reset my password?">
-            </div>
-            <div class="form-group">
-                <label>Answer</label>
-                <textarea id="answer" rows="4" required placeholder="Provide the answer here..."></textarea>
-            </div>
-            <button type="submit">Post to Landing Page</button>
-        </form>
 
-        <div class="faq-list-section">
-            <h3>Current FAQs</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Question</th>
-                        <th style="width: 100px;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="faqTableBody">
-                    </tbody>
-            </table>
+    <aside class="sidebar">
+        <a href="index.html" class="logo">
+            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px;"></div>
+            <span>Inventory Pro</span>
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="index.html" class="nav-link">
+                    <span>🏠</span> <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="report.html" class="nav-link">
+                    <span>📊</span> <span>BI Reports</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <span>❓</span> <span>Manage FAQ</span>
+                </a>
+            </li>
+        </ul>
+        <div class="nav-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <a href="index.html" class="nav-link">
+                <span>←</span> <span>Exit Admin</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <div class="faq-admin-container">
+            <h2>Manage FAQs</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Control the content shown on your public help center.</p>
+            
+            <form id="faqForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Question</label>
+                        <input type="text" id="question" required placeholder="e.g. How do I track shipments?">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category">
+                            <option value="General">General</option>
+                            <option value="Account">Account</option>
+                            <option value="Billing">Billing</option>
+                            <option value="Inventory">Inventory</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Answer</label>
+                    <textarea id="answer" rows="3" required placeholder="Enter the response for users..."></textarea>
+                </div>
+                <button type="submit" class="btn-post">Add FAQ Entry</button>
+            </form>
+
+            <div class="faq-list-section">
+                <h3>Existing Entries</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">Category</th>
+                            <th>Question</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faqTableBody">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        // Load existing FAQs on startup
+        // Load existing FAQs from API
         async function loadFaqs() {
             try {
                 const response = await fetch('/api/faqs');
                 const faqs = await response.json();
                 const tableBody = document.getElementById('faqTableBody');
                 
-                if (faqs.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">No FAQs found.</td></tr>';
+                if (!faqs || faqs.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--text-muted);">No FAQs have been added yet.</td></tr>';
                     return;
                 }
 
                 tableBody.innerHTML = faqs.map(f => `
                     <tr>
-                        <td><strong>${f.question}</strong></td>
-                        <td><button class="delete-btn" onclick="deleteFaq(${f.id})">Delete</button></td>
+                        <td><span class="tag">${f.category || 'General'}</span></td>
+                        <td>
+                            <div style="font-weight:700;">${f.question}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${f.answer.substring(0, 60)}...</div>
+                        </td>
+                        <td style="text-align: right;">
+                            <button class="delete-btn" onclick="deleteFaq(${f.id})">Delete</button>
+                        </td>
                     </tr>
                 `).join('');
             } catch (err) {
-                console.error("Load FAQs error:", err);
+                console.error("API Error:", err);
             }
         }
 
-        // Add new FAQ
+        // Handle Form Submission
         document.getElementById('faqForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
-            btn.innerText = "Posting...";
             btn.disabled = true;
+            btn.innerText = "Saving...";
 
             const data = {
                 question: document.getElementById('question').value,
+                category: document.getElementById('category').value,
                 answer: document.getElementById('answer').value
             };
 
@@ -209,35 +325,35 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-
+                
                 if (response.ok) {
-                    alert("✅ FAQ Added Successfully!");
                     document.getElementById('faqForm').reset();
-                    loadFaqs(); 
+                    loadFaqs();
                 }
             } catch (err) {
-                alert("Error connecting to server.");
+                alert("Error saving FAQ entry.");
             } finally {
-                btn.innerText = "Post to Landing Page";
                 btn.disabled = false;
+                btn.innerText = "Add FAQ Entry";
             }
         };
 
-        // Delete FAQ
+        // Delete FAQ Entry
         async function deleteFaq(id) {
-            if (confirm("Are you sure you want to remove this FAQ?")) {
+            if (confirm("Are you sure you want to delete this FAQ?")) {
                 try {
                     const response = await fetch(`/api/faqs/${id}`, { method: 'DELETE' });
                     if (response.ok) {
                         loadFaqs();
                     }
                 } catch (err) {
-                    alert("Failed to delete.");
+                    alert("Failed to delete entry.");
                 }
             }
         }
 
-        loadFaqs();
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadFaqs);
     </script>
 </body>
 </html>
