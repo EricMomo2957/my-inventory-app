@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clerk Dashboard | Inventory Pro</title>
+    
+    <script>
+        // AUTH & THEME GUARD
+        (function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!user || (user.role !== 'clerk' && user.role !== 'admin')) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0ea5e9; /* Distinct blue for Clerk */
+            --primary-light: #0ea5e915;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-width: 260px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            --success: #10b981;
+        }
+
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; display: flex; background: var(--bg-color); 
+            color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; 
+            min-height: 100vh; transition: background 0.3s;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width); background: var(--card-bg);
+            border-right: 1px solid var(--border-color); padding: 24px;
+            display: flex; flex-direction: column; position: fixed; height: 100vh;
+        }
+        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .nav-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 10px; font-weight: 600; margin-bottom: 8px; }
+        .nav-link.active { background: var(--primary); color: white; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 40px; }
+        
+        .page-header { margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--shadow); }
+        .stat-card h4 { margin: 0; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        .stat-card p { margin: 10px 0 0 0; font-size: 1.5rem; font-weight: 700; }
+
+        /* Stock Table */
+        .inventory-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--bg-color); text-align: left; padding: 15px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
+        td { padding: 15px; border-bottom: 1px solid var(--border-color); }
+
+        .qty-input { width: 60px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); text-align: center; }
+        .btn-update { background: var(--success); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+        .btn-update:hover { opacity: 0.9; }
+
+        .status-pill { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+        .status-low { background: #fee2e2; color: #ef4444; }
+        .status-ok { background: #dcfce7; color: #10b981; }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; } .logo span, .nav-link span:last-child { display: none; }
+            .main-content { margin-left: 80px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <a href="#" class="logo">
+            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px;"></div>
+            <span>Inventory Pro</span>
+        </a>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="#" class="nav-link active"><span>📋</span> <span>Stock Control</span></a></li>
+            <li class="nav-item"><a href="#" class="nav-link"><span>🚚</span> <span>Incoming</span></a></li>
+            <li class="nav-item"><a href="faq-admin.html" class="nav-link"><span>❓</span> <span>FAQ Editor</span></a></li>
+        </ul>
+        <div class="nav-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <button onclick="logout()" class="nav-link" style="background:none; border:none; width:100%; cursor:pointer; text-align:left;">
+                <span>🚪</span> <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header">
+            <h1>Stock Management</h1>
+            <p style="color: var(--text-muted);">Clerk Portal: Update product quantities and track stock health.</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Items</h4>
+                <p id="totalItems">0</p>
+            </div>
+            <div class="stat-card">
+                <h4>Low Stock Alerts</h4>
+                <p id="lowStockCount" style="color: #ef4444;">0</p>
+            </div>
+            <div class="stat-card">
+                <h4>Last Updated</h4>
+                <p id="lastUpdate" style="font-size: 1rem;">Just now</p>
+            </div>
+        </div>
+
+        <div class="inventory-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Details</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Status</th>
+                        <th>Update Qty</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="clerkInventoryBody">
+                    </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        let inventory = [
+            { id: 101, name: "Wireless Headphones", category: "Electronics", stock: 15, minThreshold: 10 },
+            { id: 102, name: "Office Chair", category: "Furniture", stock: 4, minThreshold: 10 },
+            { id: 103, name: "USB-C Cable", category: "Electronics", stock: 50, minThreshold: 20 },
+            { id: 104, name: "Gaming Mouse", category: "Electronics", stock: 8, minThreshold: 15 }
+        ];
+
+        function renderInventory() {
+            const tbody = document.getElementById('clerkInventoryBody');
+            let lowStock = 0;
+
+            tbody.innerHTML = inventory.map(item => {
+                const isLow = item.stock <= item.minThreshold;
+                if(isLow) lowStock++;
+
+                return `
+                    <tr>
+                        <td><strong>${item.name}</strong><br><small style="color:var(--text-muted)">SKU: ${item.id}</small></td>
+                        <td>${item.category}</td>
+                        <td id="stock-${item.id}">${item.stock}</td>
+                        <td>
+                            <span class="status-pill ${isLow ? 'status-low' : 'status-ok'}">
+                                ${isLow ? 'REORDER' : 'IN STOCK'}
+                            </span>
+                        </td>
+                        <td>
+                            <input type="number" id="input-${item.id}" class="qty-input" placeholder="+/-">
+                        </td>
+                        <td style="text-align: right;">
+                            <button class="btn-update" onclick="updateStock(${item.id})">Update</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('totalItems').innerText = inventory.length;
+            document.getElementById('lowStockCount').innerText = lowStock;
+        }
+
+        function updateStock(id) {
+            const input = document.getElementById(`input-${id}`);
+            const adjustment = parseInt(input.value);
+            
+            if (isNaN(adjustment)) return alert("Please enter a valid number");
+
+            const product = inventory.find(p => p.id === id);
+            if (product) {
+                product.stock += adjustment;
+                if (product.stock < 0) product.stock = 0;
+                
+                // Reset input and re-render
+                input.value = "";
+                renderInventory();
+                document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Initialize
+        renderInventory();
+    </script>
+</body>
+</html>
