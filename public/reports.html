@@ -42,7 +42,6 @@
         }
         .report-header h1 { margin: 0; font-size: 1.85rem; font-weight: 700; letter-spacing: -0.025em; }
         
-        /* Filter Bar */
         .filter-bar { 
             background: var(--card-bg); 
             padding: 10px 16px; 
@@ -53,20 +52,20 @@
             gap: 12px; 
             box-shadow: var(--shadow); 
         }
-        select, button {
+
+        select, button, input {
             font-family: inherit;
             font-size: 0.875rem;
             padding: 8px 14px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            cursor: pointer;
             transition: all 0.2s;
         }
-        select:hover { border-color: var(--primary); }
-        button { background: var(--primary); color: white; border: none; font-weight: 600; }
+
+        button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
         button:hover { background: #3651d1; transform: translateY(-1px); }
 
-        /* Stats Dashboard */
+        /* Stats Cards */
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
@@ -82,9 +81,8 @@
         }
         .stat-card small { color: var(--text-muted); text-transform: uppercase; font-weight: 700; font-size: 0.75rem; letter-spacing: 0.05em; }
         .stat-card .value { font-size: 1.75rem; font-weight: 800; margin-top: 8px; color: var(--text-main); }
-        .stat-card .trend { font-size: 0.875rem; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
 
-        /* Chart Layout */
+        /* Charts Section */
         .charts-container { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
@@ -97,19 +95,9 @@
             border-radius: 20px; 
             border: 1px solid var(--border); 
             box-shadow: var(--shadow);
-            position: relative;
-            height: 400px; /* Fixed height for consistency */
+            height: 400px;
         }
-        .chart-box h3 { 
-            margin: 0 0 20px 0; 
-            font-size: 1rem; 
-            font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        /* Important: wrapper for chart responsiveness */
+        .chart-box h3 { margin: 0 0 20px 0; font-size: 1rem; font-weight: 700; color: var(--text-main); }
         .chart-wrapper { position: relative; height: calc(100% - 40px); width: 100%; }
 
         /* Table box */
@@ -119,12 +107,18 @@
             border-radius: 20px; 
             border: 1px solid var(--border); 
             box-shadow: var(--shadow);
-            overflow-x: auto;
+        }
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th { text-align: left; padding: 16px; color: var(--text-muted); border-bottom: 2px solid var(--border); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
         td { padding: 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        tr:last-child td { border-bottom: none; }
         tr:hover td { background: var(--page-bg); }
 
         @media (max-width: 1024px) { .charts-container { grid-template-columns: 1fr; } }
@@ -136,7 +130,7 @@
         <header class="report-header">
             <div>
                 <h1>Business Intelligence</h1>
-                <p style="color: var(--text-muted); margin: 4px 0 0 0;">Visualizing real-time operational data</p>
+                <p style="color: var(--text-muted); margin: 4px 0 0 0;">Real-time Stock & Sales Analytics</p>
             </div>
             <div class="filter-bar">
                 <select id="dateRange" onchange="refreshData()">
@@ -144,7 +138,7 @@
                     <option value="30" selected>Last 30 Days</option>
                     <option value="90">Last 90 Days</option>
                 </select>
-                <button onclick="window.print()">Export PDF</button>
+                <button onclick="window.print()">Print Report</button>
             </div>
         </header>
 
@@ -158,56 +152,61 @@
                 <div class="value" id="statInv">₱0.00</div>
             </div>
             <div class="stat-card">
-                <small>Stock Events</small>
+                <small>Stock History Logs</small>
                 <div class="value" id="statFlucts">0</div>
             </div>
             <div class="stat-card">
-                <small>Critical Alerts</small>
+                <small>Low Stock Items</small>
                 <div class="value" id="statAlerts" style="color:var(--danger);">0</div>
             </div>
         </section>
 
         <section class="charts-container">
             <div class="chart-box">
-                <h3>Revenue by Product</h3>
+                <h3>Revenue Contribution</h3>
                 <div class="chart-wrapper"><canvas id="revenueBarChart"></canvas></div>
             </div>
             <div class="chart-box">
-                <h3>Inventory Flow (Net Changes)</h3>
+                <h3>Inventory Movement Trend</h3>
                 <div class="chart-wrapper"><canvas id="movementLineChart"></canvas></div>
             </div>
             <div class="chart-box">
-                <h3>Stock by Category</h3>
+                <h3>Stock Volume by Category</h3>
                 <div class="chart-wrapper"><canvas id="categoryPieChart"></canvas></div>
             </div>
             <div class="chart-box">
-                <h3>Current On-Hand Stock</h3>
+                <h3>Current On-Hand Levels</h3>
                 <div class="chart-wrapper"><canvas id="stockLevelChart"></canvas></div>
             </div>
         </section>
 
         <section class="table-box">
-            <h3 style="margin-top:0">⭐ Top Performing Products</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th>Units Sold</th>
-                        <th>Revenue Earned</th>
-                    </tr>
-                </thead>
-                <tbody id="topProductsBody"></tbody>
-            </table>
+            <div class="table-controls">
+                <h3 style="margin:0">⭐ Top Performing Products</h3>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="Search product name...">
+                    <button onclick="downloadCSV()" style="background: var(--success);">Export CSV</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topProductsBody"></tbody>
+                </table>
+            </div>
         </section>
     </div>
 
     <script>
         let charts = {};
-
-        // Chart Global Config
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
-        Chart.defaults.color = '#64748b';
 
         async function refreshData() {
             const days = document.getElementById('dateRange').value;
@@ -224,102 +223,102 @@
 
                 renderDashboard(products || [], salesItems || [], history || []);
             } catch (err) {
-                console.error("Dashboard Sync Error:", err);
+                console.error("Fetch Error:", err);
             }
         }
 
         function renderDashboard(products, sales, history) {
-            // Summary Stats
+            // Stats Calculations
             const totalRev = sales.reduce((sum, item) => sum + (item.quantity * item.price_at_time), 0);
             const invValue = products.reduce((sum, p) => sum + (p.quantity * parseFloat(p.price || 0)), 0);
-            const lowStockCount = products.filter(p => p.quantity < 10).length;
-
-            document.getElementById('statRev').innerText = `₱${totalRev.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            document.getElementById('statInv').innerText = `₱${invValue.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            document.getElementById('statAlerts').innerText = lowStockCount;
+            
+            document.getElementById('statRev').innerText = `₱${totalRev.toLocaleString()}`;
+            document.getElementById('statInv').innerText = `₱${invValue.toLocaleString()}`;
+            document.getElementById('statAlerts').innerText = products.filter(p => p.quantity < 10).length;
             document.getElementById('statFlucts').innerText = history.length;
 
             Object.values(charts).forEach(c => { if(c) c.destroy(); });
 
-            // 1. Revenue Bar Chart
+            // 1. Revenue Bar
             const revData = {};
             sales.forEach(s => { revData[s.name] = (revData[s.name] || 0) + (s.quantity * s.price_at_time); });
-            
             charts.rev = new Chart(document.getElementById('revenueBarChart'), {
                 type: 'bar',
                 data: {
                     labels: Object.keys(revData),
-                    datasets: [{ 
-                        label: 'Revenue', 
-                        data: Object.values(revData), 
-                        backgroundColor: '#4361ee',
-                        borderRadius: 6
-                    }]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            // 2. Stock Movement Line
-            charts.move = new Chart(document.getElementById('movementLineChart'), {
-                type: 'line',
-                data: {
-                    labels: history.map(h => new Date(h.created_at).toLocaleDateString()),
-                    datasets: [{ 
-                        label: 'Change Amount', 
-                        data: history.map(h => h.change_amount), 
-                        borderColor: '#4361ee', 
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
+                    datasets: [{ label: 'Revenue', data: Object.values(revData), backgroundColor: '#4361ee', borderRadius: 5 }]
                 },
                 options: { maintainAspectRatio: false }
             });
 
-            // 3. Category Pie
+            // 2. Movement Line
+            charts.move = new Chart(document.getElementById('movementLineChart'), {
+                type: 'line',
+                data: {
+                    labels: history.map(h => new Date(h.created_at).toLocaleDateString()),
+                    datasets: [{ label: 'Net Change', data: history.map(h => h.change_amount), borderColor: '#4361ee', tension: 0.4, fill: true, backgroundColor: 'rgba(67, 97, 238, 0.1)' }]
+                },
+                options: { maintainAspectRatio: false }
+            });
+
+            // 3. Category Doughnut
             const catData = {};
-            products.forEach(p => { catData[p.category || 'Other'] = (catData[p.category] || 0) + p.quantity; });
-            
+            products.forEach(p => { catData[p.category || 'General'] = (catData[p.category] || 0) + p.quantity; });
             charts.pie = new Chart(document.getElementById('categoryPieChart'), {
-                type: 'doughnut', // Doughnut looks cleaner than Pie
+                type: 'doughnut',
                 data: {
                     labels: Object.keys(catData),
-                    datasets: [{ 
-                        data: Object.values(catData), 
-                        backgroundColor: ['#4361ee', '#3f37c9', '#4cc9f0', '#4895ef', '#560bad'],
-                        borderWidth: 0
-                    }]
+                    datasets: [{ data: Object.values(catData), backgroundColor: ['#4361ee', '#4cc9f0', '#f72585', '#7209b7'], borderWidth: 0 }]
                 },
                 options: { maintainAspectRatio: false, cutout: '70%' }
             });
 
-            // 4. On-Hand Stock Bar
+            // 4. Stock Levels (Horizontal Bar)
             charts.stock = new Chart(document.getElementById('stockLevelChart'), {
                 type: 'bar',
                 data: {
                     labels: products.map(p => p.name),
-                    datasets: [{ 
-                        label: 'Units', 
-                        data: products.map(p => p.quantity), 
-                        backgroundColor: '#10b981',
-                        borderRadius: 6
-                    }]
+                    datasets: [{ label: 'Units', data: products.map(p => p.quantity), backgroundColor: '#10b981', borderRadius: 5 }]
                 },
-                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } } // Horizontal Bar for readability
+                options: { indexAxis: 'y', maintainAspectRatio: false }
             });
 
-            // Table
-            const topProducts = Object.entries(revData).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            // Table Body
+            const topProducts = Object.entries(revData).sort((a, b) => b[1] - a[1]).slice(0, 10);
             document.getElementById('topProductsBody').innerHTML = topProducts.map(([name, rev]) => {
                 const prod = products.find(p => p.name === name) || {};
                 const sold = sales.filter(s => s.name === name).reduce((a, b) => a + b.quantity, 0);
                 return `<tr>
                     <td><strong>${name}</strong></td>
-                    <td><span style="background:var(--primary-light); color:var(--primary); padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:600">${prod.category || 'General'}</span></td>
+                    <td><span style="background:var(--primary-light); color:var(--primary); padding:4px 8px; border-radius:6px; font-size:0.75rem;">${prod.category || 'General'}</span></td>
                     <td>${sold} units</td>
-                    <td><strong>₱${rev.toLocaleString()}</strong></td>
+                    <td>₱${rev.toLocaleString()}</td>
                 </tr>`;
             }).join('');
+        }
+
+        function filterTable() {
+            const filter = document.getElementById("tableSearch").value.toLowerCase();
+            const rows = document.getElementById("topProductsBody").getElementsByTagName("tr");
+            for (let row of rows) {
+                const name = row.getElementsByTagName("td")[0].textContent.toLowerCase();
+                row.style.display = name.includes(filter) ? "" : "none";
+            }
+        }
+
+        function downloadCSV() {
+            let csv = ['Product Name,Category,Units Sold,Revenue'];
+            const rows = document.getElementById("topProductsBody").getElementsByTagName("tr");
+            for (let row of rows) {
+                let cols = Array.from(row.getElementsByTagName("td")).map(td => `"${td.innerText.replace('₱', '').replace(',', '')}"`);
+                csv.push(cols.join(','));
+            }
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'inventory_performance.csv';
+            a.click();
         }
 
         document.addEventListener('DOMContentLoaded', refreshData);
