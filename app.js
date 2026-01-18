@@ -66,6 +66,33 @@ app.get('/api/orders/:userId', async (req, res) => {
     }
 });
 
+/** FETCH ALL CONTACT REQUESTS: For the Management Page */
+app.get('/api/contact-requests', async (req, res) => {
+    try {
+        // This pulls id, name, email, message, and date from your DB
+        const [rows] = await db.query("SELECT * FROM contact_requests ORDER BY created_at DESC");
+        res.json(rows);
+    } catch (err) {
+        console.error("Database Error:", err);
+        res.status(500).json({ error: "Failed to fetch contact requests" });
+    }
+});
+
+/** DELETE A CONTACT REQUEST: Triggered by the Delete button on the frontend */
+app.delete('/api/contact-requests/:id', async (req, res) => {
+    const requestId = req.params.id;
+    try {
+        const sql = "DELETE FROM contact_requests WHERE id = ?";
+        await db.query(sql, [requestId]);
+        
+        console.log(`🗑️ Deleted contact request ID: ${requestId}`);
+        res.json({ success: true, message: "Request deleted successfully" });
+    } catch (err) {
+        console.error("Delete Error:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 
 /** 2. GET ORDER HISTORY: For the User Order History Page */
 // --- GET ORDER HISTORY BY USER ID ---
@@ -180,7 +207,6 @@ app.get('/api/faqs', async (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/landing-page.html');
 });
-
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

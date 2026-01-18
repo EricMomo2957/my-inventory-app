@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Requests | Inventory Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-width: 260px;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        body { 
+            margin: 0; 
+            display: flex; 
+            background: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            min-height: 100vh; 
+        }
+
+        /* Sidebar Styling */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: var(--card-bg); 
+            border-right: 1px solid var(--border-color); 
+            padding: 24px; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+        }
+        
+        .logo { 
+            font-size: 1.25rem; 
+            font-weight: 800; 
+            color: var(--primary); 
+            margin-bottom: 40px; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        .nav-link { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 16px; 
+            text-decoration: none; 
+            color: var(--text-muted); 
+            border-radius: 10px; 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            transition: 0.2s; 
+        }
+        .nav-link.active { background: var(--primary); color: white; }
+        .nav-link:hover:not(.active) { background: #4361ee15; color: var(--primary); }
+
+        /* Main Content */
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            flex-grow: 1; 
+            padding: 40px; 
+        }
+
+        header { margin-bottom: 40px; }
+        header h1 { margin: 0; font-size: 1.8rem; }
+        header p { color: var(--text-muted); margin-top: 5px; }
+
+        /* Request Cards */
+        #requestsList {
+            display: grid;
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .request-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; 
+            padding: 24px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .request-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            margin-bottom: 15px; 
+        }
+
+        .user-info { display: flex; flex-direction: column; }
+        .name { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
+        .email { color: var(--primary); font-size: 0.9rem; font-weight: 500; }
+
+        .actions { display: flex; gap: 8px; }
+
+        .message-box { 
+            color: var(--text-main); 
+            line-height: 1.6; 
+            background: #f1f5f9; 
+            padding: 18px; 
+            border-radius: 12px; 
+            font-size: 0.95rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .date { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Buttons */
+        .btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-delete { background: #fee2e2; color: var(--danger); }
+        .btn-delete:hover { background: var(--danger); color: white; }
+
+        .btn-reply { background: #dcfce7; color: var(--success); text-decoration: none; }
+        .btn-reply:hover { background: var(--success); color: white; }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; } 
+            .sidebar span:last-child, .logo span { display: none; }
+            .main-content { margin-left: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <a href="user_dashboard.html" class="logo">
+            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px;"></div>
+            <span>Inventory Pro</span>
+        </a>
+        <nav>
+            <a href="index.html" class="nav-link"><span>📦</span> <span>Catalog</span></a>
+            <a href="contact_requests.html" class="nav-link active"><span>📩</span> <span>Requests</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h1>Contact Requests</h1>
+            <p>Review and respond to customer inquiries.</p>
+        </header>
+
+        <div id="requestsList">
+            <p style="color: var(--text-muted);">Fetching messages...</p>
+        </div>
+    </main>
+
+    <script>
+        async function fetchRequests() {
+            const list = document.getElementById('requestsList');
+            try {
+                const response = await fetch('http://localhost:3000/api/contact-requests');
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    list.innerHTML = `
+                        <div style="text-align:center; padding: 60px; background:white; border-radius:24px; border: 1px solid var(--border-color);">
+                            <span style="font-size: 3.5rem; display: block; margin-bottom: 15px;">📥</span>
+                            <h3 style="margin: 0; color: var(--text-main);">Inbox Empty</h3>
+                            <p style="color: var(--text-muted);">No messages received yet.</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = data.map(req => {
+                    const mailtoLink = `mailto:${req.email}?subject=Re: Inquiry from ${req.name}&body=Hi ${req.name},%0D%0A%0D%0AIn response to your message: "${req.message}"%0D%0A%0D%0A`;
+                    
+                    return `
+                    <div class="request-card" id="req-${req.id}">
+                        <div class="header">
+                            <div class="user-info">
+                                <span class="name">${req.name}</span>
+                                <span class="email">${req.email}</span>
+                            </div>
+                            <div class="actions">
+                                <a href="${mailtoLink}" class="btn btn-reply"><span>📧</span> Reply</a>
+                                <button class="btn btn-delete" onclick="deleteRequest(${req.id})"><span>🗑️</span> Delete</button>
+                            </div>
+                        </div>
+                        <div class="message-box">
+                            ${req.message}
+                        </div>
+                        <div class="footer">
+                            <div class="date">📅 ${new Date(req.created_at).toLocaleDateString('en-US', { 
+                                weekday: 'short', 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</div>
+                        </div>
+                    </div>
+                `}).join('');
+            } catch (err) {
+                list.innerHTML = `
+                    <div style="padding: 20px; background: #fee2e2; color: var(--danger); border-radius: 12px; border: 1px solid #fecaca;">
+                        <strong>Connection Error:</strong> Could not reach the server. Make sure your Node.js app is running.
+                    </div>`;
+            }
+        }
+
+        async function deleteRequest(id) {
+            if (!confirm('Are you sure you want to permanently delete this inquiry?')) return;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/contact-requests/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    const card = document.getElementById(`req-${id}`);
+                    card.style.transform = 'scale(0.95)';
+                    card.style.opacity = '0';
+                    setTimeout(() => fetchRequests(), 300);
+                }
+            } catch (err) {
+                alert('Database Error: Could not delete the request.');
+            }
+        }
+
+        fetchRequests();
+    </script>
+</body>
+</html>

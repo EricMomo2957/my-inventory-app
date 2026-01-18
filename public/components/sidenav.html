@@ -1,9 +1,13 @@
 <nav class="sidenav">
     <div class="nav-header">
-        <h2>Inventory Manager</h2>
+        <div class="logo-icon">📦</div>
+        <h2>Inventory Pro</h2>
     </div>
 
     <div class="nav-profile">
+        <div class="side-avatar-wrapper">
+            <img id="sideNavAvatar" src="https://ui-avatars.com/api/?name=User&background=4361ee&color=fff" alt="Profile">
+        </div>
         <div class="profile-info">
             <span id="sideNavName">User Name</span>
             <small id="sideNavRole">Clerk</small>
@@ -12,42 +16,63 @@
 
     <div class="nav-links">
         <p class="section-title">Main Menu</p>
-        <a href="index.html" class="nav-item">🏠 Dashboard</a>
-        <a href="customer-orders.html" class="nav-item">🛒 Customer Orders</a> 
-        <a href="calendar.html" class="nav-item">📅 Calendar</a>
-        <a href="faq.html" class="nav-item">❓ FAQ</a>
+        <a href="index.html" class="nav-item">
+            <span class="icon">🏠</span> Dashboard
+        </a>
+        <a href="customer-orders.html" class="nav-item">
+            <span class="icon">🛒</span> Customer Orders
+        </a> 
+        <a href="calendar.html" class="nav-item">
+            <span class="icon">📅</span> Calendar
+        </a>
+        <a href="faq.html" class="nav-item">
+            <span class="icon">❓</span> FAQ
+        </a>
+
         <p class="section-title">User Account</p>
-        <a href="profile.html" class="nav-item">👤 Profile</a>
-        <a href="settings.html" class="nav-item">⚙️ Settings</a>
-        <a href="admin_management.html" class="nav-item admin-link" style="color: #ff9f43; display: none;">🛡️ Admin Management</a>
-        <a href="reports.html" class="nav-item">📊 Reports & Analytics</a>
+        <a href="profile.html" class="nav-item">
+            <span class="icon">👤</span> Profile
+        </a>
+        <a href="settings.html" class="nav-item">
+            <span class="icon">⚙️</span> Settings
+        </a>
+        <a href="admin_management.html" class="nav-item admin-link" style="color: #ff9f43; display: none;">
+            <span class="icon">🛡️</span> Admin Management
+        </a>
+        <a href="reports.html" class="nav-item">
+            <span class="icon">📊</span> Reports & Analytics
+        </a>
+        <a href="contact_requests.html" class="nav-item">
+            <span class="icon">📩</span> Contact Requests
+        </a>
     </div>
 
     <div class="nav-footer">
+        <button id="themeToggle" class="nav-btn theme-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
         <button class="nav-btn logout-btn" onclick="logout()">🚪 Logout</button>
     </div>
 </nav>
 
 <style>
-    /* Theme Variables */
     :root {
         --side-bg: #ffffff;
-        --side-text: #333333;
-        --side-hover: #f0f2f5;
-        --side-profile-bg: rgba(0, 0, 0, 0.05);
-        --side-border: #eeeeee;
-        --text-main: #333333;
+        --side-text: #1e293b;
+        --side-hover: #f1f5f9;
+        --side-active: #4361ee15;
+        --side-profile-bg: #f8fafc;
+        --side-border: #e2e8f0;
+        --primary: #4361ee;
         --text-muted: #64748b;
+        --danger: #ef4444;
     }
 
-    /* Dark Mode Variables */
     .dark-mode {
-        --side-bg: #1e293b;
-        --side-text: #f8fafc;
-        --side-hover: rgba(255, 255, 255, 0.1);
-        --side-profile-bg: rgba(255, 255, 255, 0.08);
-        --side-border: #334155;
-        --text-main: #f8fafc;
+        --side-bg: #0f172a;
+        --side-text: #f1f5f9;
+        --side-hover: #1e293b;
+        --side-active: #4361ee25;
+        --side-profile-bg: #1e293b;
+        --side-border: #1e293b;
         --text-muted: #94a3b8;
     }
 
@@ -59,144 +84,159 @@
         display: flex;
         flex-direction: column;
         border-right: 1px solid var(--side-border);
-        transition: background 0.3s, color 0.3s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: fixed;
+        left: 0;
+        top: 0;
     }
 
-    .nav-header { padding: 20px; text-align: center; border-bottom: 1px solid var(--side-border); }
-    .nav-header h2 { font-size: 1.2rem; margin: 0; color: #4361ee; }
+    /* Header Styling */
+    .nav-header {
+        padding: 30px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .logo-icon {
+        font-size: 1.5rem;
+        background: var(--primary);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
+    }
+    .nav-header h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--side-text);
+        letter-spacing: -0.5px;
+    }
 
+    /* Profile Card Styling */
     .nav-profile {
         display: flex;
         align-items: center;
-        padding: 15px;
-        margin: 15px;
+        padding: 12px;
+        margin: 0 16px 20px;
         background: var(--side-profile-bg);
+        border: 1px solid var(--side-border);
         border-radius: 12px;
         gap: 12px;
     }
 
-    .side-avatar-wrapper { width: 45px; height: 45px; flex-shrink: 0; }
-    #sideNavAvatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #4361ee; }
+    .side-avatar-wrapper {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+    #sideNavAvatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        object-fit: cover;
+    }
 
-    .profile-info { display: flex; flex-direction: column; overflow: hidden; }
-    #sideNavName { font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #sideNavRole { font-size: 0.75rem; color: var(--text-muted); text-transform: capitalize; }
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+    #sideNavName {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--side-text);
+    }
+    #sideNavRole {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
 
-    .nav-links { flex-grow: 1; overflow-y: auto; }
-    .section-title { font-size: 0.7rem; text-transform: uppercase; margin: 20px 20px 10px; opacity: 0.6; color: var(--text-muted); }
+    /* Navigation Items */
+    .nav-links {
+        flex-grow: 1;
+        padding: 0 12px;
+        overflow-y: auto;
+    }
+    .section-title {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin: 24px 12px 8px;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+    }
 
     .nav-item {
         display: flex;
         align-items: center;
-        padding: 12px 20px;
+        padding: 10px 12px;
         text-decoration: none;
-        color: var(--text-main);
-        transition: 0.2s;
-        gap: 10px;
-        font-size: 0.95rem;
+        color: var(--text-muted);
+        border-radius: 8px;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 4px;
     }
 
-    .nav-item:hover { background: var(--side-hover); }
+    .nav-item .icon {
+        width: 24px;
+        font-size: 1.1rem;
+        display: inline-block;
+    }
 
-    .nav-footer { padding: 15px; border-top: 1px solid var(--side-border); display: flex; flex-direction: column; gap: 10px; }
+    .nav-item:hover {
+        background: var(--side-hover);
+        color: var(--primary);
+    }
+
+    .nav-item.active {
+        background: var(--side-active);
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    /* Footer / Buttons */
+    .nav-footer {
+        padding: 20px 16px;
+        border-top: 1px solid var(--side-border);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
     .nav-btn {
         width: 100%;
-        padding: 10px;
-        border: none;
+        padding: 10px 12px;
+        border: 1px solid var(--side-border);
         border-radius: 8px;
         cursor: pointer;
-        background: var(--side-profile-bg);
-        color: var(--text-main);
-        font-weight: 500;
-        transition: 0.2s;
-        text-align: left;
+        background: transparent;
+        color: var(--side-text);
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
-    .nav-btn:hover { background: var(--side-hover); }
-    .logout-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    .nav-btn:hover {
+        background: var(--side-hover);
+    }
+
+    .logout-btn {
+        border-color: transparent;
+        background: rgba(239, 68, 68, 0.08);
+        color: var(--danger);
+    }
+    .logout-btn:hover {
+        background: var(--danger);
+        color: white;
+    }
 </style>
-
-<script>
-    /**
-     * DARK MODE LOGIC
-     */
-    function toggleDarkMode() {
-        const isDark = document.documentElement.classList.toggle('dark-mode');
-        localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
-        updateThemeButton(isDark);
-    }
-
-    function updateThemeButton(isDark) {
-        const btn = document.getElementById('themeToggle');
-        if (btn) {
-            btn.innerHTML = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
-        }
-    }
-
-    /**
-     * LIVE UI SYNC LOGIC
-     */
-    async function syncSidebarUI() {
-        // 1. Get cached info for immediate display
-        let user = JSON.parse(localStorage.getItem('currentUser'));
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        // Apply local storage data immediately so the UI doesn't look empty
-        updateDisplay(user);
-
-        // 2. Fetch LATEST data from server to catch recent profile changes
-        try {
-            const response = await fetch(`/api/user/profile?id=${user.id}`);
-            if (response.ok) {
-                const latestUser = await response.json();
-                // Merge data and update storage
-                user = { ...user, ...latestUser };
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                // Update UI again with fresh data
-                updateDisplay(user);
-            }
-        } catch (err) {
-            console.error("Failed to fetch latest profile data", err);
-        }
-
-        // 3. Handle Theme preference
-        const darkMode = localStorage.getItem('darkMode');
-        if (darkMode === 'enabled') {
-            document.documentElement.classList.add('dark-mode');
-            updateThemeButton(true);
-        }
-    }
-
-    function updateDisplay(user) {
-        // Update Name and Role
-        const nameEl = document.getElementById('sideNavName');
-        const roleEl = document.getElementById('sideNavRole');
-        if(nameEl) nameEl.innerText = user.full_name || user.username;
-        if(roleEl) roleEl.innerText = user.role || 'clerk';
-
-        // Update Avatar with Cache Busting
-        const sideAvatar = document.getElementById('sideNavAvatar');
-        if (sideAvatar && user.profile_image && user.profile_image !== "NULL") {
-            const timestamp = new Date().getTime();
-            // Check if profile_image is a full URL or relative path
-            const imageSrc = user.profile_image.startsWith('http') ? user.profile_image : user.profile_image;
-            sideAvatar.src = `${imageSrc}?t=${timestamp}`;
-        }
-
-        // Role-based Access
-        const adminLink = document.querySelector('.admin-link');
-        if (adminLink) {
-            adminLink.style.display = (user.role === 'admin') ? 'block' : 'none';
-        }
-    }
-
-    function logout() {
-        localStorage.clear(); // Clears everything including theme/user
-        window.location.href = 'login.html';
-    }
-
-    // Run when the DOM is ready
-    document.addEventListener('DOMContentLoaded', syncSidebarUI);
-</script>
