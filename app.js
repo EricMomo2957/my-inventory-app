@@ -28,8 +28,8 @@ app.post('/api/orders', async (req, res) => {
     const total_amount = price * quantity;
 
     try {
-        // First, insert the order
-        const sqlOrder = 'INSERT INTO orders (user_id, product_id, total_amount, status) VALUES (?, ?, ?, "pending")';
+        // ADDED: product_id to the column list and values
+        const sqlOrder = 'INSERT INTO orders (user_id, product_id, total_amount, status) VALUES (?, ?, ?, "completed")';
         await db.query(sqlOrder, [user_id, product_id, total_amount]);
 
         // Second, subtract the quantity from products table
@@ -43,23 +43,51 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-/** 2. GET ORDER HISTORY: For the User Order History Page */
-app.get('/api/orders/user/:userId', async (req, res) => {
-    const userId = req.params.userId;
-    try {
-        // Joining orders with products to get UI details
-        const sql = `
-            SELECT o.id, o.total_amount, o.status, o.order_date, p.name as product_name, p.image_url 
-            FROM orders o 
-            JOIN products p ON o.product_id = p.id 
-            WHERE o.user_id = ? 
-            ORDER BY o.order_date DESC`;
 
+app.get('/api/orders/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    
+    // The JOIN is essential to get the product name and image from the products table
+    const sql = `
+        SELECT o.*, p.name AS product_name, p.image_url 
+        FROM orders o 
+        JOIN products p ON o.product_id = p.id 
+        WHERE o.user_id = ? 
+        ORDER BY o.order_date DESC
+    `;
+    
+    try {
+        // CHANGED: Use [rows] destructuring to handle the Promise returned by your db config
         const [rows] = await db.query(sql, [userId]);
         res.json(rows);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Database Error:", err);
+        res.status(500).json({ error: "Failed to fetch order history" });
     }
+});
+
+
+/** 2. GET ORDER HISTORY: For the User Order History Page */
+// --- GET ORDER HISTORY BY USER ID ---
+app.get('/api/orders/:userId', (req, res) => {
+    const userId = req.params.userId;
+    
+    // This query links the orders and products tables together
+    const sql = `
+        SELECT o.*, p.name AS product_name, p.image_url 
+        FROM orders o 
+        JOIN products p ON o.product_id = p.id 
+        WHERE o.user_id = ? 
+        ORDER BY o.order_date DESC
+    `;
+    
+    db.query(sql, [userId], (err, results) => {
+        if (err) {
+            console.error("Database Error:", err);
+            return res.status(500).json({ error: "Failed to fetch order history" });
+        }
+        res.json(results);
+    });
 });
 
 // --- REPORT/BI ROUTES ---
