@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Favorites | Inventory Pro</title>
+    
+    <script>
+        // THEME GUARD - Keep the look consistent with dashboard
+        (function() {
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            --heart-red: #ef4444;
+            --success: #22c55e;
+        }
+
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        body { 
+            margin: 0; background: var(--bg-color); color: var(--text-main); 
+            font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        .header-row { display: flex; align-items: center; gap: 20px; margin-bottom: 40px; }
+        
+        .back-btn { 
+            text-decoration: none; color: var(--primary); font-weight: 700; 
+            display: flex; align-items: center; gap: 8px; transition: 0.2s;
+        }
+        .back-btn:hover { transform: translateX(-5px); }
+
+        /* Reusing Product Grid Styles */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px; 
+        }
+
+        .product-card {
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 15px; transition: all 0.3s ease; box-shadow: var(--shadow);
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        .img-container { width: 100%; height: 200px; margin-bottom: 15px; position: relative; }
+        .product-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; background: #f1f5f9; }
+
+        .remove-fav {
+            position: absolute; top: 10px; right: 10px; background: white;
+            border: none; border-radius: 50%; width: 35px; height: 35px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--heart-red); box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 15px; }
+        .price { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+        
+        .btn-order {
+            background: var(--success); color: white; border: none; padding: 10px 16px;
+            border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+        }
+        
+        .empty-state { grid-column: 1/-1; text-align: center; padding: 100px 0; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-row">
+            <a href="user_dashboard.html" class="back-btn">← Back to Catalog</a>
+            <h1 style="margin: 0;">My Favorites ❤️</h1>
+        </div>
+
+        <div class="product-grid" id="favoriteGrid">
+            <div class="empty-state">Loading your saved items...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadFavorites() {
+            const favIds = JSON.parse(localStorage.getItem('userFavorites')) || [];
+            const grid = document.getElementById('favoriteGrid');
+
+            if (favIds.length === 0) {
+                grid.innerHTML = `<div class="empty-state"><h3>You haven't saved any items yet.</h3></div>`;
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:3000/api/products');
+                const products = await res.json();
+                
+                const favProducts = products.filter(p => favIds.includes(p.id));
+                renderFavs(favProducts);
+            } catch (err) {
+                grid.innerHTML = `<div class="empty-state">Error connecting to server.</div>`;
+            }
+        }
+
+        function renderFavs(list) {
+            const grid = document.getElementById('favoriteGrid');
+            
+            grid.innerHTML = list.map(p => {
+                const isOut = p.quantity === 0;
+                return `
+                <div class="product-card">
+                    <button class="remove-fav" onclick="removeFav(${p.id})" title="Remove from favorites">❤️</button>
+                    <div class="img-container">
+                        <img src="${p.image_url || '/images/placeholder.png'}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                    </div>
+                    <h3 style="margin:0 0 5px 0">${p.name}</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-muted)">Category: ${p.category}</div>
+                    
+                    <div class="price-row">
+                        <div class="price">₱${parseFloat(p.price).toLocaleString()}</div>
+                        <button class="btn-order" 
+                                onclick="placeOrder(${p.id}, '${p.name}')" 
+                                ${isOut ? 'disabled style="background:#cbd5e1; cursor:not-allowed"' : ''}>
+                            ${isOut ? 'Out of Stock' : 'Order Now'}
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        async function placeOrder(productId, productName) {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if (!confirm(`Order ${productName} now?`)) return;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.id, product_id: productId, quantity: 1 })
+                });
+
+                const data = await response.json();
+                if (data.success) alert("Order success!");
+                else alert("Order failed.");
+            } catch (err) { alert("Server error."); }
+        }
+
+        function removeFav(id) {
+            let favs = JSON.parse(localStorage.getItem('userFavorites')) || [];
+            favs = favs.filter(fid => fid !== id);
+            localStorage.setItem('userFavorites', JSON.stringify(favs));
+            loadFavorites(); // Refresh view
+        }
+
+        loadFavorites();
+    </script>
+</body>
+</html>
