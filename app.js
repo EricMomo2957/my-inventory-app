@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors'); 
-const db = require('./config/db'); // Using your existing DB config
+const db = require('./config/db'); 
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const scheduleRoutes = require('./routes/schedules'); 
@@ -20,9 +20,50 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/schedules', scheduleRoutes); 
 
-// --- NEW REPORT/BI ROUTES (Merged here) ---
+// --- NEW ORDERING ROUTES (Added & Converted to Async/Await) ---
 
-/** 1. PRODUCTS DATA: For Inventory Value & Stock Levels */
+/** 1. PLACE AN ORDER: Used by the Order Now button */
+app.post('/api/orders', async (req, res) => {
+    const { user_id, product_id, quantity, price } = req.body;
+    const total_amount = price * quantity;
+
+    try {
+        // First, insert the order
+        const sqlOrder = 'INSERT INTO orders (user_id, product_id, total_amount, status) VALUES (?, ?, ?, "pending")';
+        await db.query(sqlOrder, [user_id, product_id, total_amount]);
+
+        // Second, subtract the quantity from products table
+        const updateStock = 'UPDATE products SET quantity = quantity - ? WHERE id = ?';
+        await db.query(updateStock, [quantity, product_id]);
+
+        res.json({ success: true, message: "Order placed successfully" });
+    } catch (err) {
+        console.error("Order Error:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/** 2. GET ORDER HISTORY: For the User Order History Page */
+app.get('/api/orders/user/:userId', async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        // Joining orders with products to get UI details
+        const sql = `
+            SELECT o.id, o.total_amount, o.status, o.order_date, p.name as product_name, p.image_url 
+            FROM orders o 
+            JOIN products p ON o.product_id = p.id 
+            WHERE o.user_id = ? 
+            ORDER BY o.order_date DESC`;
+
+        const [rows] = await db.query(sql, [userId]);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- REPORT/BI ROUTES ---
+
 app.get('/api/products/report', async (req, res) => {
     try {
         const [rows] = await db.query("SELECT name, quantity, price, category FROM products");
@@ -32,7 +73,6 @@ app.get('/api/products/report', async (req, res) => {
     }
 });
 
-/** 2. SALES DATA: For Total Revenue & Top Products */
 app.get('/api/reports/sales', async (req, res) => {
     const days = req.query.days || 30;
     try {
@@ -51,7 +91,6 @@ app.get('/api/reports/sales', async (req, res) => {
     }
 });
 
-/** 3. STOCK HISTORY: For the Fluctuation Trend Chart */
 app.get('/api/reports/stock-history', async (req, res) => {
     const days = req.query.days || 30;
     try {
@@ -68,7 +107,7 @@ app.get('/api/reports/stock-history', async (req, res) => {
     }
 });
 
-// --- REMAINING EXISTING ROUTES (Profile, History, Contact, FAQs) ---
+// --- PROFILE & UTILITY ROUTES ---
 
 app.get('/api/user/profile', async (req, res) => {
     const userId = req.query.id;
