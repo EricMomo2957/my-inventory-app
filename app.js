@@ -195,6 +195,22 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
+// --- ADMIN RESPONSE ROUTE ---
+app.post('/api/contact-requests/:id/respond', (req, res) => {
+    const requestId = req.params.id;
+    const adminMessage = req.body.response;
+
+    console.log(`Sending response to Request ID ${requestId}: ${adminMessage}`);
+
+    // logic to send email (e.g., via Nodemailer) or update database status
+    // For now, we simulate success:
+    if (adminMessage) {
+        res.status(200).json({ message: "Response sent successfully!" });
+    } else {
+        res.status(400).json({ error: "Message content is required" });
+    }
+});
+
 app.get('/api/faqs', async (req, res) => {
     try {
         const [rows] = await db.query("SELECT * FROM faqs ORDER BY created_at DESC");
