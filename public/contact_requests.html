@@ -18,6 +18,7 @@
             --sidebar-width: 260px;
             --danger: #ef4444;
             --success: #10b981;
+            --overlay: rgba(15, 23, 42, 0.6);
         }
 
         body { 
@@ -150,6 +151,59 @@
         .btn-reply { background: #dcfce7; color: var(--success); text-decoration: none; }
         .btn-reply:hover { background: var(--success); color: white; }
 
+        /* --- RESPONSE MODAL --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content h3 { margin-top: 0; margin-bottom: 5px; }
+        .modal-content p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+        .response-textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-family: inherit;
+            resize: none;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-send { background: var(--primary); color: white; padding: 10px 24px; }
+        .btn-cancel { background: #f1f5f9; color: var(--text-muted); }
+
         @media (max-width: 1024px) {
             .sidebar { width: 80px; } 
             .sidebar span:last-child, .logo span { display: none; }
@@ -181,7 +235,21 @@
         </div>
     </main>
 
+    <div id="replyModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalName">Reply to Message</h3>
+            <p id="modalEmail">user@example.com</p>
+            <textarea id="adminResponse" class="response-textarea" rows="6" placeholder="Write your response here..."></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-send" id="confirmSendBtn">Send Response</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let currentRequestId = null;
+
         async function fetchRequests() {
             const list = document.getElementById('requestsList');
             try {
@@ -198,10 +266,7 @@
                     return;
                 }
 
-                list.innerHTML = data.map(req => {
-                    const mailtoLink = `mailto:${req.email}?subject=Re: Inquiry from ${req.name}&body=Hi ${req.name},%0D%0A%0D%0AIn response to your message: "${req.message}"%0D%0A%0D%0A`;
-                    
-                    return `
+                list.innerHTML = data.map(req => `
                     <div class="request-card" id="req-${req.id}">
                         <div class="header">
                             <div class="user-info">
@@ -209,7 +274,7 @@
                                 <span class="email">${req.email}</span>
                             </div>
                             <div class="actions">
-                                <a href="${mailtoLink}" class="btn btn-reply"><span>📧</span> Reply</a>
+                                <button class="btn btn-reply" onclick="openReplyModal(${req.id}, '${req.name}', '${req.email}')"><span>💬</span> Respond</button>
                                 <button class="btn btn-delete" onclick="deleteRequest(${req.id})"><span>🗑️</span> Delete</button>
                             </div>
                         </div>
@@ -227,32 +292,66 @@
                             })}</div>
                         </div>
                     </div>
-                `}).join('');
+                `).join('');
             } catch (err) {
-                list.innerHTML = `
-                    <div style="padding: 20px; background: #fee2e2; color: var(--danger); border-radius: 12px; border: 1px solid #fecaca;">
-                        <strong>Connection Error:</strong> Could not reach the server. Make sure your Node.js app is running.
-                    </div>`;
+                list.innerHTML = `<div style="padding: 20px; background: #fee2e2; color: var(--danger); border-radius: 12px;"><strong>Error:</strong> Could not connect to the server.</div>`;
             }
         }
 
-        async function deleteRequest(id) {
-            if (!confirm('Are you sure you want to permanently delete this inquiry?')) return;
+        // Modal Logic
+        function openReplyModal(id, name, email) {
+            currentRequestId = id;
+            document.getElementById('modalName').innerText = `Reply to ${name}`;
+            document.getElementById('modalEmail').innerText = email;
+            document.getElementById('replyModal').style.display = 'flex';
+            document.getElementById('adminResponse').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('replyModal').style.display = 'none';
+            document.getElementById('adminResponse').value = '';
+            currentRequestId = null;
+        }
+
+        document.getElementById('confirmSendBtn').onclick = async () => {
+            const message = document.getElementById('adminResponse').value;
+            if(!message) return alert("Please type a response first.");
 
             try {
-                const response = await fetch(`http://localhost:3000/api/contact-requests/${id}`, {
-                    method: 'DELETE'
+                const response = await fetch(`http://localhost:3000/api/contact-requests/${currentRequestId}/respond`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ response: message })
                 });
-                
+
+                if(response.ok) {
+                    alert("Response sent successfully!");
+                    closeModal();
+                    fetchRequests();
+                } else {
+                    alert("Error sending response.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server Error.");
+            }
+        };
+
+        async function deleteRequest(id) {
+            if (!confirm('Permanently delete this inquiry?')) return;
+            try {
+                const response = await fetch(`http://localhost:3000/api/contact-requests/${id}`, { method: 'DELETE' });
                 if (response.ok) {
                     const card = document.getElementById(`req-${id}`);
-                    card.style.transform = 'scale(0.95)';
                     card.style.opacity = '0';
                     setTimeout(() => fetchRequests(), 300);
                 }
-            } catch (err) {
-                alert('Database Error: Could not delete the request.');
-            }
+            } catch (err) { alert('Could not delete.'); }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = (event) => {
+            if (event.target == document.getElementById('replyModal')) closeModal();
         }
 
         fetchRequests();
