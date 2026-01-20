@@ -12,151 +12,6 @@
         })();
     </script>
     <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-    <div class="app-container">
-        <div id="sidebar-container"></div> 
-
-        <main class="main-content">
-            <header class="content-header">
-                <div>
-                    <h1>🛒 Customer Orders</h1>
-                    <p>View and manage all outgoing customer transactions.</p>
-                </div>
-                <div class="header-actions">
-                    <div class="search-box">
-                        <input type="text" id="orderSearch" placeholder="Search Order ID or Product..." onkeyup="filterOrders()">
-                    </div>
-                    <button onclick="exportToCSV()" class="export-btn">📊 Export CSV</button>
-                </div>
-            </header>
-
-            <div class="table-container">
-                <table id="ordersTable">
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Qty</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        /**
-         * 1. Load the Sidebar dynamically
-         */
-        fetch('components/sidenav.html')
-            .then(res => res.text())
-            .then(data => {
-                document.getElementById('sidebar-container').innerHTML = data;
-                if (window.syncSidebarUI) syncSidebarUI();
-            });
-
-        /**
-         * 2. Fetch and Display Orders
-         */
-        async function loadOrders() {
-            try {
-                const res = await fetch('/api/orders');
-                const orders = await res.json();
-                const tableBody = document.getElementById('ordersTableBody');
-
-                if (!orders || orders.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">No orders found.</td></tr>';
-                    return;
-                }
-
-                tableBody.innerHTML = orders.map(o => `
-                    <tr>
-                        <td><span class="order-id">#ORD-${o.order_id}</span></td>
-                        <td><strong>${o.product_name}</strong></td>
-                        <td><span class="category-badge">${o.category}</span></td>
-                        <td>${o.order_qty}</td>
-                        <td>₱${Number(o.price).toLocaleString()}</td>
-                        <td>₱${Number(o.total_item_price).toLocaleString()}</td>
-                        <td>${new Date(o.order_date).toLocaleString()}</td>
-                        <td><span class="status-badge completed">${o.status}</span></td>
-                    </tr>
-                `).join('');
-                
-            } catch (err) {
-                console.error("Failed to load orders:", err);
-                document.getElementById('ordersTableBody').innerHTML = 
-                    '<tr><td colspan="8" style="text-align:center; color: #ef4444; padding: 20px;">Error loading orders. Please check your database connection.</td></tr>';
-            }
-        }
-
-        /**
-         * 3. Search Filter Logic
-         */
-        function filterOrders() {
-            const input = document.getElementById('orderSearch');
-            const filter = input.value.toLowerCase();
-            const tableBody = document.getElementById('ordersTableBody');
-            const rows = tableBody.getElementsByTagName('tr');
-
-            for (let i = 0; i < rows.length; i++) {
-                const idCell = rows[i].getElementsByTagName('td')[0];
-                const nameCell = rows[i].getElementsByTagName('td')[1];
-                
-                if (idCell && nameCell) {
-                    const idText = idCell.textContent || idCell.innerText;
-                    const nameText = nameCell.textContent || nameCell.innerText;
-                    
-                    if (idText.toLowerCase().includes(filter) || nameText.toLowerCase().includes(filter)) {
-                        rows[i].style.display = "";
-                    } else {
-                        rows[i].style.display = "none";
-                    }
-                }
-            }
-        }
-
-        /**
-         * 4. Export to CSV Logic
-         */
-        function exportToCSV() {
-            const table = document.getElementById("ordersTable");
-            let csv = [];
-            const rows = table.querySelectorAll("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                const row = [], cols = rows[i].querySelectorAll("td, th");
-                for (let j = 0; j < cols.length; j++) {
-                    let data = cols[j].innerText
-                        .replace(/₱/g, '')
-                        .replace(/#ORD-/g, '')
-                        .replace(/,/g, '')
-                        .trim();
-                    row.push(`"${data}"`);
-                }
-                csv.push(row.join(","));
-            }
-
-            const csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Customer_Orders_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        window.onload = loadOrders;
-    </script>
-
     <style>
         /* Layout & Header */
         .content-header {
@@ -203,52 +58,190 @@
             gap: 8px;
         }
 
-        .export-btn:hover {
-            background: #059669;
-        }
+        /* Table UI Elements */
+        .order-id { font-family: 'Courier New', monospace; font-weight: bold; color: #4361ee; }
+        .category-badge { background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+        .status-badge { padding: 6px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .status-badge.completed { background: #dcfce7; color: #166534; }
 
-        /* Table Styling */
-        .order-id { 
-            font-family: 'Courier New', monospace; 
-            font-weight: bold; 
-            color: #4361ee; 
-        }
-
-        .category-badge {
-            background: #f1f5f9;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-        }
-
-        .status-badge {
+        /* Delete Button Styling */
+        .delete-btn {
+            background: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
             padding: 6px 12px;
-            border-radius: 50px;
-            font-size: 0.75rem;
+            border-radius: 6px;
             font-weight: 600;
-            text-transform: uppercase;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .status-badge.completed { 
-            background: #dcfce7; 
-            color: #166534; 
-        }
-
-        /* Dark Mode Support */
-        .dark-mode .search-box input {
-            background: #1e293b;
-            border-color: #334155;
+        .delete-btn:hover {
+            background: #ef4444;
             color: white;
         }
 
-        .dark-mode .category-badge {
-            background: #334155;
-            color: #f8fafc;
-        }
-        
-        .dark-mode .order-id {
-            color: #7089ff;
-        }
+        /* Dark Mode Support */
+        .dark-mode .search-box input { background: #1e293b; border-color: #334155; color: white; }
+        .dark-mode .category-badge { background: #334155; color: #f8fafc; }
+        .dark-mode .order-id { color: #7089ff; }
+        .dark-mode .delete-btn { background: #450a0a; color: #f87171; border-color: #7f1d1d; }
+        .dark-mode .delete-btn:hover { background: #ef4444; color: white; }
     </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="sidebar-container"></div> 
+
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1>🛒 Customer Orders</h1>
+                    <p>View and manage all outgoing customer transactions.</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" id="orderSearch" placeholder="Search Order ID or Product..." onkeyup="filterOrders()">
+                    </div>
+                    <button onclick="exportToCSV()" class="export-btn">📊 Export CSV</button>
+                </div>
+            </header>
+
+            <div class="table-container">
+                <table id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 1. Load Sidebar
+        fetch('components/sidenav.html')
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                if (window.syncSidebarUI) syncSidebarUI();
+            });
+
+        // 2. Fetch and Display Orders
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/orders');
+                const orders = await res.json();
+                const tableBody = document.getElementById('ordersTableBody');
+
+                if (!orders || orders.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px;">No orders found.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = orders.map(o => `
+                    <tr id="row-${o.order_id}">
+                        <td><span class="order-id">#ORD-${o.order_id}</span></td>
+                        <td><strong>${o.product_name}</strong></td>
+                        <td><span class="category-badge">${o.category}</span></td>
+                        <td>${o.order_qty}</td>
+                        <td>₱${Number(o.price).toLocaleString()}</td>
+                        <td>₱${Number(o.total_item_price).toLocaleString()}</td>
+                        <td>${new Date(o.order_date).toLocaleString()}</td>
+                        <td><span class="status-badge completed">${o.status}</span></td>
+                        <td>
+                            <button onclick="deleteOrder(${o.order_id})" class="delete-btn">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+            } catch (err) {
+                console.error("Failed to load orders:", err);
+                document.getElementById('ordersTableBody').innerHTML = 
+                    '<tr><td colspan="9" style="text-align:center; color: #ef4444; padding: 20px;">Error loading orders.</td></tr>';
+            }
+        }
+
+        // 3. Delete Logic
+        async function deleteOrder(orderId) {
+            if (!confirm(`Permanently delete Order #ORD-${orderId}?`)) return;
+
+            try {
+                const response = await fetch(`/api/orders/${orderId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    // Visual feedback: fade row out
+                    const row = document.getElementById(`row-${orderId}`);
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    row.style.transition = '0.3s';
+                    
+                    setTimeout(() => loadOrders(), 300);
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message || "Failed to delete order. Server Error.");
+                }
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert("Server Error. Could not connect to the database.");
+            }
+        }
+
+        // 4. Search Filter
+        function filterOrders() {
+            const filter = document.getElementById('orderSearch').value.toLowerCase();
+            const rows = document.getElementById('ordersTableBody').getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const idCell = rows[i].cells[0];
+                const nameCell = rows[i].cells[1];
+                if (idCell && nameCell) {
+                    const text = (idCell.textContent + nameCell.textContent).toLowerCase();
+                    rows[i].style.display = text.includes(filter) ? "" : "none";
+                }
+            }
+        }
+
+        // 5. CSV Export
+        function exportToCSV() {
+            const table = document.getElementById("ordersTable");
+            let csv = [];
+            const rows = table.querySelectorAll("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = [], cols = rows[i].querySelectorAll("td, th");
+                // Loop until length - 1 to exclude the 'Actions' column
+                for (let j = 0; j < cols.length - 1; j++) {
+                    let data = cols[j].innerText.replace(/₱/g, '').replace(/#ORD-/g, '').replace(/,/g, '').trim();
+                    row.push(`"${data}"`);
+                }
+                csv.push(row.join(","));
+            }
+
+            const csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", `Orders_Export_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.onload = loadOrders;
+    </script>
 </body>
 </html>
