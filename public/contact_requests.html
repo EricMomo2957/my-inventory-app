@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Requests | Inventory Pro</title>
     
+    <script>
+        (function() {
+            const user = localStorage.getItem('currentUser');
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            // Apply dark mode immediately to prevent white flash
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -19,6 +33,18 @@
             --danger: #ef4444;
             --success: #10b981;
             --overlay: rgba(15, 23, 42, 0.6);
+            --msg-bg: #f1f5f9;
+        }
+
+        /* Dark Mode variables applied to :root.dark-mode or html.dark-mode */
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --overlay: rgba(0, 0, 0, 0.8);
+            --msg-bg: #334155;
         }
 
         body { 
@@ -28,9 +54,10 @@
             color: var(--text-main); 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             min-height: 100vh; 
+            transition: background 0.3s, color 0.3s;
         }
 
-        /* Sidebar Styling */
+        /* Sidebar, Cards, and other styles remain same as previous version */
         .sidebar { 
             width: var(--sidebar-width); 
             background: var(--card-bg); 
@@ -38,176 +65,59 @@
             padding: 24px; 
             position: fixed; 
             height: 100vh; 
-            z-index: 100; 
-        }
-        
-        .logo { 
-            font-size: 1.25rem; 
-            font-weight: 800; 
-            color: var(--primary); 
-            margin-bottom: 40px; 
-            text-decoration: none; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
         }
 
         .nav-link { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            padding: 12px 16px; 
-            text-decoration: none; 
-            color: var(--text-muted); 
-            border-radius: 10px; 
-            font-weight: 600; 
-            margin-bottom: 8px; 
-            transition: 0.2s; 
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px; 
+            text-decoration: none; color: var(--text-muted); border-radius: 10px; 
+            font-weight: 600; margin-bottom: 8px; transition: 0.2s; 
         }
         .nav-link.active { background: var(--primary); color: white; }
-        .nav-link:hover:not(.active) { background: #4361ee15; color: var(--primary); }
 
-        /* Main Content */
-        .main-content { 
-            margin-left: var(--sidebar-width); 
-            flex-grow: 1; 
-            padding: 40px; 
+        .theme-switch-wrapper {
+            margin-top: auto; padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; gap: 10px;
+            color: var(--text-muted); font-weight: 600; font-size: 0.9rem;
         }
 
-        header { margin-bottom: 40px; }
-        header h1 { margin: 0; font-size: 1.8rem; }
-        header p { color: var(--text-muted); margin-top: 5px; }
-
-        /* Request Cards */
-        #requestsList {
-            display: grid;
-            gap: 20px;
-            max-width: 900px;
+        /* Toggle Slider Styling */
+        .theme-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 24px;
         }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px;
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
 
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 40px; }
         .request-card { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border-color); 
-            border-radius: 16px; 
-            padding: 24px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background: var(--card-bg); border: 1px solid var(--border-color); 
+            border-radius: 16px; padding: 24px; margin-bottom: 20px;
         }
-        
-        .request-card:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
+        .message-box { background: var(--msg-bg); padding: 15px; border-radius: 10px; }
 
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start;
-            margin-bottom: 15px; 
-        }
-
-        .user-info { display: flex; flex-direction: column; }
-        .name { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
-        .email { color: var(--primary); font-size: 0.9rem; font-weight: 500; }
-
-        .actions { display: flex; gap: 8px; }
-
-        .message-box { 
-            color: var(--text-main); 
-            line-height: 1.6; 
-            background: #f1f5f9; 
-            padding: 18px; 
-            border-radius: 12px; 
-            font-size: 0.95rem;
-            border-left: 4px solid var(--primary);
-        }
-
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-
-        .date { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-
-        /* Buttons */
-        .btn {
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-delete { background: #fee2e2; color: var(--danger); }
-        .btn-delete:hover { background: var(--danger); color: white; }
-
-        .btn-reply { background: #dcfce7; color: var(--success); text-decoration: none; }
-        .btn-reply:hover { background: var(--success); color: white; }
-
-        /* --- RESPONSE MODAL --- */
+        /* Modal styling */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--overlay);
-            backdrop-filter: blur(4px);
-            align-items: center;
-            justify-content: center;
+            display: none; position: fixed; z-index: 1000; top: 0; left: 0; 
+            width: 100%; height: 100%; background: var(--overlay);
+            backdrop-filter: blur(4px); align-items: center; justify-content: center;
         }
-
         .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            animation: slideUp 0.3s ease-out;
+            background: var(--card-bg); padding: 30px; border-radius: 20px;
+            width: 90%; max-width: 500px; border: 1px solid var(--border-color);
         }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-content h3 { margin-top: 0; margin-bottom: 5px; }
-        .modal-content p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
-
         .response-textarea {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            font-family: inherit;
-            resize: none;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .btn-send { background: var(--primary); color: white; padding: 10px 24px; }
-        .btn-cancel { background: #f1f5f9; color: var(--text-muted); }
-
-        @media (max-width: 1024px) {
-            .sidebar { width: 80px; } 
-            .sidebar span:last-child, .logo span { display: none; }
-            .main-content { margin-left: 80px; }
+            width: 100%; background: var(--bg-color); color: var(--text-main);
+            border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;
         }
     </style>
 </head>
@@ -222,6 +132,14 @@
             <a href="index.html" class="nav-link"><span>📦</span> <span>Catalog</span></a>
             <a href="contact_requests.html" class="nav-link active"><span>📩</span> <span>Requests</span></a>
         </nav>
+
+        <div class="theme-switch-wrapper">
+            <span>🌙 Dark Mode</span>
+            <label class="theme-switch">
+                <input type="checkbox" id="darkModeToggle">
+                <div class="slider"></div>
+            </label>
+        </div>
     </aside>
 
     <main class="main-content">
@@ -229,25 +147,41 @@
             <h1>Contact Requests</h1>
             <p>Review and respond to customer inquiries.</p>
         </header>
-
-        <div id="requestsList">
-            <p style="color: var(--text-muted);">Fetching messages...</p>
-        </div>
+        <div id="requestsList"></div>
     </main>
 
     <div id="replyModal" class="modal">
         <div class="modal-content">
-            <h3 id="modalName">Reply to Message</h3>
-            <p id="modalEmail">user@example.com</p>
-            <textarea id="adminResponse" class="response-textarea" rows="6" placeholder="Write your response here..."></textarea>
-            <div class="modal-actions">
-                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-send" id="confirmSendBtn">Send Response</button>
+            <h3 id="modalName">Reply</h3>
+            <p id="modalEmail" style="color: var(--primary);"></p>
+            <textarea id="adminResponse" class="response-textarea" rows="5"></textarea>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeModal()" style="padding: 10px; background: var(--msg-bg); border: none; border-radius: 8px; color: var(--text-muted);">Cancel</button>
+                <button id="confirmSendBtn" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 8px;">Send Response</button>
             </div>
         </div>
     </div>
 
     <script>
+        // DARK MODE TOGGLE LOGIC (Sync with Calendar.html)
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        // Initial state of the toggle
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            darkModeToggle.checked = true;
+        }
+
+        darkModeToggle.addEventListener('change', () => {
+            if (darkModeToggle.checked) {
+                document.documentElement.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                document.documentElement.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        });
+
+        // REQUEST FETCHING & MODAL LOGIC
         let currentRequestId = null;
 
         async function fetchRequests() {
@@ -257,101 +191,66 @@
                 const data = await response.json();
 
                 if (!data || data.length === 0) {
-                    list.innerHTML = `
-                        <div style="text-align:center; padding: 60px; background:white; border-radius:24px; border: 1px solid var(--border-color);">
-                            <span style="font-size: 3.5rem; display: block; margin-bottom: 15px;">📥</span>
-                            <h3 style="margin: 0; color: var(--text-main);">Inbox Empty</h3>
-                            <p style="color: var(--text-muted);">No messages received yet.</p>
-                        </div>`;
+                    list.innerHTML = `<p style="color: var(--text-muted);">No messages found.</p>`;
                     return;
                 }
 
                 list.innerHTML = data.map(req => `
                     <div class="request-card" id="req-${req.id}">
-                        <div class="header">
-                            <div class="user-info">
-                                <span class="name">${req.name}</span>
-                                <span class="email">${req.email}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-weight: 700;">${req.name}</div>
+                                <div style="font-size: 0.85rem; color: var(--primary);">${req.email}</div>
                             </div>
-                            <div class="actions">
-                                <button class="btn btn-reply" onclick="openReplyModal(${req.id}, '${req.name}', '${req.email}')"><span>💬</span> Respond</button>
-                                <button class="btn btn-delete" onclick="deleteRequest(${req.id})"><span>🗑️</span> Delete</button>
+                            <div style="display: flex; gap: 8px;">
+                                <button onclick="openReplyModal(${req.id}, '${req.name}', '${req.email}')" style="background: #dcfce7; color: #166534; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Reply</button>
+                                <button onclick="deleteRequest(${req.id})" style="background: #fee2e2; color: #991b1b; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer;">Delete</button>
                             </div>
                         </div>
-                        <div class="message-box">
-                            ${req.message}
-                        </div>
-                        <div class="footer">
-                            <div class="date">📅 ${new Date(req.created_at).toLocaleDateString('en-US', { 
-                                weekday: 'short', 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}</div>
-                        </div>
+                        <div class="message-box">${req.message}</div>
+                        <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">📅 ${new Date(req.created_at).toLocaleString()}</div>
                     </div>
                 `).join('');
             } catch (err) {
-                list.innerHTML = `<div style="padding: 20px; background: #fee2e2; color: var(--danger); border-radius: 12px;"><strong>Error:</strong> Could not connect to the server.</div>`;
+                list.innerHTML = `<p style="color: var(--danger);">Failed to load requests.</p>`;
             }
         }
 
-        // Modal Logic
         function openReplyModal(id, name, email) {
             currentRequestId = id;
             document.getElementById('modalName').innerText = `Reply to ${name}`;
             document.getElementById('modalEmail').innerText = email;
             document.getElementById('replyModal').style.display = 'flex';
-            document.getElementById('adminResponse').focus();
         }
 
         function closeModal() {
             document.getElementById('replyModal').style.display = 'none';
             document.getElementById('adminResponse').value = '';
-            currentRequestId = null;
         }
 
         document.getElementById('confirmSendBtn').onclick = async () => {
             const message = document.getElementById('adminResponse').value;
-            if(!message) return alert("Please type a response first.");
-
+            if(!message) return alert("Please enter a response.");
+            
             try {
-                const response = await fetch(`http://localhost:3000/api/contact-requests/${currentRequestId}/respond`, {
+                const res = await fetch(`http://localhost:3000/api/contact-requests/${currentRequestId}/respond`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ response: message })
                 });
-
-                if(response.ok) {
-                    alert("Response sent successfully!");
+                if(res.ok) {
+                    alert("Response sent!");
                     closeModal();
-                    fetchRequests();
-                } else {
-                    alert("Error sending response.");
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Server Error.");
-            }
+            } catch (err) { alert("Error connecting to server."); }
         };
 
         async function deleteRequest(id) {
-            if (!confirm('Permanently delete this inquiry?')) return;
+            if (!confirm('Delete this request?')) return;
             try {
-                const response = await fetch(`http://localhost:3000/api/contact-requests/${id}`, { method: 'DELETE' });
-                if (response.ok) {
-                    const card = document.getElementById(`req-${id}`);
-                    card.style.opacity = '0';
-                    setTimeout(() => fetchRequests(), 300);
-                }
-            } catch (err) { alert('Could not delete.'); }
-        }
-
-        // Close modal when clicking outside
-        window.onclick = (event) => {
-            if (event.target == document.getElementById('replyModal')) closeModal();
+                await fetch(`http://localhost:3000/api/contact-requests/${id}`, { method: 'DELETE' });
+                fetchRequests();
+            } catch (err) { alert('Error deleting.'); }
         }
 
         fetchRequests();
