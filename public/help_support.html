@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support | Inventory Pro</title>
+    
+    <script>
+        (function() {
+            if (!localStorage.getItem('currentUser')) { window.location.href = 'login.html'; return; }
+            if (localStorage.getItem('darkMode') === 'enabled') document.documentElement.classList.add('dark-mode');
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-width: 260px;
+        }
+
+        .dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        body { margin: 0; display: flex; background: var(--bg-color); color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background: var(--card-bg); border-right: 1px solid var(--border-color); padding: 24px; position: fixed; height: 100vh; }
+        .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 10px; margin-bottom: 40px;}
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 10px; font-weight: 600; margin-bottom: 8px; transition: 0.2s; }
+        .nav-link.active { background: var(--primary); color: white; }
+
+        /* Content Area */
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 40px; display: flex; justify-content: center; }
+        .support-container { max-width: 900px; width: 100%; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; background: var(--card-bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border-color); width: fit-content; }
+        .tab-btn { padding: 10px 25px; border-radius: 8px; border: none; background: none; color: var(--text-muted); font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        /* FAQ Accordion */
+        .faq-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { padding: 20px; width: 100%; text-align: left; background: none; border: none; color: var(--text-main); font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .faq-answer { padding: 0 20px; max-height: 0; overflow: hidden; transition: all 0.3s ease-out; color: var(--text-muted); line-height: 1.6; }
+        .faq-item.active .faq-answer { padding: 0 20px 20px 20px; max-height: 200px; }
+        .faq-item.active .faq-question { color: var(--primary); }
+
+        /* Support Form */
+        .support-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-main); outline: none; font-family: inherit; }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.3s; width: 100%; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <a href="user_dashboard.html" class="logo">
+            <div style="width:32px; height:32px; background:var(--primary); border-radius:8px;"></div>
+            <span>Inventory Pro</span>
+        </a>
+        <nav>
+            <a href="user_dashboard.html" class="nav-link"><span>📦</span> <span>Catalog</span></a>
+            <a href="order_history.html" class="nav-link"><span>📜</span> <span>My Orders</span></a>
+            <a href="user_setting.html" class="nav-link"><span>⚙️</span> <span>Settings</span></a>
+            <a href="help_support.html" class="nav-link active"><span>❓</span> <span>Help Center</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="support-container">
+            <header style="margin-bottom: 30px;">
+                <h1 style="margin:0;">Support Center</h1>
+                <p style="color:var(--text-muted);">How can we help you today?</p>
+            </header>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('faq')">FAQs</button>
+                <button class="tab-btn" onclick="switchTab('contact')">Contact Support</button>
+            </div>
+
+            <div id="faqSection">
+                <div class="faq-item">
+                    <button class="faq-question">How do I track my order? <span>+</span></button>
+                    <div class="faq-answer">You can view all your orders and their current status in the "My Orders" tab on the sidebar. Clicking an order ID will show your digital receipt.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">What is the return policy? <span>+</span></button>
+                    <div class="faq-answer">Returns are accepted within 7 days of delivery. Please ensure items are in their original packaging. Contact support to initiate a return.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question">Can I cancel a pending order? <span>+</span></button>
+                    <div class="faq-answer">Yes, as long as the order status is "Pending". Once it moves to "Processing" or "Shipped", cancellation is no longer possible.</div>
+                </div>
+            </div>
+
+            <div id="contactSection" class="hidden">
+                <div class="support-card">
+                    <form id="supportForm">
+                        <div class="form-group">
+                            <label>Inquiry Type</label>
+                            <select id="supportType">
+                                <option value="billing">Billing & Payment</option>
+                                <option value="technical">Technical Issue</option>
+                                <option value="order">Order Inquiry</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject</label>
+                            <input type="text" id="supportSubject" placeholder="e.g., Cannot update profile picture" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Message</label>
+                            <textarea id="supportMessage" rows="5" placeholder="Describe your issue in detail..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Tab Switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            if (tab === 'faq') {
+                document.getElementById('faqSection').classList.remove('hidden');
+                document.getElementById('contactSection').classList.add('hidden');
+            } else {
+                document.getElementById('faqSection').classList.add('hidden');
+                document.getElementById('contactSection').classList.remove('hidden');
+            }
+        }
+
+        // Accordion Logic
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.parentElement;
+                item.classList.toggle('active');
+                button.querySelector('span').innerText = item.classList.contains('active') ? '−' : '+';
+            });
+        });
+
+        // Form Submission
+        document.getElementById('supportForm').onsubmit = (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = "Sending...";
+            btn.disabled = true;
+
+            // Simulate API call
+            setTimeout(() => {
+                alert("Support ticket submitted! We'll get back to you via email.");
+                e.target.reset();
+                btn.innerText = "Send Message";
+                btn.disabled = false;
+            }, 1500);
+        };
+    </script>
+</body>
+</html>
