@@ -3,20 +3,102 @@ let products = [];
         let currentView = 'all';
         let pendingOrder = null;
 
-        async function loadData() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            if(user) document.getElementById('userNameDisplay').innerText = `Hello, ${user.full_name}! 👋`;
+        // --- DATA LOADING ---
+        async function init() {
+            loadUserData();
+            await loadProducts();
+        }
 
+        function loadUserData() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if(user) {
+                document.getElementById('userNameDisplay').innerText = `Hello, ${user.full_name}! 👋`;
+                document.getElementById('sidebarUserName').innerText = user.full_name;
+                
+                // If the path is relative (/uploads/...), prepend the server URL
+                const picUrl = user.profile_image ? `http://localhost:3000${user.profile_image}` : 'https://via.placeholder.com/100';
+                document.getElementById('sidebarUserImg').src = picUrl;
+                document.getElementById('profilePreview').src = picUrl;
+            }
+        }
+
+        async function loadProducts() {
             try {
                 const res = await fetch('http://localhost:3000/api/products');
                 products = await res.json();
                 populateCategories();
                 renderProducts();
             } catch (err) {
-                document.getElementById('productGrid').innerHTML = `<p>Error connecting to database.</p>`;
+                console.error("Fetch error:", err);
             }
         }
 
+        // --- PROFILE LOGIC ---
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('profilePreview').src = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function openProfileModal() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            document.getElementById('profName').value = user.full_name;
+            document.getElementById('profEmail').value = user.email || "";
+            document.getElementById('profPass').value = ""; // Clear password field
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+
+        document.getElementById('profileForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const btn = document.getElementById('saveProfileBtn');
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('id', user.id);
+            formData.append('full_name', document.getElementById('profName').value);
+            formData.append('email', document.getElementById('profEmail').value);
+            
+            const password = document.getElementById('profPass').value;
+            if (password.trim() !== "") {
+                formData.append('password', password);
+            }
+            
+            const picFile = document.getElementById('profPicInput').files[0];
+            if (picFile) formData.append('profile_pic', picFile);
+
+            try {
+                const res = await fetch('http://localhost:3000/api/users/update', {
+                    method: 'PUT',
+                    body: formData // No headers needed for FormData
+                });
+                const result = await res.json();
+                
+                if(result.success) {
+                    // Update LocalStorage so changes persist across page reloads
+                    user.full_name = document.getElementById('profName').value;
+                    user.email = document.getElementById('profEmail').value;
+                    if(result.profile_image) user.profile_image = result.profile_image;
+                    
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    alert("Profile updated successfully!");
+                    location.reload(); 
+                } else {
+                    alert("Update failed: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server error. Could not update profile.");
+            } finally {
+                btn.innerText = "Save Changes";
+                btn.disabled = false;
+            }
+        };
+
+        // --- CATALOG LOGIC ---
         function populateCategories() {
             const selector = document.getElementById('categoryFilter');
             const categories = [...new Set(products.map(p => p.category))];
@@ -32,7 +114,7 @@ let products = [];
             currentView = view;
             document.getElementById('navAll').classList.toggle('active', view === 'all');
             document.getElementById('navFav').classList.toggle('active', view === 'favorites');
-            document.getElementById('viewSubtitle').innerText = view === 'all' ? 'Browsing live inventory.' : 'Your saved items.';
+            document.getElementById('viewSubtitle').innerText = view === 'all' ? 'Browsing live inventory.' : 'Your favorites.';
             renderProducts();
         }
 
@@ -47,63 +129,60 @@ let products = [];
             const cat = document.getElementById('categoryFilter').value;
             const grid = document.getElementById('productGrid');
 
-            let displayList = products.filter(p => {
+            let filtered = products.filter(p => {
                 const matchName = p.name.toLowerCase().includes(term);
                 const matchCat = cat === 'all' || p.category === cat;
                 const matchView = currentView === 'all' || favorites.includes(p.id);
                 return matchName && matchCat && matchView;
             });
 
-            grid.innerHTML = displayList.length === 0 ? '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">No items found.</div>' : 
-            displayList.map(p => {
-                const isOut = p.quantity === 0;
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">No products found.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => {
+                const isOut = p.quantity <= 0;
                 const isFav = favorites.includes(p.id);
                 return `
                 <div class="product-card">
                     <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${p.id})">${isFav ? '❤️' : '🤍'}</button>
                     <div class="img-container">
-                        <img src="${p.image_url || '/images/placeholder.png'}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                        <img src="${p.image_url || 'https://via.placeholder.com/300'}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                         <span class="category-badge">${p.category}</span>
                     </div>
-                    <h3>${p.name}</h3>
-                    <div style="font-size: 0.85rem; font-weight: 600; color: ${p.quantity < 5 && p.quantity > 0 ? '#ef4444' : 'var(--text-muted)'}">
-                        ${isOut ? '❌ Out of Stock' : `📦 ${p.quantity} In Stock`}
+                    <h3 style="margin: 0 0 10px 0;">${p.name}</h3>
+                    <div style="font-size: 0.8rem; color: ${isOut ? '#ef4444' : 'var(--text-muted)'}; font-weight: 600;">
+                        ${isOut ? 'Out of Stock' : 'Stock: ' + p.quantity}
                     </div>
                     <div class="price-row">
                         <div class="price">₱${parseFloat(p.price).toLocaleString()}</div>
-                        <button class="btn-order" onclick="openOrderModal(${p.id}, ${p.price}, '${p.name}')" 
-                                ${isOut ? 'disabled style="background:#cbd5e1;"' : 'style="background:var(--success)"'}>
-                            ${isOut ? 'Unavailable' : 'Order Now'}
+                        <button class="btn-order" onclick="openOrderModal(${p.id}, ${p.price}, '${p.name.replace(/'/g, "\\'")}')" 
+                                ${isOut ? 'disabled style="background:#cbd5e1; cursor: not-allowed;"' : 'style="background:var(--success)"'}>
+                            Order Now
                         </button>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        // --- MODAL & ORDERING LOGIC ---
-
         function openOrderModal(productId, price, productName) {
             pendingOrder = { productId, price, productName };
-            const detailsDiv = document.getElementById('modalProductDetails');
-            
-            detailsDiv.innerHTML = `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Item:</span> <strong>${productName}</strong></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Price:</span> <strong>₱${parseFloat(price).toLocaleString()}</strong></div>
-                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
-                <div style="display: flex; justify-content: space-between; font-size: 1.1rem; color: var(--primary); font-weight: 700;"><span>Total:</span> <span>₱${parseFloat(price).toLocaleString()}</span></div>
+            document.getElementById('modalProductDetails').innerHTML = `
+                <div style="font-size: 1.1rem; font-weight: 700;">${productName}</div>
+                <div style="color: var(--primary); font-size: 1.2rem; margin-top: 5px;">Total: ₱${parseFloat(price).toLocaleString()}</div>
             `;
-
             document.getElementById('orderModal').style.display = 'flex';
-            document.getElementById('confirmOrderBtn').onclick = executePurchase;
         }
 
         async function executePurchase() {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             const btn = document.getElementById('confirmOrderBtn');
-            btn.disabled = true; btn.innerText = "Processing...";
+            btn.innerText = "Processing...";
+            btn.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:3000/api/orders', {
+                const res = await fetch('http://localhost:3000/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -113,27 +192,26 @@ let products = [];
                         price: pendingOrder.price 
                     })
                 });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert("Order placed successfully!");
-                    closeModal();
-                    loadData(); // Update inventory stock counts in real-time
+                
+                const data = await res.json();
+                if(data.success) { 
+                    alert("Order placed successfully!"); 
+                    location.reload(); 
                 } else {
                     alert("Order failed: " + data.message);
                 }
             } catch (err) {
-                alert("Connection error while placing order.");
+                alert("Connection error. Try again.");
             } finally {
-                btn.disabled = false; btn.innerText = "Confirm Purchase";
+                btn.innerText = "Confirm Purchase";
+                btn.disabled = false;
+                closeModal('orderModal');
             }
         }
 
-        function closeModal() {
-            document.getElementById('orderModal').style.display = 'none';
-            pendingOrder = null;
-        }
-
+        document.getElementById('confirmOrderBtn').onclick = executePurchase;
         function filterProducts() { renderProducts(); }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function logout() { localStorage.clear(); window.location.href = 'login.html'; }
-        loadData();
+
+        init();
