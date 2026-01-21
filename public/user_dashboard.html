@@ -96,7 +96,6 @@
             display: flex; flex-direction: column; position: relative;
         }
         .product-card:hover { transform: translateY(-8px); border-color: var(--primary); }
-        .product-card h3 { margin: 10px 0 5px 0; font-size: 1.1rem; }
         
         .img-container { width: 100%; height: 200px; margin-bottom: 15px; position: relative; }
         .product-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; background: #f1f5f9; }
@@ -123,7 +122,6 @@
             border-radius: 10px; font-weight: 700; cursor: pointer; 
             font-size: 0.85rem; transition: 0.2s;
         }
-        .btn-order:hover:not(:disabled) { opacity: 0.9; transform: scale(1.05); }
 
         /* Modal Styles */
         .modal-overlay {
@@ -133,10 +131,19 @@
         }
         .modal-content {
             background: var(--card-bg); padding: 30px; border-radius: 20px;
-            width: 90%; max-width: 400px; box-shadow: var(--shadow);
+            width: 90%; max-width: 450px; box-shadow: var(--shadow);
             animation: slideUp 0.3s ease-out;
             color: var(--text-main);
         }
+
+        /* Profile Specific Styles */
+        .profile-form-group { margin-bottom: 15px; }
+        .profile-form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        .profile-form-group input { 
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); 
+            background: var(--bg-color); color: var(--text-main);
+        }
+
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         @media (max-width: 1024px) {
@@ -154,6 +161,7 @@
         </a>
         <ul class="nav-menu">
             <li><a onclick="setView('all')" id="navAll" class="nav-link active"><span>📦</span> <span>Catalog</span></a></li>
+            <li><a onclick="openProfileModal()" class="nav-link"><span>👤</span> <span>My Profile</span></a></li>
             <li><a onclick="setView('favorites')" id="navFav" class="nav-link"><span>❤️</span> <span>Favorites</span></a></li>
             <li><a href="order_history.html" class="nav-link"><span>📜</span> <span>Orders</span></a></li>
             <li><a href="faq-user.html" class="nav-link"><span>❓</span> <span>Support</span></a></li>
@@ -186,15 +194,221 @@
     <div id="orderModal" class="modal-overlay">
         <div class="modal-content">
             <h2 style="margin-top: 0;">Confirm Your Order</h2>
-            <div id="modalProductDetails" style="margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);">
-                </div>
+            <div id="modalProductDetails" style="margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);"></div>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="closeModal()" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer; color: var(--text-muted);">Cancel</button>
+                <button onclick="closeModal('orderModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer; color: var(--text-muted);">Cancel</button>
                 <button id="confirmOrderBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--success); color: white; cursor: pointer; font-weight: 700;">Confirm Purchase</button>
             </div>
         </div>
     </div>
 
-    <script src="js/user_dashboard.js"></script>
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 style="margin-top: 0;">My Profile</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">Update your personal information below.</p>
+            
+            <form id="profileForm">
+                <div class="profile-form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="profName" required>
+                </div>
+                <div class="profile-form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="profEmail" required>
+                </div>
+                <div class="profile-form-group">
+                    <label>New Password (Leave blank to keep current)</label>
+                    <input type="password" id="profPass" placeholder="••••••••">
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                    <button type="button" onclick="closeModal('profileModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer;">Cancel</button>
+                    <button type="submit" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: 700;">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let products = [];
+        let favorites = JSON.parse(localStorage.getItem('userFavorites')) || [];
+        let currentView = 'all';
+        let pendingOrder = null;
+
+        async function loadData() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if(user) document.getElementById('userNameDisplay').innerText = `Hello, ${user.full_name}! 👋`;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/products');
+                products = await res.json();
+                populateCategories();
+                renderProducts();
+            } catch (err) {
+                document.getElementById('productGrid').innerHTML = `<p>Error connecting to database.</p>`;
+            }
+        }
+
+        // --- PROFILE LOGIC ---
+
+        function openProfileModal() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            document.getElementById('profName').value = user.full_name;
+            document.getElementById('profEmail').value = user.email || ""; // Assumes email is in storage
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+
+        document.getElementById('profileForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const updatedData = {
+                id: user.id,
+                full_name: document.getElementById('profName').value,
+                email: document.getElementById('profEmail').value,
+                password: document.getElementById('profPass').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:3000/api/users/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+                
+                const result = await res.json();
+                if(result.success) {
+                    // Update Local Storage so the UI stays in sync
+                    user.full_name = updatedData.full_name;
+                    user.email = updatedData.email;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    
+                    alert("Profile updated successfully!");
+                    closeModal('profileModal');
+                    loadData();
+                } else {
+                    alert("Update failed: " + result.message);
+                }
+            } catch (err) {
+                alert("Error connecting to server.");
+            }
+        };
+
+        // --- PRODUCT & ORDER LOGIC ---
+
+        function populateCategories() {
+            const selector = document.getElementById('categoryFilter');
+            const categories = [...new Set(products.map(p => p.category))];
+            selector.innerHTML = '<option value="all">All Categories</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat; opt.innerText = cat;
+                selector.appendChild(opt);
+            });
+        }
+
+        function setView(view) {
+            currentView = view;
+            document.getElementById('navAll').classList.toggle('active', view === 'all');
+            document.getElementById('navFav').classList.toggle('active', view === 'favorites');
+            document.getElementById('viewSubtitle').innerText = view === 'all' ? 'Browsing live inventory.' : 'Your saved items.';
+            renderProducts();
+        }
+
+        function toggleFavorite(id) {
+            favorites = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
+            localStorage.setItem('userFavorites', JSON.stringify(favorites));
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('categoryFilter').value;
+            const grid = document.getElementById('productGrid');
+
+            let displayList = products.filter(p => {
+                const matchName = p.name.toLowerCase().includes(term);
+                const matchCat = cat === 'all' || p.category === cat;
+                const matchView = currentView === 'all' || favorites.includes(p.id);
+                return matchName && matchCat && matchView;
+            });
+
+            grid.innerHTML = displayList.length === 0 ? '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">No items found.</div>' : 
+            displayList.map(p => {
+                const isOut = p.quantity === 0;
+                const isFav = favorites.includes(p.id);
+                return `
+                <div class="product-card">
+                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${p.id})">${isFav ? '❤️' : '🤍'}</button>
+                    <div class="img-container">
+                        <img src="${p.image_url || '/images/placeholder.png'}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                        <span class="category-badge">${p.category}</span>
+                    </div>
+                    <h3>${p.name}</h3>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: ${p.quantity < 5 && p.quantity > 0 ? '#ef4444' : 'var(--text-muted)'}">
+                        ${isOut ? '❌ Out of Stock' : `📦 ${p.quantity} In Stock`}
+                    </div>
+                    <div class="price-row">
+                        <div class="price">₱${parseFloat(p.price).toLocaleString()}</div>
+                        <button class="btn-order" onclick="openOrderModal(${p.id}, ${p.price}, '${p.name}')" 
+                                ${isOut ? 'disabled style="background:#cbd5e1;"' : 'style="background:var(--success)"'}>
+                            ${isOut ? 'Unavailable' : 'Order Now'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function openOrderModal(productId, price, productName) {
+            pendingOrder = { productId, price, productName };
+            const detailsDiv = document.getElementById('modalProductDetails');
+            detailsDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Item:</span> <strong>${productName}</strong></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Price:</span> <strong>₱${parseFloat(price).toLocaleString()}</strong></div>
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.1rem; color: var(--primary); font-weight: 700;"><span>Total:</span> <span>₱${parseFloat(price).toLocaleString()}</span></div>
+            `;
+            document.getElementById('orderModal').style.display = 'flex';
+            document.getElementById('confirmOrderBtn').onclick = executePurchase;
+        }
+
+        async function executePurchase() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const btn = document.getElementById('confirmOrderBtn');
+            btn.disabled = true; btn.innerText = "Processing...";
+
+            try {
+                const response = await fetch('http://localhost:3000/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: user.id, 
+                        product_id: pendingOrder.productId, 
+                        quantity: 1, 
+                        price: pendingOrder.price 
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert("Order placed successfully!");
+                    closeModal('orderModal');
+                    loadData();
+                } else {
+                    alert("Order failed: " + data.message);
+                }
+            } catch (err) {
+                alert("Connection error while placing order.");
+            } finally {
+                btn.disabled = false; btn.innerText = "Confirm Purchase";
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function filterProducts() { renderProducts(); }
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        loadData();
+    </script>
 </body>
 </html>

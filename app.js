@@ -202,6 +202,28 @@ app.get('/api/faqs', async (req, res) => {
     }
 });
 
+
+app.put('/api/users/update', async (req, res) => {
+    const { id, full_name, email, password } = req.body;
+    try {
+        let sql, params;
+        if (password && password.trim() !== "") {
+            // Update with new password
+            sql = "UPDATE users SET full_name = ?, email = ?, password = ? WHERE id = ?";
+            params = [full_name, email, password, id];
+        } else {
+            // Update without changing password
+            sql = "UPDATE users SET full_name = ?, email = ? WHERE id = ?";
+            params = [full_name, email, id];
+        }
+        
+        await db.query(sql, params);
+        res.json({ success: true, message: "Profile updated!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/landing-page.html');
 });
