@@ -5,15 +5,29 @@ const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const scheduleRoutes = require('./routes/schedules'); 
 const orderRoutes = require('./routes/orders');
+const multer = require('multer'); 
+const path = require('path');   
 require('dotenv').config({ quiet: true });
 
 const app = express();
+
+// --- MULTER SETUP (For Profile Photos) ---
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'uploads/'),
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 // --- MIDDLEWARE ---
 app.use(cors()); 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static('public')); 
+// IMPORTANT: Serves the uploads folder so profile images are accessible via URL
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- EXISTING API ROUTES ---
 app.use('/api/orders', orderRoutes);
@@ -21,9 +35,43 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/schedules', scheduleRoutes); 
 
-// --- NEW ORDERING ROUTES ---
+// --- PROFILE UPDATE ROUTE ---
+app.put('/api/users/update', upload.single('profile_pic'), async (req, res) => {
+    const { id, full_name, email, password } = req.body;
+    let profile_image = req.file ? `/uploads/${req.file.filename}` : null;
 
-/** 1. PLACE AN ORDER: Used by the Order Now button */
+    try {
+        let query = "UPDATE users SET full_name = ?, email = ?";
+        let params = [full_name, email];
+
+        if (password && password.trim() !== "") {
+            query += ", password = ?";
+            params.push(password);
+        }
+        if (profile_image) {
+            query += ", profile_image = ?";
+            params.push(profile_image);
+        }
+
+        query += " WHERE id = ?";
+        params.push(id);
+
+        await db.query(query, params);
+        
+        res.json({ 
+            success: true, 
+            message: "Profile updated!", 
+            profile_image: profile_image 
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Database update failed." });
+    }
+});
+
+// --- ORDERING ROUTES ---
+
+/** 1. PLACE AN ORDER */
 app.post('/api/orders', async (req, res) => {
     const { user_id, product_id, quantity, price } = req.body;
     const total_amount = price * quantity;
@@ -42,28 +90,17 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-/** DELETE A CUSTOMER ORDER: Fixed column name */
+/** DELETE A CUSTOMER ORDER */
 app.delete('/api/orders/:id', async (req, res) => {
     const orderId = req.params.id;
     try {
-        // Changed 'order_id' to 'id' to match standard database schemas
         const [result] = await db.query("DELETE FROM orders WHERE id = ?", [orderId]);
-
         if (result.affectedRows === 0) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Order not found. It may have already been deleted." 
-            });
+            return res.status(404).json({ success: false, message: "Order not found." });
         }
-
-        console.log(`🗑️ Order ID: ${orderId} deleted successfully.`);
         res.json({ success: true, message: "Order deleted successfully." });
     } catch (err) {
-        console.error("Delete Order Error:", err);
-        res.status(500).json({ 
-            success: false, 
-            message: "Internal server error. Could not delete order." 
-        });
+        res.status(500).json({ success: false, message: "Could not delete order." });
     }
 });
 
@@ -80,28 +117,25 @@ app.get('/api/orders/:userId', async (req, res) => {
         const [rows] = await db.query(sql, [userId]);
         res.json(rows);
     } catch (err) {
-        console.error("Database Error:", err);
         res.status(500).json({ error: "Failed to fetch order history" });
     }
 });
 
-/** FETCH ALL CONTACT REQUESTS */
+// --- CONTACT REQUEST ROUTES ---
+
 app.get('/api/contact-requests', async (req, res) => {
     try {
         const [rows] = await db.query("SELECT * FROM contact_requests ORDER BY created_at DESC");
         res.json(rows);
     } catch (err) {
-        console.error("Database Error:", err);
         res.status(500).json({ error: "Failed to fetch contact requests" });
     }
 });
 
-/** DELETE A CONTACT REQUEST */
 app.delete('/api/contact-requests/:id', async (req, res) => {
     const requestId = req.params.id;
     try {
-        const sql = "DELETE FROM contact_requests WHERE id = ?";
-        await db.query(sql, [requestId]);
+        await db.query("DELETE FROM contact_requests WHERE id = ?", [requestId]);
         res.json({ success: true, message: "Request deleted successfully" });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -136,21 +170,6 @@ app.get('/api/reports/sales', async (req, res) => {
     }
 });
 
-app.get('/api/reports/stock-history', async (req, res) => {
-    const days = req.query.days || 30;
-    try {
-        const sql = `
-            SELECT change_amount, created_at 
-            FROM stock_history 
-            WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
-            ORDER BY created_at ASC`;
-        const [rows] = await db.query(sql, [parseInt(days)]);
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 // --- PROFILE & UTILITY ROUTES ---
 
 app.get('/api/user/profile', async (req, res) => {
@@ -164,16 +183,6 @@ app.get('/api/user/profile', async (req, res) => {
     }
 });
 
-app.get('/api/history', async (req, res) => {
-    try {
-        const sql = `SELECT h.*, p.name as product_name FROM stock_history h JOIN products p ON h.product_id = p.id ORDER BY h.created_at DESC LIMIT 10`;
-        const [rows] = await db.query(sql);
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ message: "Error fetching history" });
-    }
-});
-
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
     try {
@@ -181,16 +190,6 @@ app.post('/api/contact', async (req, res) => {
         res.json({ status: "success" });
     } catch (err) {
         res.status(500).json({ status: "error" });
-    }
-});
-
-app.post('/api/contact-requests/:id/respond', (req, res) => {
-    const requestId = req.params.id;
-    const adminMessage = req.body.response;
-    if (adminMessage) {
-        res.status(200).json({ message: "Response sent successfully!" });
-    } else {
-        res.status(400).json({ error: "Message content is required" });
     }
 });
 
@@ -210,5 +209,5 @@ app.get('/', (req, res) => {
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`✅ Inventory Pro Server merged and running on http://localhost:${PORT}`);
+    console.log(`✅ Inventory Pro Server running on http://localhost:${PORT}`);
 });

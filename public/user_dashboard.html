@@ -67,7 +67,7 @@
             transition: 0.2s; border: 1px solid var(--border-color);
         }
         .sidebar-profile:hover { border-color: var(--primary); }
-        .sidebar-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
+        .sidebar-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #e2e8f0; border: 2px solid var(--primary); }
 
         .nav-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 10px; font-weight: 600; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
@@ -165,7 +165,7 @@
             <li><a onclick="setView('favorites')" id="navFav" class="nav-link"><span>❤️</span> <span>Favorites</span></a></li>
             <li><a href="order_history.html" class="nav-link"><span>📜</span> <span>Orders</span></a></li>
             <li><a onclick="openProfileModal()" class="nav-link"><span>👤</span> <span>Profile</span></a></li>
-            <a href="user_setting.html" class="nav-link"><span>⚙️</span> <span>Settings</span></a>
+            <li><a href="user_setting.html" class="nav-link"><span>⚙️</span> <span>Settings</span></a></li>
             <li><a href="help_support.html" class="nav-link"><span>❓</span> <span>Help Center</span></a></li>
         </ul>
         
@@ -199,7 +199,7 @@
             <h2 style="margin-top: 0;">Confirm Your Order</h2>
             <div id="modalProductDetails" style="margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);"></div>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="closeModal('orderModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer;">Cancel</button>
+                <button onclick="closeModal('orderModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer; color: var(--text-main);">Cancel</button>
                 <button id="confirmOrderBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--success); color: white; cursor: pointer; font-weight: 700;">Confirm Purchase</button>
             </div>
         </div>
@@ -235,13 +235,244 @@
                 </div>
                 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
-                    <button type="button" onclick="closeModal('profileModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer;">Cancel</button>
+                    <button type="button" onclick="closeModal('profileModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer; color: var(--text-main);">Cancel</button>
                     <button type="submit" id="saveProfileBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: 700;">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="js/user_dashboard.js"></script>
+    <script>
+        let products = [];
+        let favorites = JSON.parse(localStorage.getItem('userFavorites')) || [];
+        let currentView = 'all';
+        let pendingOrder = null;
+
+        // --- INITIALIZATION ---
+        async function init() {
+            loadUserData();
+            await loadProducts();
+        }
+
+        // Helper to format image URLs
+        function getProfilePicUrl(path) {
+            if (!path) return 'https://via.placeholder.com/100';
+            if (path.startsWith('http')) return path;
+            return `http://localhost:3000${path}`;
+        }
+
+        function loadUserData() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if(user) {
+                document.getElementById('userNameDisplay').innerText = `Hello, ${user.full_name}! 👋`;
+                document.getElementById('sidebarUserName').innerText = user.full_name;
+                
+                const picUrl = getProfilePicUrl(user.profile_image);
+                document.getElementById('sidebarUserImg').src = picUrl;
+                document.getElementById('profilePreview').src = picUrl;
+                
+                document.getElementById('profName').value = user.full_name;
+                document.getElementById('profEmail').value = user.email || "";
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetch('http://localhost:3000/api/products');
+                products = await res.json();
+                populateCategories();
+                renderProducts();
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+
+        // --- PROFILE LOGIC ---
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('profilePreview').src = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function openProfileModal() {
+            loadUserData(); // Ensure current data is in form
+            document.getElementById('profPass').value = ""; 
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+
+        document.getElementById('profileForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const btn = document.getElementById('saveProfileBtn');
+            
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('id', user.id);
+            formData.append('full_name', document.getElementById('profName').value);
+            formData.append('email', document.getElementById('profEmail').value);
+            
+            const password = document.getElementById('profPass').value;
+            if (password.trim() !== "") formData.append('password', password);
+            
+            const picFile = document.getElementById('profPicInput').files[0];
+            if (picFile) formData.append('profile_pic', picFile);
+
+            try {
+                const res = await fetch('http://localhost:3000/api/users/update', {
+                    method: 'PUT',
+                    body: formData 
+                });
+                const result = await res.json();
+                
+                if(result.success) {
+                    const updatedUser = { ...user };
+                    updatedUser.full_name = document.getElementById('profName').value;
+                    updatedUser.email = document.getElementById('profEmail').value;
+                    if(result.profile_image) updatedUser.profile_image = result.profile_image;
+                    
+                    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                    alert("Profile updated successfully!");
+                    closeModal('profileModal');
+                    loadUserData(); // Refresh sidebar and UI
+                } else {
+                    alert("Update failed: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server error. Could not update profile.");
+            } finally {
+                btn.innerText = "Save Changes";
+                btn.disabled = false;
+            }
+        };
+
+        // --- CATALOG & SEARCH LOGIC ---
+        function populateCategories() {
+            const selector = document.getElementById('categoryFilter');
+            const categories = [...new Set(products.map(p => p.category))];
+            selector.innerHTML = '<option value="all">All Categories</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat; opt.innerText = cat;
+                selector.appendChild(opt);
+            });
+        }
+
+        function setView(view) {
+            currentView = view;
+            document.getElementById('navAll').classList.toggle('active', view === 'all');
+            document.getElementById('navFav').classList.toggle('active', view === 'favorites');
+            document.getElementById('viewSubtitle').innerText = view === 'all' ? 'Browsing live inventory.' : 'Your favorites.';
+            renderProducts();
+        }
+
+        function toggleFavorite(id) {
+            favorites = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
+            localStorage.setItem('userFavorites', JSON.stringify(favorites));
+            renderProducts();
+        }
+
+        function renderProducts() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const cat = document.getElementById('categoryFilter').value;
+            const grid = document.getElementById('productGrid');
+
+            let filtered = products.filter(p => {
+                const matchName = p.name.toLowerCase().includes(term);
+                const matchCat = cat === 'all' || p.category === cat;
+                const matchView = currentView === 'all' || favorites.includes(p.id);
+                return matchName && matchCat && matchView;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">No products found.</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => {
+                const isOut = p.quantity <= 0;
+                const isFav = favorites.includes(p.id);
+                return `
+                <div class="product-card">
+                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${p.id})">${isFav ? '❤️' : '🤍'}</button>
+                    <div class="img-container">
+                        <img src="${p.image_url || 'https://via.placeholder.com/300'}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                        <span class="category-badge">${p.category}</span>
+                    </div>
+                    <h3 style="margin: 0 0 10px 0;">${p.name}</h3>
+                    <div style="font-size: 0.8rem; color: ${isOut ? '#ef4444' : 'var(--text-muted)'}; font-weight: 600;">
+                        ${isOut ? 'Out of Stock' : 'Stock Available: ' + p.quantity}
+                    </div>
+                    <div class="price-row">
+                        <div class="price">₱${parseFloat(p.price).toLocaleString()}</div>
+                        <button class="btn-order" onclick="openOrderModal(${p.id}, ${p.price}, '${p.name.replace(/'/g, "\\'")}')" 
+                                ${isOut ? 'disabled style="background:#cbd5e1; cursor: not-allowed;"' : 'style="background:var(--success)"'}>
+                            Order Now
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- ORDER LOGIC ---
+        function openOrderModal(productId, price, productName) {
+            pendingOrder = { productId, price, productName };
+            document.getElementById('modalProductDetails').innerHTML = `
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">${productName}</div>
+                <div style="color: var(--primary); font-size: 1.2rem; margin-top: 5px; font-weight: 800;">Total: ₱${parseFloat(price).toLocaleString()}</div>
+            `;
+            document.getElementById('orderModal').style.display = 'flex';
+        }
+
+        async function executePurchase() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const btn = document.getElementById('confirmOrderBtn');
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: user.id, 
+                        product_id: pendingOrder.productId, 
+                        quantity: 1, 
+                        price: pendingOrder.price 
+                    })
+                });
+                const data = await res.json();
+                if(data.success) { 
+                    alert("Order placed successfully!"); 
+                    location.reload(); 
+                } else {
+                    alert("Order failed: " + data.message);
+                }
+            } catch (err) {
+                alert("Connection error.");
+            } finally {
+                btn.innerText = "Confirm Purchase";
+                btn.disabled = false;
+                closeModal('orderModal');
+            }
+        }
+
+        document.getElementById('confirmOrderBtn').onclick = executePurchase;
+        function filterProducts() { renderProducts(); }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        init();
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>
