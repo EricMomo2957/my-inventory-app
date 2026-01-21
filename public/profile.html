@@ -53,6 +53,7 @@
             object-fit: cover;
             border: 4px solid #4361ee;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #f0f0f0;
         }
         .profile-details-table {
             width: 100%;
@@ -63,20 +64,22 @@
             border-bottom: 1px solid var(--border-color);
             color: var(--text-main);
         }
-        .profile-details-table .label { color: #888; width: 30%; }
+        .profile-details-table .label { color: #888; width: 30%; font-weight: 600; }
         
-        .modal-content { background: var(--card-bg); color: var(--text-main); }
+        .modal-content { background: var(--card-bg); color: var(--text-main); border-radius: 16px; width: 90%; max-width: 500px; }
         input { 
             background: var(--card-bg); 
             color: var(--text-main); 
             border: 1px solid var(--border-color); 
-            padding: 10px; 
-            border-radius: 6px; 
+            padding: 12px; 
+            border-radius: 8px; 
             width: 100%;
             box-sizing: border-box;
         }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; }
+        
+        .btn-loading { opacity: 0.7; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -97,13 +100,13 @@
                 <button class="add-main-btn" style="margin: 0 auto;" onclick="openEditProfileModal()">Edit Profile & Photo</button>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                 <section class="table-card" style="padding: 25px;">
                     <h2 style="margin-bottom: 15px;">Profile Details</h2>
                     <table class="profile-details-table">
                         <tr><td class="label">Full Name</td> <td id="profFullName">-</td></tr>
                         <tr><td class="label">Email</td> <td id="profEmail">-</td></tr>
-                        <tr><td class="label">Admin ID</td> <td id="profAdminId">-</td></tr>
+                        <tr><td class="label">User ID</td> <td id="profAdminId">-</td></tr>
                         <tr><td class="label">Department</td> <td id="profDept">-</td></tr>
                         <tr><td class="label">Role</td> <td id="profRole">-</td></tr>
                     </table>
@@ -123,7 +126,7 @@
                         <div id="passError" style="color: #dc3545; display: none; margin-top: 10px; font-size: 0.85rem;">
                             ❌ Passwords do not match.
                         </div>
-                        <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 20px; justify-content: center;">
+                        <button type="submit" class="add-main-btn" style="width: 100%; margin-top: 10px; justify-content: center;">
                             Update Password
                         </button>
                     </form>
@@ -139,15 +142,15 @@
                 <span class="close-btn" onclick="closeModal()">&times;</span>
             </header>
             
-            <div class="profile-upload-section" style="text-align: center; margin-bottom: 20px;">
+            <div class="profile-upload-section" style="text-align: center; margin-bottom: 20px; padding-top: 20px;">
                 <img src="assets/default-avatar.png" id="profilePreview" alt="Preview">
-                <div style="margin-top: 10px;">
+                <div style="margin-top: 15px;">
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
-                    <button type="button" class="clear-btn" onclick="document.getElementById('imageInput').click()">Choose New Photo</button>
+                    <button type="button" class="clear-btn" onclick="document.getElementById('imageInput').click()">Change Photo</button>
                 </div>
             </div>
 
-            <form id="editProfileForm">
+            <form id="editProfileForm" style="padding: 0 20px 20px;">
                 <div class="input-group">
                     <label>Full Name</label>
                     <input type="text" id="editFullName" required>
@@ -160,7 +163,7 @@
                     <label>Department</label>
                     <input type="text" id="editDept" required>
                 </div>
-                <button type="button" class="add-main-btn" onclick="saveProfile()">
+                <button type="button" id="saveBtn" class="add-main-btn" style="width: 100%; justify-content: center;" onclick="saveProfile()">
                     Save Changes
                 </button>
             </form>
@@ -169,12 +172,10 @@
 
     <script>
         // --- 1. UI INITIALIZATION ---
-        // Populates the page and the modal with current user data from localStorage
         function initProfile() {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             if (!user) return;
 
-            // Update Page Headers & Table
             document.getElementById('displayHeaderName').innerText = user.full_name || user.username;
             document.getElementById('displayHeaderRole').innerText = user.role || 'Staff';
             document.getElementById('profFullName').innerText = user.full_name || '-';
@@ -183,12 +184,10 @@
             document.getElementById('profDept').innerText = user.department || '-';
             document.getElementById('profRole').innerText = user.role || '-';
 
-            // Update Avatars (if they exist)
             const avatar = user.profile_image || 'assets/default-avatar.png';
             document.getElementById('profileImg').src = avatar;
             document.getElementById('profilePreview').src = avatar;
 
-            // Pre-fill Modal Inputs
             document.getElementById('editFullName').value = user.full_name || '';
             document.getElementById('editEmail').value = user.email || '';
             document.getElementById('editDept').value = user.department || '';
@@ -199,37 +198,37 @@
         function closeModal() { document.getElementById('editProfileModal').style.display = 'none'; }
 
         // --- 3. IMAGE PREVIEW LOGIC ---
-        // Converts the uploaded file into a Base64 string for previewing and saving
         function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                // Update the preview image source with the Base64 string
-                document.getElementById('profilePreview').src = reader.result;
-            };
-            if(event.target.files[0]) {
-                reader.readAsDataURL(event.target.files[0]);
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit check
+                    alert("File is too large! Please choose an image under 5MB.");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function() {
+                    document.getElementById('profilePreview').src = reader.result;
+                };
+                reader.readAsDataURL(file);
             }
         }
 
         // --- 4. PROFILE SAVE LOGIC ---
-        // Sends a PUT request to update user details in the database
         async function saveProfile() {
             const user = JSON.parse(localStorage.getItem('currentUser'));
-            if (!user || !user.id) {
-                alert("Session expired. Please log in again.");
-                return;
-            }
+            const saveBtn = document.getElementById('saveBtn');
+            
+            saveBtn.disabled = true;
+            saveBtn.innerText = "Saving...";
 
-            // Collect values from the modal
             const updatedData = {
                 full_name: document.getElementById('editFullName').value,
                 email: document.getElementById('editEmail').value,
                 department: document.getElementById('editDept').value,
-                profile_image: document.getElementById('profilePreview').src // The Base64 string
+                profile_image: document.getElementById('profilePreview').src
             };
 
             try {
-                // IMPORTANT: Matches backend route router.put('/profile/:id')
                 const response = await fetch(`/api/users/profile/${user.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -239,37 +238,33 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Update Local Storage so the UI reflects changes immediately
                     const newUserObj = { ...user, ...updatedData };
                     localStorage.setItem('currentUser', JSON.stringify(newUserObj));
-                    
-                    // Sync avatar for the sidenav
-                    localStorage.setItem('userAvatar', updatedData.profile_image);
-
                     alert('✅ Profile updated successfully!');
-                    window.location.reload(); 
+                    location.reload(); 
                 } else {
-                    alert('❌ Update failed: ' + result.error);
+                    alert('❌ Update failed: ' + (result.error || "Server error"));
                 }
             } catch (err) {
                 console.error("Save Error:", err);
-                alert('Failed to connect to the server.');
+                alert('Error: Likely file size too large or server disconnected.');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = "Save Changes";
             }
         }
 
-        // --- 5. PASSWORD UPDATE LOGIC ---
+        // --- 5. PASSWORD UPDATE ---
         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = JSON.parse(localStorage.getItem('currentUser'));
             const newPass = document.getElementById('newPass').value;
             const confirmPass = document.getElementById('confirmPass').value;
-            const errorMsg = document.getElementById('passError');
 
             if (newPass !== confirmPass) {
-                errorMsg.style.display = 'block';
+                document.getElementById('passError').style.display = 'block';
                 return;
             }
-            errorMsg.style.display = 'none';
 
             try {
                 const response = await fetch('/api/users/update-password', {
@@ -281,24 +276,17 @@
                 const data = await response.json();
                 if (data.success) {
                     alert('✅ Password updated successfully!');
-                    document.getElementById('passwordForm').reset();
-                } else {
-                    alert('❌ Error: ' + data.message);
+                    e.target.reset();
                 }
-            } catch (err) {
-                alert('Failed to connect to server.');
-            }
+            } catch (err) { alert('Failed to connect to server.'); }
         });
 
-        // --- 6. COMPONENT LOADER & PAGE START ---
+        // --- 6. LOAD COMPONENTS ---
         async function loadComponent(id, path) {
             try {
                 const res = await fetch(path);
-                const text = await res.text();
-                document.getElementById(id).innerHTML = text;
-            } catch (err) {
-                console.warn("Could not load sidenav:", err);
-            }
+                document.getElementById(id).innerHTML = await res.text();
+            } catch (err) { console.warn("Sidenav failed"); }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -306,11 +294,7 @@
             initProfile();
         });
 
-        // Close modal if clicking outside of it
-        window.onclick = function(event) {
-            const modal = document.getElementById('editProfileModal');
-            if (event.target == modal) closeModal();
-        }
+        window.onclick = (e) => { if(e.target.id === 'editProfileModal') closeModal(); }
     </script>
 </body>
 </html>
