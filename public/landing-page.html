@@ -13,6 +13,20 @@
             --light-bg: #f8faff;
             --text-light: #64748b;
             --glass: rgba(255, 255, 255, 0.75);
+            --body-bg: #ffffff;
+            --card-text: #334155;
+            --nav-bg: rgba(255, 255, 255, 0.7);
+        }
+
+        /* --- DARK MODE VARIABLES --- */
+        .dark-mode {
+            --body-bg: #0f172a;
+            --dark: #f8faff;
+            --light-bg: #1e293b;
+            --text-light: #94a3b8;
+            --glass: rgba(30, 41, 59, 0.7);
+            --card-text: #f1f5f9;
+            --nav-bg: rgba(15, 23, 42, 0.8);
         }
 
         html { scroll-behavior: smooth; }
@@ -20,10 +34,11 @@
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
-            color: #334155;
+            color: var(--card-text);
             line-height: 1.6;
-            background: #ffffff;
+            background: var(--body-bg);
             overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         /* --- FULL PAGE WAVE ENGINE --- */
@@ -34,7 +49,7 @@
             width: 100vw;
             height: 100vh;
             z-index: -1;
-            background: radial-gradient(circle at top left, #f8faff, #ffffff);
+            background: var(--body-bg);
         }
 
         /* --- Navigation --- */
@@ -43,7 +58,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 15px 8%;
-            background: rgba(255, 255, 255, 0.7);
+            background: var(--nav-bg);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -52,8 +67,23 @@
         }
 
         .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
+        .nav-links { display: flex; align-items: center; }
         .nav-links a { text-decoration: none; color: var(--text-light); margin-left: 30px; font-weight: 500; transition: 0.3s; }
         .nav-links a:hover { color: var(--primary); }
+
+        /* Dark Mode Toggle Button */
+        #themeToggle {
+            background: none;
+            border: 1px solid var(--text-light);
+            color: var(--text-light);
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 20px;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+        #themeToggle:hover { border-color: var(--primary); color: var(--primary); }
 
         /* --- Global Section Transparency --- */
         section, header { position: relative; z-index: 1; background: transparent; }
@@ -63,9 +93,10 @@
             background: var(--glass); 
             backdrop-filter: blur(10px);
             border-radius: 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
             transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            color: var(--card-text);
         }
 
         /* --- Hero --- */
@@ -85,7 +116,7 @@
             display: inline-block;
             border: none;
             cursor: pointer;
-            overflow: hidden; /* For Ripple */
+            overflow: hidden; 
             transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
             will-change: transform;
         }
@@ -103,10 +134,9 @@
             to { transform: scale(4); opacity: 0; }
         }
 
-        /* --- Hover Effects for All Sections --- */
+        /* --- Hover Effects --- */
         .feature-item:hover, .about-content.card:hover {
             transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.9);
             box-shadow: 0 20px 40px var(--primary-glow);
             border-color: var(--primary);
         }
@@ -119,9 +149,7 @@
 
         .faq-card:hover {
             transform: translateX(10px);
-            background: white;
             box-shadow: -10px 10px 20px var(--primary-glow);
-            border-left-width: 10px;
         }
 
         .contact-card:hover {
@@ -145,12 +173,11 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; background: var(--body-bg); color: var(--card-text); }
 
         #scrollTopBtn { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; border-radius: 50%; cursor: pointer; display: none; z-index: 1001; transition: 0.3s; }
-        #scrollTopBtn:hover { transform: scale(1.1); background: var(--dark); }
 
-        footer { background: var(--dark); color: white; padding: 40px 8%; text-align: center; }
+        footer { background: #070b14; color: white; padding: 40px 8%; text-align: center; }
 
         @media (max-width: 900px) {
             .contact-container, .hero, .about-container { grid-template-columns: 1fr; text-align: center; }
@@ -171,6 +198,7 @@
             <a href="#faq-display">FAQ</a>
             <a href="#contact">Contact</a>
             <a href="login.html" class="cta-button" style="padding: 10px 25px;">Sign In</a>
+            <button id="themeToggle" onclick="toggleDarkMode()">🌙 Dark</button>
         </div>
     </nav>
 
@@ -238,6 +266,22 @@
     <footer><p>&copy; 2026 Inventory Pro Systems. All rights reserved.</p></footer>
 
     <script>
+        // --- 0. DARK MODE LOGIC ---
+        function toggleDarkMode() {
+            const body = document.body;
+            const isDark = body.classList.toggle('dark-mode');
+            const btn = document.getElementById('themeToggle');
+            
+            btn.innerHTML = isDark ? '☀️ Light' : '🌙 Dark';
+            localStorage.setItem('landingTheme', isDark ? 'dark' : 'light');
+        }
+
+        // Apply saved theme on load
+        if (localStorage.getItem('landingTheme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('themeToggle').innerHTML = '☀️ Light';
+        }
+
         // --- 1. FULL BACKGROUND WAVE ENGINE ---
         const canvas = document.getElementById('waveCanvas');
         const ctx = canvas.getContext('2d');
@@ -252,11 +296,20 @@
         function drawWaves() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const lineGap = 120;
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
             const rowCount = Math.ceil(canvas.height / lineGap) + 1;
             for (let i = 0; i < rowCount; i++) {
                 const centerY = i * lineGap;
                 ctx.beginPath();
-                ctx.strokeStyle = i % 2 === 0 ? 'rgba(67, 97, 238, 0.08)' : 'rgba(76, 201, 240, 0.05)';
+                
+                // Adjust wave color for visibility in dark mode
+                if (isDarkMode) {
+                    ctx.strokeStyle = i % 2 === 0 ? 'rgba(67, 97, 238, 0.15)' : 'rgba(76, 201, 240, 0.1)';
+                } else {
+                    ctx.strokeStyle = i % 2 === 0 ? 'rgba(67, 97, 238, 0.08)' : 'rgba(76, 201, 240, 0.05)';
+                }
+                
                 ctx.lineWidth = 1.5;
                 for (let x = 0; x <= canvas.width; x += 30) {
                     const dx = mouse.x - x;
@@ -321,7 +374,6 @@
                         <p>${f.answer}</p>
                     </div>`).join('');
             } catch (err) { 
-                // Fallback for demo purposes if API isn't live
                 document.getElementById('faqList').innerHTML = `
                     <div class="faq-card"><h4>How secure is my data?</h4><p>We use end-to-end encryption for all inventory logs.</p></div>
                     <div class="faq-card"><h4>Can I export reports?</h4><p>Yes, all data can be exported to CSV or PDF.</p></div>`;
@@ -346,7 +398,6 @@
                     successDiv.style.display = 'block';
                 }
             } catch (error) { 
-                // Simulation for demonstration
                 contactForm.style.display = 'none';
                 successDiv.style.display = 'block';
             }
