@@ -9,17 +9,14 @@
         // AUTH & THEME GUARD
         (function() {
             const userStr = localStorage.getItem('currentUser');
-            if (!userStr) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!userStr) { window.location.href = 'login.html'; return; }
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
             }
         })();
     </script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -34,6 +31,7 @@
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
             --heart-red: #ef4444;
             --success: #22c55e;
+            --danger: #ef4444;
         }
 
         .dark-mode {
@@ -49,7 +47,7 @@
         body { 
             margin: 0; display: flex; background: var(--bg-color); 
             color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; 
-            min-height: 100vh; transition: background 0.3s;
+            min-height: 100vh; transition: background 0.3s; overflow-x: hidden;
         }
 
         /* Sidebar */
@@ -60,25 +58,15 @@
             z-index: 100;
         }
         .logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; text-decoration: none; display: flex; align-items: center; gap: 10px; }
-        
-        .sidebar-profile {
-            display: flex; align-items: center; gap: 12px; padding: 15px;
-            background: var(--bg-color); border-radius: 12px; margin-bottom: 20px;
-            transition: 0.2s; border: 1px solid var(--border-color);
-        }
-        .sidebar-profile:hover { border-color: var(--primary); }
-        .sidebar-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #e2e8f0; border: 2px solid var(--primary); }
+        .logo-box { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; }
 
-        .nav-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 10px; font-weight: 600; margin-bottom: 8px; cursor: pointer; transition: 0.2s; }
         .nav-link.active { background: var(--primary); color: white; }
         .nav-link:hover:not(.active) { background: var(--primary-light); color: var(--primary); }
 
         /* Main Content */
         .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 40px; }
-        .welcome-section { margin-bottom: 30px; }
-        .welcome-section h1 { margin: 0; font-size: 1.8rem; }
-
+        
         /* Toolbar */
         .toolbar { 
             display: flex; background: var(--card-bg); padding: 15px; 
@@ -100,93 +88,76 @@
             display: flex; flex-direction: column; position: relative;
         }
         .product-card:hover { transform: translateY(-8px); border-color: var(--primary); }
-        
-        .img-container { width: 100%; height: 200px; margin-bottom: 15px; position: relative; }
+        .img-container { width: 100%; height: 180px; margin-bottom: 15px; position: relative; }
         .product-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 15px; background: #f1f5f9; }
         
-        .category-badge { 
-            position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); 
-            padding: 4px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 700; color: var(--primary);
-        }
-
         .fav-btn {
             position: absolute; top: 10px; right: 10px; background: white;
             border: none; border-radius: 50%; width: 35px; height: 35px;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: 0.2s; font-size: 1.2rem; z-index: 10;
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; z-index: 10;
         }
         .fav-btn.active { color: var(--heart-red); }
 
-        .price-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 15px; }
-        .price { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
-        
-        .btn-order { color: white; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-
-        /* Modals */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
-            backdrop-filter: blur(4px);
+        /* Cart UI */
+        .cart-trigger {
+            position: fixed; bottom: 30px; right: 30px; background: var(--primary);
+            color: white; width: 65px; height: 65px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4);
+            z-index: 999; transition: 0.3s;
         }
-        .modal-content {
-            background: var(--card-bg); padding: 30px; border-radius: 20px;
-            width: 90%; max-width: 450px; box-shadow: var(--shadow);
-            animation: slideUp 0.3s ease-out;
-        }
-        .profile-form-group { margin-bottom: 15px; }
-        .profile-form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-        .profile-form-group input { 
-            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); 
-            background: var(--bg-color); color: var(--text-main);
+        .cart-trigger:hover { transform: scale(1.1); }
+        .cart-count {
+            position: absolute; top: -5px; right: -5px; background: var(--danger);
+            color: white; font-size: 0.75rem; padding: 4px 8px; border-radius: 10px; font-weight: 800;
         }
 
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .cart-sidebar {
+            position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
+            background: var(--card-bg); box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+            z-index: 1001; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column; padding: 30px; border-left: 1px solid var(--border-color);
+        }
+        .cart-sidebar.open { right: 0; }
+        .cart-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid var(--border-color); }
+        .cart-item img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+
+        .qty-controls { display: flex; align-items: center; gap: 10px; background: var(--bg-color); padding: 5px 10px; border-radius: 8px; }
+        .qty-btn { border: none; background: none; font-weight: 800; cursor: pointer; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
         <a href="#" class="logo">
-            <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px;"></div>
+            <div class="logo-box"></div>
             <span>Inventory Pro</span>
         </a>
 
-        <div class="sidebar-profile" onclick="openProfileModal()" style="cursor: pointer;">
-            <img id="sidebarUserImg" src="https://via.placeholder.com/40" alt="User">
-            <div style="overflow: hidden;">
-                <div id="sidebarUserName" style="font-weight: 700; font-size: 0.85rem; white-space: nowrap; text-overflow: ellipsis;">User Name</div>
-                <div style="font-size: 0.7rem; color: var(--text-muted);">Edit Settings</div>
-            </div>
-        </div>
-
-        <ul class="nav-menu">
-            <li><a onclick="setView('all')" id="navAll" class="nav-link active"><span>📦</span> <span>Catalog</span></a></li>
-            <li><a onclick="setView('favorites')" id="navFav" class="nav-link"><span>❤️</span> <span>Favorites</span></a></li>
-            <li><a href="order_history.html" class="nav-link"><span>📜</span> <span>Orders</span></a></li>
-            <li><a onclick="openProfileModal()" class="nav-link"><span>👤</span> <span>Profile</span></a></li>
-            <li><a href="user_setting.html" class="nav-link"><span>⚙️</span> <span>Settings</span></a></li>
-            <li><a href="help_support.html" class="nav-link"><span>❓</span> <span>Help Center</span></a></li>
-        </ul>
+        <nav style="flex-grow: 1;">
+            <a onclick="setView('all')" id="navAll" class="nav-link active"><span>📦</span> <span>Catalog</span></a>
+            <a onclick="setView('favorites')" id="navFav" class="nav-link"><span>❤️</span> <span>Favorites</span></a>
+            <a href="order_history.html" class="nav-link"><span>📜</span> <span>My Orders</span></a>
+            <a href="user_setting.html" class="nav-link"><span>⚙️</span> <span>Settings</span></a>
+        </nav>
         
-        <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 20px;">
-            <button onclick="logout()" class="nav-link" style="background:none; border:none; width:100%; cursor:pointer; text-align:left;">
-                <span>🚪</span> <span>Logout</span>
-            </button>
-        </div>
+        <button onclick="logout()" class="nav-link" style="background:none; border:none; width:100%; margin-top: auto; color: var(--danger);">
+            <span>🚪</span> <span>Logout</span>
+        </button>
     </aside>
 
     <main class="main-content">
-        <header class="welcome-section">
-            <h1 id="userNameDisplay">Welcome back!</h1>
-            <p id="viewSubtitle" style="color: var(--text-muted);">Browsing live inventory from the database.</p>
+        <header style="margin-bottom: 30px;">
+            <h1 id="userNameDisplay" style="margin:0; font-size: 1.8rem; font-weight: 800;">Welcome back!</h1>
+            <p id="viewSubtitle" style="color: var(--text-muted); margin-top: 5px;">Discover our latest inventory.</p>
         </header>
 
         <div class="toolbar">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search products..." onkeyup="filterProducts()">
+                <input type="text" id="searchInput" placeholder="Search products..." onkeyup="renderProducts()">
             </div>
-            <select id="categoryFilter" style="padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main);" onchange="filterProducts()">
+            <select id="categoryFilter" style="padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main);" onchange="renderProducts()">
                 <option value="all">All Categories</option>
             </select>
         </div>
@@ -194,86 +165,41 @@
         <div class="product-grid" id="productGrid"></div>
     </main>
 
-    <div id="orderModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 style="margin-top: 0;">Confirm Your Order</h2>
-            <div id="modalProductDetails" style="margin: 20px 0; padding: 15px; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color);"></div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="closeModal('orderModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer; color: var(--text-main);">Cancel</button>
-                <button id="confirmOrderBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--success); color: white; cursor: pointer; font-weight: 700;">Confirm Purchase</button>
-            </div>
-        </div>
+    <div class="cart-trigger" onclick="toggleCart()">
+        🛒 <span class="cart-count" id="cartCount">0</span>
     </div>
 
-    <div id="profileModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 style="margin-top: 0;">Edit Profile</h2>
-            
-            <form id="profileForm">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="position: relative; display: inline-block;">
-                        <img id="profilePreview" src="https://via.placeholder.com/100" 
-                             style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
-                        <label for="profPicInput" style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white;">
-                            📷
-                        </label>
-                    </div>
-                    <input type="file" id="profPicInput" hidden accept="image/*" onchange="previewImage(this)">
-                </div>
+    <div id="cartSidebar" class="cart-sidebar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="margin: 0; font-weight: 800;">Your Cart</h2>
+            <button onclick="toggleCart()" style="background:none; border:none; font-size: 2rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+        </div>
 
-                <div class="profile-form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="profName" required>
-                </div>
-                <div class="profile-form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="profEmail" required>
-                </div>
-                <div class="profile-form-group">
-                    <label>New Password (Optional)</label>
-                    <input type="password" id="profPass" placeholder="Leave empty to keep current">
-                </div>
-                
-                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
-                    <button type="button" onclick="closeModal('profileModal')" style="padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border-color); background: none; cursor: pointer; color: var(--text-main);">Cancel</button>
-                    <button type="submit" id="saveProfileBtn" style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: 700;">Save Changes</button>
-                </div>
-            </form>
+        <div id="cartItemsList" style="flex-grow: 1; overflow-y: auto;"></div>
+
+        <div style="border-top: 2px dashed var(--border-color); padding-top: 20px; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 800; margin-bottom: 20px;">
+                <span>Total:</span>
+                <span id="cartTotalText" style="color: var(--primary);">₱0.00</span>
+            </div>
+            <button onclick="checkoutCart()" id="checkoutBtn" style="width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);">
+                Complete Purchase
+            </button>
         </div>
     </div>
 
     <script>
         let products = [];
+        let cart = JSON.parse(localStorage.getItem('userCart')) || [];
         let favorites = JSON.parse(localStorage.getItem('userFavorites')) || [];
         let currentView = 'all';
-        let pendingOrder = null;
 
-        // --- INITIALIZATION ---
         async function init() {
-            loadUserData();
-            await loadProducts();
-        }
-
-        // Helper to format image URLs
-        function getProfilePicUrl(path) {
-            if (!path) return 'https://via.placeholder.com/100';
-            if (path.startsWith('http')) return path;
-            return `http://localhost:3000${path}`;
-        }
-
-        function loadUserData() {
             const user = JSON.parse(localStorage.getItem('currentUser'));
-            if(user) {
-                document.getElementById('userNameDisplay').innerText = `Hello, ${user.full_name}! 👋`;
-                document.getElementById('sidebarUserName').innerText = user.full_name;
-                
-                const picUrl = getProfilePicUrl(user.profile_image);
-                document.getElementById('sidebarUserImg').src = picUrl;
-                document.getElementById('profilePreview').src = picUrl;
-                
-                document.getElementById('profName').value = user.full_name;
-                document.getElementById('profEmail').value = user.email || "";
-            }
+            if(user) document.getElementById('userNameDisplay').innerText = `Hello, ${user.full_name.split(' ')[0]}! 👋`;
+            
+            await loadProducts();
+            renderCart();
         }
 
         async function loadProducts() {
@@ -282,98 +208,17 @@
                 products = await res.json();
                 populateCategories();
                 renderProducts();
-            } catch (err) {
-                console.error("Fetch error:", err);
-            }
+            } catch (err) { console.error("Load failed", err); }
         }
 
-        // --- PROFILE LOGIC ---
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => document.getElementById('profilePreview').src = e.target.result;
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function openProfileModal() {
-            loadUserData(); // Ensure current data is in form
-            document.getElementById('profPass').value = ""; 
-            document.getElementById('profileModal').style.display = 'flex';
-        }
-
-        document.getElementById('profileForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const btn = document.getElementById('saveProfileBtn');
-            
-            btn.innerText = "Saving...";
-            btn.disabled = true;
-
-            const formData = new FormData();
-            formData.append('id', user.id);
-            formData.append('full_name', document.getElementById('profName').value);
-            formData.append('email', document.getElementById('profEmail').value);
-            
-            const password = document.getElementById('profPass').value;
-            if (password.trim() !== "") formData.append('password', password);
-            
-            const picFile = document.getElementById('profPicInput').files[0];
-            if (picFile) formData.append('profile_pic', picFile);
-
-            try {
-                const res = await fetch('http://localhost:3000/api/users/update', {
-                    method: 'PUT',
-                    body: formData 
-                });
-                const result = await res.json();
-                
-                if(result.success) {
-                    const updatedUser = { ...user };
-                    updatedUser.full_name = document.getElementById('profName').value;
-                    updatedUser.email = document.getElementById('profEmail').value;
-                    if(result.profile_image) updatedUser.profile_image = result.profile_image;
-                    
-                    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                    alert("Profile updated successfully!");
-                    closeModal('profileModal');
-                    loadUserData(); // Refresh sidebar and UI
-                } else {
-                    alert("Update failed: " + result.message);
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Server error. Could not update profile.");
-            } finally {
-                btn.innerText = "Save Changes";
-                btn.disabled = false;
-            }
-        };
-
-        // --- CATALOG & SEARCH LOGIC ---
         function populateCategories() {
             const selector = document.getElementById('categoryFilter');
             const categories = [...new Set(products.map(p => p.category))];
-            selector.innerHTML = '<option value="all">All Categories</option>';
             categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat; opt.innerText = cat;
                 selector.appendChild(opt);
             });
-        }
-
-        function setView(view) {
-            currentView = view;
-            document.getElementById('navAll').classList.toggle('active', view === 'all');
-            document.getElementById('navFav').classList.toggle('active', view === 'favorites');
-            document.getElementById('viewSubtitle').innerText = view === 'all' ? 'Browsing live inventory.' : 'Your favorites.';
-            renderProducts();
-        }
-
-        function toggleFavorite(id) {
-            favorites = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
-            localStorage.setItem('userFavorites', JSON.stringify(favorites));
-            renderProducts();
         }
 
         function renderProducts() {
@@ -388,11 +233,6 @@
                 return matchName && matchCat && matchView;
             });
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">No products found.</div>`;
-                return;
-            }
-
             grid.innerHTML = filtered.map(p => {
                 const isOut = p.quantity <= 0;
                 const isFav = favorites.includes(p.id);
@@ -401,78 +241,121 @@
                     <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${p.id})">${isFav ? '❤️' : '🤍'}</button>
                     <div class="img-container">
                         <img src="${p.image_url || 'https://via.placeholder.com/300'}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
-                        <span class="category-badge">${p.category}</span>
                     </div>
-                    <h3 style="margin: 0 0 10px 0;">${p.name}</h3>
-                    <div style="font-size: 0.8rem; color: ${isOut ? '#ef4444' : 'var(--text-muted)'}; font-weight: 600;">
-                        ${isOut ? 'Out of Stock' : 'Stock Available: ' + p.quantity}
+                    <h3 style="margin: 0 0 5px 0; font-size: 1rem;">${p.name}</h3>
+                    <div style="font-size: 0.75rem; color: ${isOut ? 'var(--danger)' : 'var(--text-muted)'}; font-weight: 700; margin-bottom: 15px;">
+                        ${isOut ? 'OUT OF STOCK' : 'STOCK: ' + p.quantity}
                     </div>
-                    <div class="price-row">
-                        <div class="price">₱${parseFloat(p.price).toLocaleString()}</div>
-                        <button class="btn-order" onclick="openOrderModal(${p.id}, ${p.price}, '${p.name.replace(/'/g, "\\'")}')" 
-                                ${isOut ? 'disabled style="background:#cbd5e1; cursor: not-allowed;"' : 'style="background:var(--success)"'}>
-                            Order Now
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">₱${parseFloat(p.price).toLocaleString()}</span>
+                        <button onclick="addToCart(${p.id})" ${isOut ? 'disabled' : ''} 
+                                style="background: ${isOut ? '#cbd5e1' : 'var(--primary)'}; color: white; border: none; padding: 8px 15px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+                            ${isOut ? 'Sold Out' : '+ Cart'}
                         </button>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        // --- ORDER LOGIC ---
-        function openOrderModal(productId, price, productName) {
-            pendingOrder = { productId, price, productName };
-            document.getElementById('modalProductDetails').innerHTML = `
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">${productName}</div>
-                <div style="color: var(--primary); font-size: 1.2rem; margin-top: 5px; font-weight: 800;">Total: ₱${parseFloat(price).toLocaleString()}</div>
-            `;
-            document.getElementById('orderModal').style.display = 'flex';
+        /* CART LOGIC */
+        function toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const inCart = cart.find(item => item.id === productId);
+
+            if (inCart) {
+                if (inCart.qty < product.quantity) inCart.qty++;
+                else alert("Limit reached based on stock.");
+            } else {
+                cart.push({ id: product.id, name: product.name, price: product.price, img: product.image_url, qty: 1 });
+            }
+            updateCartUI();
         }
 
-        async function executePurchase() {
+        function updateCartQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            const product = products.find(p => p.id === id);
+            if (item) {
+                const newQty = item.qty + delta;
+                if (newQty > 0 && newQty <= product.quantity) item.qty = newQty;
+                else if (newQty === 0) cart = cart.filter(i => i.id !== id);
+            }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            localStorage.setItem('userCart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cartItemsList');
+            const count = document.getElementById('cartCount');
+            const totalText = document.getElementById('cartTotalText');
+            
+            let total = 0;
+            let totalQty = 0;
+
+            list.innerHTML = cart.map(item => {
+                total += item.price * item.qty;
+                totalQty += item.qty;
+                return `
+                <div class="cart-item">
+                    <img src="${item.img || 'https://via.placeholder.com/50'}">
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 700; font-size: 0.85rem;">${item.name}</div>
+                        <div style="color: var(--primary); font-weight: 700; font-size: 0.8rem;">₱${(item.price * item.qty).toLocaleString()}</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateCartQty(${item.id}, -1)">-</button>
+                        <span style="font-size: 0.8rem; font-weight: 800;">${item.qty}</span>
+                        <button class="qty-btn" onclick="updateCartQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>`;
+            }).join('') || '<p style="text-align:center; color:var(--text-muted); margin-top:40px;">Your cart is empty</p>';
+
+            count.innerText = totalQty;
+            totalText.innerText = `₱${total.toLocaleString()}`;
+        }
+
+        async function checkoutCart() {
+            if (cart.length === 0) return;
             const user = JSON.parse(localStorage.getItem('currentUser'));
-            const btn = document.getElementById('confirmOrderBtn');
-            btn.innerText = "Processing...";
-            btn.disabled = true;
+            const btn = document.getElementById('checkoutBtn');
+            btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
-                const res = await fetch('http://localhost:3000/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        user_id: user.id, 
-                        product_id: pendingOrder.productId, 
-                        quantity: 1, 
-                        price: pendingOrder.price 
-                    })
-                });
-                const data = await res.json();
-                if(data.success) { 
-                    alert("Order placed successfully!"); 
-                    location.reload(); 
-                } else {
-                    alert("Order failed: " + data.message);
+                for (const item of cart) {
+                    await fetch('http://localhost:3000/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: user.id, product_id: item.id, quantity: item.qty, price: item.price })
+                    });
                 }
-            } catch (err) {
-                alert("Connection error.");
-            } finally {
-                btn.innerText = "Confirm Purchase";
-                btn.disabled = false;
-                closeModal('orderModal');
-            }
+                alert("Order Successful!");
+                cart = []; updateCartUI(); location.reload();
+            } catch (err) { alert("Checkout failed"); }
+            finally { btn.innerText = "Complete Purchase"; btn.disabled = false; }
         }
 
-        document.getElementById('confirmOrderBtn').onclick = executePurchase;
-        function filterProducts() { renderProducts(); }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+        /* VIEW & UTILS */
+        function setView(view) {
+            currentView = view;
+            document.getElementById('navAll').classList.toggle('active', view === 'all');
+            document.getElementById('navFav').classList.toggle('active', view === 'favorites');
+            renderProducts();
+        }
+
+        function toggleFavorite(id) {
+            favorites = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
+            localStorage.setItem('userFavorites', JSON.stringify(favorites));
+            renderProducts();
+        }
+
+        function logout() { localStorage.removeItem('currentUser'); window.location.href = 'login.html'; }
 
         init();
-
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal-overlay')) {
-                event.target.style.display = 'none';
-            }
-        }
     </script>
 </body>
 </html>
