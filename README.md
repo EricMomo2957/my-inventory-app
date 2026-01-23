@@ -47,6 +47,7 @@ DB_USER=your_username
 DB_PASSWORD=your_password
 DB_NAME=inventory_db
 PORT=3000
+
 Setup the Database: Import your SQL schema into your MySQL server to create the products, transactions, and activity_history tables.
 
 Start the Server:
