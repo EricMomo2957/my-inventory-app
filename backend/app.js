@@ -10,6 +10,7 @@ const path = require('path');
 require('dotenv').config({ quiet: true });
 
 const app = express();
+app.use(cors()); // This allows the frontend to access your API
 
 // --- MULTER SETUP (For Profile Photos) ---
 const storage = multer.diskStorage({
