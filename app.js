@@ -90,6 +90,50 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
+// PUT request to update stock and save logs
+app.put('/api/products/:id', async (req, res) => {
+    const productId = req.params.id;
+    const { quantity, adjustment, clerk_name, name } = req.body;
+
+    let connection;
+    try {
+        // Get a connection from the pool for the transaction
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // 1. Get current stock for 'old_quantity'
+        const [results] = await connection.query('SELECT quantity FROM products WHERE id = ?', [productId]);
+        if (results.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: "Product not found" });
+        }
+        const oldQuantity = results[0].quantity;
+
+        // 2. Update the Products table
+        await connection.query('UPDATE products SET quantity = ? WHERE id = ?', [quantity, productId]);
+
+        // 3. Insert into the Stock Logs table
+        const logSql = `
+            INSERT INTO stock_logs (product_id, product_name, clerk_name, adjustment, old_quantity, new_quantity)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        await connection.query(logSql, [productId, name, clerk_name, adjustment, oldQuantity, quantity]);
+
+        // 4. Commit the transaction
+        await connection.commit();
+        res.json({ message: "Stock updated and logged successfully" });
+
+    } catch (err) {
+        // If anything fails, rollback all changes
+        if (connection) await connection.rollback();
+        console.error("Transaction Error:", err);
+        res.status(500).json({ error: "Database transaction failed" });
+    } finally {
+        // Always release the connection back to the pool
+        if (connection) connection.release();
+    }
+});
+
 /** DELETE A CUSTOMER ORDER */
 app.delete('/api/orders/:id', async (req, res) => {
     const orderId = req.params.id;
