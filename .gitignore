@@ -1,2 +1,36 @@
+# --- Dependencies ---
+# Ignores all node_modules in root, frontend, and backend
 node_modules/
+**/node_modules/
+
+# --- Environment / Secrets ---
+# Keeps your database credentials and API keys private
 .env
+**/.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Build & Production ---
+# Ignores the folder created when you run "npm run build"
+frontend/dist/
+frontend/build/
+backend/dist/
+
+# --- Logs ---
+# Ignores error logs that clutter the folder
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+**/npm-debug.log*
+
+# --- OS Specific ---
+# Ignores system-generated files from Windows/Mac
+.DS_Store
+Thumbs.db
+
+# --- Editor Specific ---
+# (Optional) Ignores VS Code specific settings
+.vscode/
+.idea/
