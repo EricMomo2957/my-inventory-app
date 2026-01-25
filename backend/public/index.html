@@ -12,79 +12,23 @@
                 window.location.href = 'login.html';
                 return;
             }
-
-            // Immediately apply the dark mode class if enabled
             if (localStorage.getItem('darkMode') === 'enabled') {
                 document.documentElement.classList.add('dark-mode');
-            } else {
-                document.documentElement.classList.remove('dark-mode');
             }
         })();
     </script>
     <style>
-        /* Mini-dashboard table styles */
-        .admin-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 30px;
-        }
-        @media (max-width: 1024px) {
-            .admin-grid { grid-template-columns: 1fr; }
-        }
-        .mini-table-header {
-            padding: 15px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .view-all-link {
-            font-size: 0.8rem;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .view-all-link:hover { text-decoration: underline; }
-
-        /* Search Clear Button Style */
-        .clear-btn {
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-            padding: 5px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            margin-left: 8px;
-            transition: all 0.2s;
-        }
-        .clear-btn:hover {
-            background: #e5e7eb;
-            border-color: #9ca3af;
-        }
-
-        /* User Pill for History Log */
-        .user-pill {
-            background: rgba(37, 99, 235, 0.1);
-            color: #2563eb;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        /* Specific Badge Colors for Schedule */
-        .badge-supplier-meeting { background-color: #ff5e5e !important; color: white !important; }
-        .badge-inventory-check { background-color: #00d4ff !important; color: white !important; }
-        
-        /* Table Image Preview */
-        .product-img-cell {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid #eee;
-        }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        @media (max-width: 1024px) { .admin-grid { grid-template-columns: 1fr; } }
+        .mini-table-header { padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .view-all-link { font-size: 0.8rem; color: #2563eb; text-decoration: none; font-weight: 600; }
+        .clear-btn { background: #f3f4f6; border: 1px solid #d1d5db; padding: 5px 12px; border-radius: 6px; cursor: pointer; margin-left: 8px; }
+        .user-pill { background: rgba(37, 99, 235, 0.1); color: #2563eb; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; }
+        .product-img-cell { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; border: 1px solid #eee; }
+        .active-filter { background-color: #2563eb !important; color: white !important; }
+        .action-cell { display: flex; gap: 5px; }
+        .btn-table { border: none; background: none; cursor: pointer; padding: 5px; border-radius: 4px; transition: background 0.2s; }
+        .btn-table:hover { background: rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -95,7 +39,7 @@
         <main class="main-content">
             <header class="dashboard-header">
                 <div class="header-text">
-                    <h1 id="welcomeMessage">Welcome back, Admin!</h1>
+                    <h1 id="welcomeMessage">Welcome back!</h1>
                     <p class="text-muted" id="currentDateDisplay"></p>
                 </div>
                 <div class="action-bar">
@@ -108,40 +52,29 @@
             <div class="stats-grid">
                 <div class="stat-tile">
                     <div class="tile-icon">📦</div>
-                    <div class="tile-content">
-                        <h3>Total Items</h3>
-                        <p id="totalItems">0</p>
-                    </div>
+                    <div class="tile-content"><h3>Total Items</h3><p id="totalItems">0</p></div>
                 </div>
                 <div class="stat-tile">
                     <div class="tile-icon">💰</div>
-                    <div class="tile-content">
-                        <h3>Inventory Value</h3>
-                        <p id="totalValue">₱0.00</p>
-                    </div>
+                    <div class="tile-content"><h3>Inventory Value</h3><p id="totalValue">₱0.00</p></div>
                 </div>
                 <div class="stat-tile alert-tile">
                     <div class="tile-icon">⚠️</div>
-                    <div class="tile-content">
-                        <h3>Low Stock Alert</h3>
-                        <p id="lowStockCount">0</p>
-                    </div>
+                    <div class="tile-content"><h3>Low Stock</h3><p id="lowStockCount">0</p></div>
                 </div>
                 <div class="stat-tile"><div class="tile-icon">🥦</div><div class="tile-content"><h3>Vegetables</h3><p id="countVegetables">0</p></div></div>
                 <div class="stat-tile"><div class="tile-icon">🍎</div><div class="tile-content"><h3>Fruits</h3><p id="countFruits">0</p></div></div>
                 <div class="stat-tile"><div class="tile-icon">🛠️</div><div class="tile-content"><h3>Supplies</h3><p id="countSupplies">0</p></div></div>
-                <div class="stat-tile"><div class="tile-icon">🥫</div><div class="tile-content"><h3>Canned Goods</h3><p id="countCanned">0</p></div></div>
+                <div class="stat-tile"><div class="tile-icon">🥫</div><div class="tile-content"><h3>Canned</h3><p id="countCanned">0</p></div></div>
             </div>
 
             <section class="table-controls" style="margin-top: 25px;">
-                <div class="controls-upper">
-                    <div class="search-bar">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="searchInput" placeholder="Search product name..." onkeyup="handleSearch()">
-                        <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
-                    </div>
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search product name..." onkeyup="handleSearch()">
+                    <button type="button" class="clear-btn" onclick="clearSearch()">Clear</button>
                 </div>
-                <div class="filter-row">
+                <div class="filter-row" style="margin-top: 15px;">
                     <div class="filter-buttons">
                         <button type="button" class="filter-btn active-filter" onclick="setCategory('')">All</button>
                         <button type="button" class="filter-btn" onclick="setCategory('Vegetables')">Vegetables</button>
@@ -182,18 +115,11 @@
                     </div>
                     <div class="table-responsive">
                         <table style="font-size: 0.85rem;">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Event</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Date</th><th>Event</th><th>Type</th></tr></thead>
                             <tbody id="dashboardScheduleTable"></tbody>
                         </table>
                     </div>
                 </section>
-
                 <section class="table-card">
                     <div class="mini-table-header">
                         <h2>👥 System Users</h2>
@@ -201,13 +127,7 @@
                     </div>
                     <div class="table-responsive">
                         <table style="font-size: 0.85rem;">
-                            <thead>
-                                <tr>
-                                    <th>Full Name</th>
-                                    <th>Username</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>User</th><th>Username</th><th>Role</th></tr></thead>
                             <tbody id="dashboardUserTable"></tbody>
                         </table>
                     </div>
@@ -219,119 +139,236 @@
     <div id="addModal-placeholder"></div>
     <div id="editModal-placeholder"></div>
 
-    <script src="js/main.js"></script>
     <script>
-        // --- COMPONENT LOADER ---
-        async function loadComponent(id, path) {
+        let currentCategory = ''; 
+        let showLowStockOnly = false;
+        let debounceTimer;
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        /** 1. DATA LOADING & FRONTEND SEARCH/FILTER */
+        async function loadInventory() {
             try {
-                const response = await fetch(path);
-                if (!response.ok) throw new Error(`Failed to load ${path}`);
-                const text = await response.text();
-                document.getElementById(id).innerHTML = text;
-            } catch (err) { console.error("Component Load Error:", err); }
-        }
-
-        // --- UI INITIALIZATION ---
-        function initializeGreeting() {
-            const userStr = localStorage.getItem('currentUser');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                const name = user.full_name || user.username;
-                const welcomeEl = document.getElementById('welcomeMessage');
-                if (welcomeEl) welcomeEl.innerText = `Welcome back, ${name}! 👋`;
-            }
-
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateEl = document.getElementById('currentDateDisplay');
-            if (dateEl) dateEl.innerText = new Date().toLocaleDateString(undefined, options);
-        }
-
-        // --- CLEAR SEARCH ---
-        function clearSearch() {
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.value = '';
-                if (typeof loadInventory === "function") loadInventory();
-                searchInput.focus();
-            }
-        }
-
-        // --- DASHBOARD API LOADER ---
-        async function loadDashboardSummaries() {
-            try {
-                const [schedRes, userRes] = await Promise.all([
-                    fetch('/api/schedules'),
-                    fetch('/api/users/all')
-                ]);
+                const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+                const res = await fetch(`/api/products`);
+                let products = await res.json();
                 
-                const schedules = await schedRes.json();
-                const users = await userRes.json();
+                // --- Stats Calculation ---
+                let stats = { items: 0, val: 0, low: 0, Veg: 0, Fru: 0, Sup: 0, Can: 0 };
+                products.forEach(p => {
+                    const q = Number(p.quantity);
+                    stats.items += q;
+                    stats.val += q * Number(p.price);
+                    if (q < 5) stats.low++;
+                    if (p.category === 'Vegetables') stats.Veg += q;
+                    if (p.category === 'Fruits') stats.Fru += q;
+                    if (p.category === 'Supplies') stats.Sup += q;
+                    if (p.category === 'Canned Goods') stats.Can += q;
+                });
 
-                // 1. Render Schedules
-                document.getElementById('dashboardScheduleTable').innerHTML = schedules.slice(0, 5).map(s => {
-                    const rawDate = s.date || s.event_date;
-                    const dateObj = new Date(rawDate);
-                    const displayDate = (isNaN(dateObj) || !rawDate) ? "TBA" : dateObj.toLocaleDateString();
-                    const typeClass = (s.type || '').toLowerCase().replace(/\s+/g, '-');
+                document.getElementById('totalItems').innerText = stats.items;
+                document.getElementById('totalValue').innerText = "₱" + stats.val.toLocaleString(undefined, {minimumFractionDigits: 2});
+                document.getElementById('lowStockCount').innerText = stats.low;
+                document.getElementById('countVegetables').innerText = stats.Veg;
+                document.getElementById('countFruits').innerText = stats.Fru;
+                document.getElementById('countSupplies').innerText = stats.Sup;
+                document.getElementById('countCanned').innerText = stats.Can;
 
-                    return `
-                        <tr>
-                            <td>${displayDate}</td>
-                            <td>${s.title || s.event_name || 'Untitled Event'}</td>
-                            <td><span class="category-badge badge-${typeClass}">${s.type || 'General'}</span></td>
-                        </tr>`;
-                }).join('');
+                // --- Frontend Filtering Logic ---
+                if (searchTerm) {
+                    products = products.filter(p => p.name.toLowerCase().includes(searchTerm));
+                }
+                if (currentCategory !== '') {
+                    products = products.filter(p => p.category === currentCategory);
+                }
+                if (showLowStockOnly) {
+                    products = products.filter(p => p.quantity < 5);
+                }
 
-                // 2. Render Users
-                document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => {
-                    const imgPath = u.profile_image && u.profile_image !== "NULL" 
-                                    ? u.profile_image 
-                                    : 'assets/default-avatar.png';
+                const tableBody = document.getElementById('inventoryTable');
+                if (products.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px;">No items found.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = products.map(p => {
+                    const photoUrl = p.image_url || '/images/placeholder.png';
+                    const safeName = p.name.replace(/'/g, "\\'");
                     
                     return `
-                        <tr>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="${imgPath}" 
-                                        style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid #eee;"
-                                        onerror="this.src='assets/default-avatar.png'">
-                                    <span style="font-weight: 500;">${u.full_name || 'System User'}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <div style="color: #2563eb;">@${u.username}</div>
-                                <small style="color: #888; font-size: 0.75rem;">${u.department || 'Staff'}</small>
-                            </td>
-                            <td>
-                                <span class="user-pill" style="font-size: 0.7rem; text-transform: capitalize;">
-                                    ${u.role}
-                                </span>
-                            </td>
-                        </tr>`;
+                    <tr class="${p.quantity < 5 ? 'low-stock' : ''}">
+                        <td><img src="${photoUrl}" class="product-img-cell" onerror="this.src='/images/placeholder.png'"></td>
+                        <td><strong>${p.name}</strong></td>
+                        <td><span class="category-badge">${p.category}</span></td>
+                        <td><strong>${p.quantity}</strong></td>
+                        <td>₱${Number(p.price).toLocaleString()}</td>
+                        <td style="font-size: 0.75rem; color: #888;">${p.updated_at ? new Date(p.updated_at).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                            <div class="action-cell">
+                                <button class="btn-table" onclick="restockProduct(${p.id})" title="Add Stock">🔄</button>
+                                <button class="btn-table edit-btn" onclick="openEditModal(${p.id}, '${safeName}', ${p.quantity}, ${p.price}, '${p.category}', '${photoUrl}')" title="Edit">✏️</button>
+                                <button class="btn-table delete-btn" onclick="deleteProduct(${p.id})" title="Delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>`;
                 }).join('');
-            } catch (e) { 
-                console.error("Dashboard Load Error:", e);
-                const userTable = document.getElementById('dashboardUserTable');
-                if (userTable) userTable.innerHTML = '<tr><td colspan="3">Failed to load summaries.</td></tr>';
+
+                applyRolePermissions();
+            } catch (err) { console.error("Load Inventory Error:", err); }
+        }
+
+        /** 2. MODAL CONTROLS */
+        function openAddModal() {
+            const modal = document.getElementById('addModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function openEditModal(id, name, qty, price, category, imageUrl) {
+            const modal = document.getElementById('editModal');
+            if (!modal) return;
+
+            // Aligned with your editModal.html IDs
+            if(document.getElementById('editId')) document.getElementById('editId').value = id;
+            if(document.getElementById('editName')) document.getElementById('editName').value = name;
+            if(document.getElementById('editQty')) document.getElementById('editQty').value = qty;
+            if(document.getElementById('editPrice')) document.getElementById('editPrice').value = price;
+            if(document.getElementById('editCategory')) document.getElementById('editCategory').value = category;
+            
+            // Trigger the preview function inside your editModal component
+            if (typeof setEditPreview === "function") {
+                setEditPreview(imageUrl);
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            const editModal = document.getElementById('editModal');
+            const addModal = document.getElementById('addModal');
+            if (editModal) editModal.style.display = 'none';
+            if (addModal) addModal.style.display = 'none';
+        }
+
+        /** 3. PRODUCT ACTIONS */
+        async function saveEdit() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value;
+            const category = document.getElementById('editCategory').value;
+            const quantity = document.getElementById('editQty').value;
+            const price = document.getElementById('editPrice').value;
+            const imageFile = document.getElementById('editProductImage').files[0];
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('category', category);
+            formData.append('quantity', quantity);
+            formData.append('price', price);
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                const res = await fetch(`/api/products/${id}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    closeModal();
+                    loadInventory();
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + err.message);
+                }
+            } catch (err) { console.error('Save error:', err); }
+        }
+
+        async function restockProduct(id) {
+            const amount = prompt("Enter quantity to add:");
+            const increment = parseInt(amount);
+            if (isNaN(increment) || increment <= 0) return;
+
+            try {
+                await fetch(`/api/products/restock/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ increment, user: currentUser.username })
+                });
+                loadInventory();
+            } catch (err) { console.error(err); }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm('Delete this product?')) {
+                await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                loadInventory();
             }
         }
 
-        // --- INITIALIZATION ON DOM LOAD ---
+        /** 4. SEARCH & FILTER HANDLERS */
+        function handleSearch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => loadInventory(), 300);
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            loadInventory();
+        }
+
+        function setCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const isAll = btn.innerText.trim() === 'All' && category === '';
+                btn.classList.toggle('active-filter', isAll || btn.innerText.trim() === category);
+            });
+            loadInventory();
+        }
+
+        function toggleLowStock() {
+            showLowStockOnly = !showLowStockOnly;
+            document.getElementById('lowStockToggle').classList.toggle('active-filter', showLowStockOnly);
+            loadInventory();
+        }
+
+        /** 5. INITIALIZATION */
+        async function loadComponent(id, path) {
+            const res = await fetch(path);
+            if (res.ok) document.getElementById(id).innerHTML = await res.text();
+        }
+
+        async function loadDashboardSummaries() {
+            try {
+                const [sRes, uRes] = await Promise.all([fetch('/api/schedules'), fetch('/api/users/all')]);
+                const schedules = await sRes.json();
+                const users = await uRes.json();
+
+                document.getElementById('dashboardScheduleTable').innerHTML = schedules.slice(0, 5).map(s => `
+                    <tr><td>${new Date(s.date || s.event_date).toLocaleDateString()}</td><td>${s.title}</td><td>${s.type}</td></tr>
+                `).join('');
+
+                document.getElementById('dashboardUserTable').innerHTML = users.slice(0, 5).map(u => `
+                    <tr><td>${u.full_name}</td><td>@${u.username}</td><td><span class="user-pill">${u.role}</span></td></tr>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        function applyRolePermissions() {
+            const role = (currentUser.role || '').toLowerCase();
+            if (role === 'clerk') {
+                document.querySelectorAll('.add-main-btn, .delete-btn').forEach(el => el.style.display = 'none');
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
-            // Load HTML Components
             await Promise.all([
                 loadComponent('sidenav-placeholder', 'components/sidenav.html'),
                 loadComponent('addModal-placeholder', 'components/addModal.html'),
                 loadComponent('editModal-placeholder', 'components/editModal.html')
             ]);
             
-            // Initialize UI text
-            initializeGreeting();
+            document.getElementById('welcomeMessage').innerText = `Welcome back, ${currentUser.full_name || currentUser.username}! 👋`;
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
-            // Load Dynamic Data
+            loadInventory();
             loadDashboardSummaries();
-            if (typeof loadInventory === "function") loadInventory();
-            if (typeof loadRestockHistory === "function") loadRestockHistory();
         });
     </script>
 </body>
