@@ -288,6 +288,35 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/landing-page.html');
 });
 
+
+// --- SCHEDULE EDIT & DELETE ROUTES ---
+
+// 1. UPDATE an existing schedule
+app.put('/api/schedules/:id', async (req, res) => {
+    const { id } = req.params;
+    const { title, date, category } = req.body;
+    try {
+        await db.query(
+            "UPDATE schedules SET title = ?, date = ?, category = ? WHERE id = ?",
+            [title, date, category, id]
+        );
+        res.json({ success: true, message: "Schedule updated successfully" });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// 2. DELETE a schedule
+app.delete('/api/schedules/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM schedules WHERE id = ?", [id]);
+        res.json({ success: true, message: "Schedule deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
