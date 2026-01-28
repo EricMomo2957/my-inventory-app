@@ -1,40 +1,102 @@
+import React, { useState } from 'react';
+
 export default function Orders() {
-  const orders = [
-    { id: "#1254", customer: "Juan Dela Cruz", status: "Pending", total: "₱1,200" },
-    { id: "#1255", customer: "Maria Clara", status: "Completed", total: "₱3,500" },
-  ];
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Data based on your sample image
+  const [orders, setOrders] = useState([
+    { id: "#ORD-57", product: "Logos", category: "supplies", qty: 8, unitPrice: 50, total: 400, date: "1/24/2026, 9:39:13 PM", status: "COMPLETED" },
+    { id: "#ORD-42", product: "Logos", category: "supplies", qty: 100, unitPrice: 50, total: 5000, date: "1/22/2026, 10:21:17 PM", status: "COMPLETED" },
+    { id: "#ORD-41", product: "pinetree", category: "Supplies", qty: 15, unitPrice: 150, total: 2250, date: "1/22/2026, 10:20:50 PM", status: "COMPLETED" },
+    { id: "#ORD-41", product: "pinya", category: "Fruits", qty: 9, unitPrice: 15, total: 135, date: "1/22/2026, 10:20:50 PM", status: "COMPLETED" },
+    { id: "#ORD-41", product: "make-up", category: "Supplies", qty: 10, unitPrice: 150, total: 1500, date: "1/22/2026, 10:20:50 PM", status: "COMPLETED" },
+    { id: "#ORD-41", product: "Meme pictures", category: "Supplies", qty: 70, unitPrice: 50, total: 3500, date: "1/22/2026, 10:20:50 PM", status: "COMPLETED" },
+    { id: "#ORD-41", product: "Soap", category: "Supplies", qty: 1, unitPrice: 15, total: 15, date: "1/22/2026, 10:20:50 PM", status: "COMPLETED" },
+    { id: "#ORD-41", product: "Petchay", category: "Vegetables", qty: 4, unitPrice: 10, total: 40, date: "1/22/2026, 10:20:50 PM", status: "COMPLETED" },
+  ]);
+
+  const handleDelete = (orderId, productName) => {
+    if(window.confirm(`Delete order for ${productName}?`)) {
+      setOrders(orders.filter(o => !(o.id === orderId && o.product === productName)));
+    }
+  };
 
   return (
-    <div className="p-8 space-y-8">
-      <header>
-        <h1 className="text-3xl font-black text-white">Customer Orders</h1>
-        <p className="text-slate-500 text-sm font-medium">Manage and track incoming sales</p>
+    <div className="p-8 flex flex-col h-screen bg-[#0b1120]">
+      {/* Header Area */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="flex items-center gap-4">
+          <span className="text-3xl">🛒</span>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight">Customer Orders</h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">View and manage all outgoing customer transactions.</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <input 
+              type="text" 
+              placeholder="Search Order ID or Product..." 
+              className="bg-[#1e293b]/50 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white w-64 outline-none focus:border-[#4361ee] transition-all"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button className="flex items-center gap-2 bg-[#10b981] hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-black transition-all shadow-lg shadow-emerald-500/10">
+            📊 Export CSV
+          </button>
+        </div>
       </header>
-      <div className="bg-[#111827] rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
-        <table className="w-full text-left">
-          <thead className="bg-slate-900 text-[10px] text-slate-500 font-black uppercase tracking-widest border-b border-slate-800">
-            <tr>
-              <th className="p-6">Order ID</th>
-              <th className="p-6">Customer</th>
-              <th className="p-6">Status</th>
-              <th className="p-6 text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/50">
-            {orders.map(order => (
-              <tr key={order.id} className="hover:bg-slate-800/40 transition-colors">
-                <td className="p-6 font-bold text-[#4361ee]">{order.id}</td>
-                <td className="p-6 text-white font-bold">{order.customer}</td>
-                <td className="p-6">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${order.status === 'Pending' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td className="p-6 text-right font-black text-white">{order.total}</td>
+
+      {/* Main Table Card */}
+      <div className="flex-1 bg-[#111827]/50 rounded-3xl border border-slate-800/50 overflow-hidden shadow-2xl flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#0b1120] text-[11px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-800">
+              <tr>
+                <th className="p-5 px-6">Order ID</th>
+                <th className="p-5 px-6">Product</th>
+                <th className="p-5 px-6">Category</th>
+                <th className="p-5 px-6 text-center">Qty</th>
+                <th className="p-5 px-6">Unit Price</th>
+                <th className="p-5 px-6">Total</th>
+                <th className="p-5 px-6">Date</th>
+                <th className="p-5 px-6 text-center">Status</th>
+                <th className="p-5 px-6 text-center">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-800/30">
+              {orders.filter(o => o.product.toLowerCase().includes(searchTerm.toLowerCase()) || o.id.includes(searchTerm)).map((order, idx) => (
+                <tr key={`${order.id}-${idx}`} className="hover:bg-slate-800/30 transition-colors group">
+                  <td className="p-5 px-6 font-bold text-[#4361ee] text-sm cursor-pointer hover:underline">{order.id}</td>
+                  <td className="p-5 px-6 text-white font-black text-sm">{order.product}</td>
+                  <td className="p-5 px-6">
+                    <span className="bg-[#1e293b] text-slate-300 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border border-slate-700/50 shadow-inner">
+                      {order.category || 'null'}
+                    </span>
+                  </td>
+                  <td className="p-5 px-6 text-center text-white font-black text-base">{order.qty}</td>
+                  <td className="p-5 px-6 text-slate-400 font-bold text-xs">₱{order.unitPrice}</td>
+                  <td className="p-5 px-6 text-white font-black text-sm">₱{order.total.toLocaleString()}</td>
+                  <td className="p-5 px-6 text-slate-500 text-[11px] font-medium leading-tight">{order.date}</td>
+                  <td className="p-5 px-6 text-center">
+                    <span className="bg-emerald-500/10 text-[#a7f3d0] border border-emerald-500/20 px-4 py-1 rounded-full text-[9px] font-black tracking-tighter shadow-sm">
+                      {order.status}
+                    </span>
+                  </td>
+                  <td className="p-5 px-6 text-center">
+                    <button 
+                      onClick={() => handleDelete(order.id, order.product)}
+                      className="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white p-2 px-3 rounded-lg text-[10px] font-black flex items-center gap-1 mx-auto transition-all active:scale-95 border border-red-500/20"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

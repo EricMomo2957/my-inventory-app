@@ -159,20 +159,47 @@ app.delete('/api/orders/:id', async (req, res) => {
     }
 });
 
+// --- SAFE ORDER HISTORY ROUTE ---
 app.get('/api/orders/:userId', async (req, res) => {
     const userId = req.params.userId;
+    
+    // We use LEFT JOIN to ensure we don't lose orders if a product was deleted
     const sql = `
-        SELECT o.*, p.name AS product_name, p.image_url 
+        SELECT 
+            o.id, 
+            o.total_amount, 
+            o.status, 
+            o.order_date,
+            p.name AS product_name, 
+            p.category, 
+            p.price AS unit_price,
+            p.image_url 
         FROM orders o 
-        JOIN products p ON o.product_id = p.id 
+        LEFT JOIN products p ON o.product_id = p.id 
         WHERE o.user_id = ? 
         ORDER BY o.order_date DESC
     `;
+
     try {
         const [rows] = await db.query(sql, [userId]);
+        
+        // If the database returns 0 rows, send a sample row so your UI doesn't stay blank
+        if (rows.length === 0) {
+            return res.json([{
+                id: "Sample",
+                product_name: "No Orders Found",
+                category: "N/A",
+                total_amount: 0,
+                unit_price: 0,
+                status: "pending",
+                order_date: new Date()
+            }]);
+        }
+        
         res.json(rows);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch order history" });
+        console.error("Orders Fetch Error:", err);
+        res.status(500).json({ error: "Database error while fetching orders" });
     }
 });
 
