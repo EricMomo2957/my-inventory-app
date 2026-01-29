@@ -9,13 +9,13 @@ export default function Login({ setIsLoggedIn }) {
   const handleLogin = (e) => {
     e.preventDefault();
     
-    // 1. Save the token to localStorage so the session persists on refresh
+    // 1. Persist the session
     localStorage.setItem('userToken', 'secure-entry-granted');
     
-    // 2. Update the global state in App.jsx to show the Sidenav
+    // 2. Lift state up to App.jsx to unlock the Sidenav
     setIsLoggedIn(true);
     
-    // 3. Navigate to the dashboard
+    // 3. Redirect to the secure dashboard
     navigate('/dashboard');
   };
 
@@ -60,7 +60,6 @@ export default function Login({ setIsLoggedIn }) {
             />
           </div>
 
-          {/* Sign In Button */}
           <button 
             type="submit"
             className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] mt-2"
@@ -69,7 +68,6 @@ export default function Login({ setIsLoggedIn }) {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-200"></div>
@@ -79,12 +77,15 @@ export default function Login({ setIsLoggedIn }) {
           </div>
         </div>
 
-        {/* Footer Links */}
+        {/* Footer Links - Connection to order.jsx */}
         <div className="space-y-3">
           <p className="text-sm text-slate-600">
             New here? <Link to="/register" className="text-blue-600 font-bold hover:underline">Create an Account</Link>
           </p>
           <p className="text-xs text-slate-400">
+            {/* CONNECTION FIX: 
+              Points to /orders route which renders order.jsx in App.jsx 
+            */}
             Just browsing? <Link to="/orders" className="text-blue-500 font-semibold hover:underline">Place an Order</Link>
           </p>
         </div>
