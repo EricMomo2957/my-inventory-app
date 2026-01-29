@@ -5,13 +5,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Sidenav } from './Sidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
 
-// Public Pages
-import Login from './pages/login';
+// Public Pages - Matching lowercase filenames
+import Login from './pages/login'; 
 import Register from './pages/Register';
 
 // Private Pages
 import Dashboard from './pages/Dashboard';
-import Orders from './pages/Orders';
+import Orders from './pages/order'; // UPDATED: Points to your new order.jsx
 import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
@@ -22,7 +22,7 @@ export default function App() {
   const [dismissedAlerts, setDismissedAlerts] = useState([]); 
 
   // FIX: Use a function inside useState so this only runs ONCE on initial load
-  // This solves the "cascading render" error (image_1727db.png)
+  // This solves the "cascading render" error
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return !!localStorage.getItem('userToken');
   });
@@ -35,7 +35,6 @@ export default function App() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      // Note: Ensure your vite.config.js has the proxy for /api set up
       const res = await fetch('/api/products');
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
@@ -92,14 +91,17 @@ export default function App() {
 
           <Routes>
             {/* PUBLIC ROUTES */}
+            {/* Note: The login component now receives setIsLoggedIn to handle the transition */}
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
+            
+            {/* Allow public access to orders for browsing users */}
+            <Route path="/orders" element={<Orders />} />
 
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
-              <Route path="/orders" element={<Orders />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile user={user} />} />
               <Route path="/settings" element={<Settings />} />
