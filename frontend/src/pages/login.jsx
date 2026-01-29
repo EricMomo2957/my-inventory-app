@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-export default function Login() {
-  const [email, setEmail] = useState('admin_user');
+export default function Login({ setIsLoggedIn }) {
+  const [username, setUsername] = useState('admin_user');
   const [password, setPassword] = useState('********');
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // For now, we'll just navigate to the dashboard
+    
+    // 1. Save the token to localStorage so the session persists on refresh
+    localStorage.setItem('userToken', 'secure-entry-granted');
+    
+    // 2. Update the global state in App.jsx to show the Sidenav
+    setIsLoggedIn(true);
+    
+    // 3. Navigate to the dashboard
     navigate('/dashboard');
   };
 
@@ -23,17 +30,18 @@ export default function Login() {
         </header>
 
         <form onSubmit={handleLogin} className="space-y-5">
-          {/* Username/Email Input */}
+          {/* Username Input */}
           <div className="text-left">
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 ml-1">
               Username
             </label>
             <input 
               type="text"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-800"
               placeholder="Enter your username"
+              required
             />
           </div>
 
@@ -48,6 +56,7 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-slate-800"
               placeholder="Enter your password"
+              required
             />
           </div>
 
@@ -73,7 +82,7 @@ export default function Login() {
         {/* Footer Links */}
         <div className="space-y-3">
           <p className="text-sm text-slate-600">
-            New here? <Link to="/signup" className="text-blue-600 font-bold hover:underline">Create an Account</Link>
+            New here? <Link to="/register" className="text-blue-600 font-bold hover:underline">Create an Account</Link>
           </p>
           <p className="text-xs text-slate-400">
             Just browsing? <Link to="/orders" className="text-blue-500 font-semibold hover:underline">Place an Order</Link>
