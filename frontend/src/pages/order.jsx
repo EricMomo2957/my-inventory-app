@@ -16,6 +16,7 @@ export default function Order() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState({ date: '', trx: '' }); // Store transaction details here
   const [quantities, setQuantities] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -44,6 +45,16 @@ export default function Order() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
+  // Fix: Generate impure data only when checkout is clicked
+  const handleCheckout = () => {
+    setReceiptData({
+      date: new Date().toLocaleString(),
+      trx: Math.floor(Math.random() * 1000000)
+    });
+    setIsCartOpen(false);
+    setShowReceipt(true);
+  };
+
   const filteredProducts = PRODUCTS.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = activeCategory === 'All' || item.category.toLowerCase() === activeCategory.toLowerCase();
@@ -64,7 +75,7 @@ export default function Order() {
       )}
 
       {/* 2. CART SLIDE-OUT PANEL */}
-      <div className={`fixed inset-y-0 right-0 w-full md:w-96 bg-[#111827] shadow-2xl z-[100] transform transition-transform duration-300 ease-in-out border-l border-slate-800 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-full md:w-96 bg-[#111827] shadow-2xl z-100 transform transition-transform duration-300 ease-in-out border-l border-slate-800 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#1e293b]">
           <h2 className="text-xl font-black text-white">Review Cart</h2>
           <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-white text-2xl">✕</button>
@@ -92,7 +103,7 @@ export default function Order() {
           </div>
           <button 
             disabled={cart.length === 0}
-            onClick={() => { setIsCartOpen(false); setShowReceipt(true); }}
+            onClick={handleCheckout}
             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl disabled:opacity-50"
           >
             PROCEED TO CHECKOUT
@@ -102,14 +113,14 @@ export default function Order() {
 
       {/* 3. RECEIPT MODAL */}
       {showReceipt && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="bg-white w-full max-w-sm rounded-sm shadow-2xl overflow-hidden flex flex-col text-slate-800 font-mono">
             <div className="h-2 bg-[repeating-linear-gradient(45deg,#e2e8f0,#e2e8f0_10px,#fff_10px,#fff_20px)] w-full"></div>
             <div className="p-8 space-y-6">
               <div className="text-center">
                 <h2 className="text-xl font-black uppercase tracking-tighter">InventoryPro</h2>
                 <p className="text-[10px] text-slate-500">Official Transaction Record</p>
-                <p className="text-[10px] text-slate-400 mt-1">{new Date().toLocaleString()}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{receiptData.date}</p>
               </div>
               <div className="border-t border-dashed border-slate-300 pt-4 space-y-2">
                 {cart.map(item => (
@@ -127,7 +138,7 @@ export default function Order() {
               </div>
               <div className="text-center pt-4">
                 <div className="h-8 w-32 mx-auto bg-[repeating-linear-gradient(90deg,#000,#000_2px,#fff_2px,#fff_4px)]"></div>
-                <p className="text-[8px] mt-2 font-bold text-slate-400">#TRX-{Math.floor(Math.random() * 1000000)}</p>
+                <p className="text-[8px] mt-2 font-bold text-slate-400">#TRX-{receiptData.trx}</p>
               </div>
             </div>
             <div className="bg-slate-50 p-4 flex gap-2">
@@ -140,7 +151,7 @@ export default function Order() {
 
       {/* 4. MAIN LAYOUT */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <section className="bg-gradient-to-r from-[#4338ca] to-[#6d28d9] rounded-3xl p-10 flex flex-col md:flex-row justify-between items-center shadow-2xl">
+        <section className="bg-linear-to-r from-[#4338ca] to-[#6d28d9] rounded-3xl p-10 flex flex-col md:flex-row justify-between items-center shadow-2xl">
           <div className="z-10">
             <button onClick={() => navigate(isLoggedIn ? '/dashboard' : '/login')} className="text-xs font-bold text-indigo-200 mb-4 hover:text-white">← Back</button>
             <h1 className="text-4xl font-black text-white mb-2">Point of Sale</h1>
@@ -187,7 +198,7 @@ export default function Order() {
         </div>
       </div>
 
-      {isCartOpen && <div onClick={() => setIsCartOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" />}
+      {isCartOpen && <div onClick={() => setIsCartOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-90" />}
     </div>
   );
 }
