@@ -16,7 +16,7 @@ export default function Order() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-  const [receiptData, setReceiptData] = useState({ date: '', trx: '' }); // Store transaction details here
+  const [receiptData, setReceiptData] = useState({ date: '', trx: '' });
   const [quantities, setQuantities] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -45,7 +45,7 @@ export default function Order() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  // Fix: Generate impure data only when checkout is clicked
+  // FIXED: Pure function handling transaction ID generation
   const handleCheckout = () => {
     setReceiptData({
       date: new Date().toLocaleString(),
@@ -64,7 +64,6 @@ export default function Order() {
   return (
     <div className="relative min-h-screen bg-[#0b1120] text-slate-300 overflow-x-hidden font-sans">
       
-      {/* 1. GUEST MODE BANNER */}
       {!isLoggedIn && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 py-2 px-6 flex justify-center items-center gap-3 sticky top-0 z-50 backdrop-blur-md">
           <p className="text-[11px] font-bold text-amber-200 uppercase tracking-widest">
@@ -74,8 +73,8 @@ export default function Order() {
         </div>
       )}
 
-      {/* 2. CART SLIDE-OUT PANEL */}
-      <div className={`fixed inset-y-0 right-0 w-full md:w-96 bg-[#111827] shadow-2xl z-100 transform transition-transform duration-300 ease-in-out border-l border-slate-800 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      {/* FIXED: Using z-90 and proper layering */}
+      <div className={`fixed inset-y-0 right-0 w-full md:w-96 bg-[#111827] shadow-2xl z-90 transform transition-transform duration-300 ease-in-out border-l border-slate-800 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#1e293b]">
           <h2 className="text-xl font-black text-white">Review Cart</h2>
           <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-white text-2xl">✕</button>
@@ -111,7 +110,7 @@ export default function Order() {
         </div>
       </div>
 
-      {/* 3. RECEIPT MODAL */}
+      {/* FIXED: Using z-150 for the Modal and z-100 for the Receipt */}
       {showReceipt && (
         <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="bg-white w-full max-w-sm rounded-sm shadow-2xl overflow-hidden flex flex-col text-slate-800 font-mono">
@@ -149,8 +148,8 @@ export default function Order() {
         </div>
       )}
 
-      {/* 4. MAIN LAYOUT */}
       <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* FIXED: Using bg-linear-to-r for canonical compliance */}
         <section className="bg-linear-to-r from-[#4338ca] to-[#6d28d9] rounded-3xl p-10 flex flex-col md:flex-row justify-between items-center shadow-2xl">
           <div className="z-10">
             <button onClick={() => navigate(isLoggedIn ? '/dashboard' : '/login')} className="text-xs font-bold text-indigo-200 mb-4 hover:text-white">← Back</button>
@@ -198,7 +197,8 @@ export default function Order() {
         </div>
       </div>
 
-      {isCartOpen && <div onClick={() => setIsCartOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-90" />}
+      {/* FIXED: Using z-80 for background overlay */}
+      {isCartOpen && <div onClick={() => setIsCartOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-80" />}
     </div>
   );
 }

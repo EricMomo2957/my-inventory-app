@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('landingTheme') === 'dark');
-  const [faqs, setFaqs] = useState([]);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const canvasRef = useRef(null);
-  const navigate = useNavigate();
 
   // 1. Dark Mode & Persistence
   useEffect(() => {
@@ -23,8 +21,10 @@ const LandingPage = () => {
   // 2. Wave Engine (Canvas Logic)
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let offset = 0;
+    let animationFrameId;
     let mouse = { x: -1000, y: -1000 };
 
     const handleResize = () => {
@@ -50,7 +50,6 @@ const LandingPage = () => {
         const centerY = i * lineGap;
         ctx.beginPath();
         
-        // Dynamic colors based on theme state
         ctx.strokeStyle = isDarkMode 
           ? (i % 2 === 0 ? 'rgba(67, 97, 238, 0.15)' : 'rgba(76, 201, 240, 0.1)')
           : (i % 2 === 0 ? 'rgba(67, 97, 238, 0.08)' : 'rgba(76, 201, 240, 0.05)');
@@ -68,13 +67,14 @@ const LandingPage = () => {
         ctx.stroke();
       }
       offset += 0.02;
-      requestAnimationFrame(drawWaves);
+      animationFrameId = requestAnimationFrame(drawWaves);
     };
 
     drawWaves();
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
     };
   }, [isDarkMode]);
 
@@ -93,17 +93,10 @@ const LandingPage = () => {
     e.currentTarget.style.transform = `translate(0px, 0px)`;
   };
 
-  // 4. Scroll & FAQ Data
+  // 4. Scroll Logic
   useEffect(() => {
     const handleScroll = () => setShowScrollBtn(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
-
-    // Simulated API call for FAQs
-    setFaqs([
-      { question: "How secure is my data?", answer: "We use end-to-end encryption for all inventory logs." },
-      { question: "Can I export reports?", answer: "Yes, all data can be exported to CSV or PDF." }
-    ]);
-
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -114,13 +107,13 @@ const LandingPage = () => {
       {showScrollBtn && (
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-[1001] shadow-lg animate-bounce"
+          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-50 shadow-lg animate-bounce"
         >
           ↑
         </button>
       )}
 
-      <nav className="flex justify-between items-center py-4 px-[8%] sticky top-0 z-[1000] backdrop-blur-md border-b border-blue-500/10 transition-colors duration-300">
+      <nav className="flex justify-between items-center py-4 px-[8%] sticky top-0 z-50 backdrop-blur-md border-b border-blue-500/10 transition-colors duration-300">
         <Link to="/" className="text-2xl font-extrabold text-[#4361ee]">📦 Inventory Pro</Link>
         <div className="flex items-center gap-8">
           <a href="#about" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium transition-colors">About</a>
