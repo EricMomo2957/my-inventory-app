@@ -10,9 +10,11 @@ const LandingPage = () => {
   // 1. Dark Mode & Persistence
   useEffect(() => {
     if (isDarkMode) {
+      document.documentElement.classList.add('dark'); // Better for Tailwind 'dark:' classes
       document.body.classList.add('dark-mode');
       localStorage.setItem('landingTheme', 'dark');
     } else {
+      document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark-mode');
       localStorage.setItem('landingTheme', 'light');
     }
@@ -49,11 +51,9 @@ const LandingPage = () => {
       for (let i = 0; i < rowCount; i++) {
         const centerY = i * lineGap;
         ctx.beginPath();
-        
         ctx.strokeStyle = isDarkMode 
           ? (i % 2 === 0 ? 'rgba(67, 97, 238, 0.15)' : 'rgba(76, 201, 240, 0.1)')
           : (i % 2 === 0 ? 'rgba(67, 97, 238, 0.08)' : 'rgba(76, 201, 240, 0.05)');
-        
         ctx.lineWidth = 1.5;
 
         for (let x = 0; x <= canvas.width; x += 30) {
@@ -101,13 +101,20 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className={`landing-wrapper ${isDarkMode ? 'dark-mode' : ''}`}>
-      <canvas ref={canvasRef} id="waveCanvas" className="fixed top-0 left-0 w-full h-full -z-10" />
+    // Added min-h-screen and overflow-y-auto to ensure scrollability
+    <div className={`landing-wrapper min-h-screen overflow-y-auto relative ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
+      
+      {/* ADDED pointer-events-none so it doesn't block scrolling */}
+      <canvas 
+        ref={canvasRef} 
+        id="waveCanvas" 
+        className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none" 
+      />
 
       {showScrollBtn && (
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-50 shadow-lg animate-bounce"
+          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-[100] shadow-lg animate-bounce flex items-center justify-center"
         >
           ↑
         </button>
@@ -115,7 +122,7 @@ const LandingPage = () => {
 
       <nav className="flex justify-between items-center py-4 px-[8%] sticky top-0 z-50 backdrop-blur-md border-b border-blue-500/10 transition-colors duration-300">
         <Link to="/" className="text-2xl font-extrabold text-[#4361ee]">📦 Inventory Pro</Link>
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 md:gap-8">
           <a href="#about" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium transition-colors">About</a>
           <a href="#workflow" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium transition-colors">Features</a>
           <Link to="/login" className="bg-[#4361ee] text-white px-6 py-2 rounded-lg font-bold hover:shadow-lg transition-all active:scale-95">Sign In</Link>
@@ -123,7 +130,7 @@ const LandingPage = () => {
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="border border-slate-400 text-slate-500 px-3 py-1 rounded-full text-xs hover:border-[#4361ee] hover:text-[#4361ee] transition-all"
           >
-            {isDarkMode ? '☀️ Light' : '🌙 Dark'}
+            {isDarkMode ? '☀️' : '🌙'}
           </button>
         </div>
       </nav>
@@ -136,7 +143,7 @@ const LandingPage = () => {
             to="/order"
             onMouseMove={handleMagnetic}
             onMouseLeave={resetMagnetic}
-            className="inline-block bg-[#4361ee] text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-blue-500/20"
+            className="inline-block bg-[#4361ee] text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-blue-500/20 transition-transform duration-200"
           >
             Order Now
           </Link>
@@ -152,7 +159,7 @@ const LandingPage = () => {
 
       <section id="about" className="px-[8%] py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80" className="rounded-3xl" alt="Operations" />
+          <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80" className="rounded-3xl shadow-xl" alt="Operations" />
           <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md p-12 rounded-[40px] border border-white/20 shadow-xl">
             <h2 className="text-3xl font-black mb-6 dark:text-white">Our Mission</h2>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">We eliminate the chaos of manual stock counting. We empower businesses with enterprise-grade tools to streamline operations and maximize efficiency.</p>
@@ -185,12 +192,12 @@ const LandingPage = () => {
           <div className="bg-white p-8 md:p-12 rounded-3xl text-slate-900">
             {!formSubmitted ? (
               <form onSubmit={(e) => { e.preventDefault(); setFormSubmitted(true); }} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input type="text" placeholder="Name" required className="w-full p-3 bg-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-[#4361ee]" />
                   <input type="email" placeholder="Email" required className="w-full p-3 bg-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-[#4361ee]" />
                 </div>
                 <textarea placeholder="Message" rows="4" className="w-full p-3 bg-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-[#4361ee]"></textarea>
-                <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-bold">Send Message</button>
+                <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors">Send Message</button>
               </form>
             ) : (
               <div className="text-center py-8">
