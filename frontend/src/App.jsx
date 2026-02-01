@@ -5,13 +5,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Sidenav } from './Sidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
 
-// Public Pages - Matching lowercase filenames
+// Public Pages
+import LandingPage from './pages/LandingPage'; // NEW: Imported Landing Page
 import Login from './pages/login'; 
 import Register from './pages/Register';
 
 // Private Pages
 import Dashboard from './pages/Dashboard';
-import Orders from './pages/order'; // UPDATED: Points to your new order.jsx
+import Orders from './pages/order'; 
 import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
@@ -21,8 +22,6 @@ export default function App() {
   const [products, setProducts] = useState([]);
   const [dismissedAlerts, setDismissedAlerts] = useState([]); 
 
-  // FIX: Use a function inside useState so this only runs ONCE on initial load
-  // This solves the "cascading render" error
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return !!localStorage.getItem('userToken');
   });
@@ -61,14 +60,16 @@ export default function App() {
 
   return (
     <Router>
-      <div className="flex h-screen w-full bg-[#0b1120] text-slate-200 font-sans overflow-hidden">
+      {/* Adjusted the container: We only apply the dark dashboard background 
+        and Sidenav flex layout if the user is actually logged in.
+      */}
+      <div className={`flex h-screen w-full font-sans overflow-hidden ${isLoggedIn ? 'bg-[#0b1120] text-slate-200' : ''}`}>
         
-        {/* Only show Sidenav if logged in */}
         {isLoggedIn && <Sidenav user={user} onLogout={handleLogout} />}
 
-        <main className="flex-1 flex flex-col h-full overflow-hidden">
+        <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           
-          {/* Global Notifications */}
+          {/* Global Low Stock Notifications */}
           {isLoggedIn && activeAlerts.length > 0 && (
             <div className="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
               {activeAlerts.map(item => (
@@ -91,16 +92,14 @@ export default function App() {
 
           <Routes>
             {/* PUBLIC ROUTES */}
-            {/* Note: The login component now receives setIsLoggedIn to handle the transition */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
-            
-            {/* Allow public access to orders for browsing users */}
-            <Route path="/orders" element={<Orders />} />
+            <Route path="/order" element={<Orders />} />
 
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* If user hits / after login, maybe you want them to stay on dashboard */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile user={user} />} />
@@ -112,7 +111,7 @@ export default function App() {
             </Route>
 
             {/* CATCH ALL */}
-            <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} />
+            <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/"} replace />} />
           </Routes>
         </main>
       </div>
