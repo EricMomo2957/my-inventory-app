@@ -7,10 +7,10 @@ const LandingPage = () => {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const canvasRef = useRef(null);
 
-  // 1. Dark Mode & Body Class Persistence
+  // 1. Dark Mode & Persistence
   useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add('dark'); // Better for Tailwind 'dark:' classes
       document.body.classList.add('dark-mode');
       localStorage.setItem('landingTheme', 'dark');
     } else {
@@ -20,7 +20,7 @@ const LandingPage = () => {
     }
   }, [isDarkMode]);
 
-  // 2. Wave Engine (Background Animation)
+  // 2. Wave Engine (Canvas Logic)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -78,13 +78,22 @@ const LandingPage = () => {
     };
   }, [isDarkMode]);
 
-  // 3. Magnetic & Scroll Logic
+  // 3. Magnetic Button Effect
   const handleMagnetic = (e) => {
     const btn = e.currentTarget;
-    const b = btn.getBoundingClientRect();
-    btn.style.transform = `translate(${(e.clientX - (b.left + b.width / 2)) / 10}px, ${(e.clientY - (b.top + b.height / 2)) / 10}px)`;
+    const bounding = btn.getBoundingClientRect();
+    const centerX = bounding.left + bounding.width / 2;
+    const centerY = bounding.top + bounding.height / 2;
+    const moveX = (e.clientX - centerX) / (bounding.width / 15);
+    const moveY = (e.clientY - centerY) / (bounding.height / 15);
+    btn.style.transform = `translate(${moveX}px, ${moveY}px)`;
   };
 
+  const resetMagnetic = (e) => {
+    e.currentTarget.style.transform = `translate(0px, 0px)`;
+  };
+
+  // 4. Scroll Logic
   useEffect(() => {
     const handleScroll = () => setShowScrollBtn(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
@@ -92,98 +101,109 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className={`landing-wrapper min-h-screen scroll-smooth ${isDarkMode ? 'bg-[#0f172a]' : 'bg-white'}`}>
+    // Added min-h-screen and overflow-y-auto to ensure scrollability
+    <div className={`landing-wrapper min-h-screen overflow-y-auto relative ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
       
-      {/* CRITICAL FIX: pointer-events-none allows scrolling through the canvas */}
-      <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none" />
+      {/* ADDED pointer-events-none so it doesn't block scrolling */}
+      <canvas 
+        ref={canvasRef} 
+        id="waveCanvas" 
+        className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none" 
+      />
 
       {showScrollBtn && (
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-50 shadow-lg animate-bounce flex items-center justify-center font-bold"
+          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-[100] shadow-lg animate-bounce flex items-center justify-center"
         >
           ↑
         </button>
       )}
 
-      {/* Navigation */}
-      <nav className="flex justify-between items-center py-4 px-[8%] sticky top-0 z-50 backdrop-blur-md border-b border-blue-500/10 transition-colors">
+      <nav className="flex justify-between items-center py-4 px-[8%] sticky top-0 z-50 backdrop-blur-md border-b border-blue-500/10 transition-colors duration-300">
         <Link to="/" className="text-2xl font-extrabold text-[#4361ee]">📦 Inventory Pro</Link>
-        <div className="flex items-center gap-8">
-          <a href="#about" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium">About</a>
-          <a href="#workflow" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium">Features</a>
-          <Link to="/login" className="bg-[#4361ee] text-white px-6 py-2 rounded-lg font-bold hover:bg-[#3749db]">Sign In</Link>
-          <button onClick={() => setIsDarkMode(!isDarkMode)} className="text-lg">{isDarkMode ? '☀️' : '🌙'}</button>
+        <div className="flex items-center gap-4 md:gap-8">
+          <a href="#about" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium transition-colors">About</a>
+          <a href="#workflow" className="hidden md:block text-slate-500 hover:text-[#4361ee] font-medium transition-colors">Features</a>
+          <Link to="/login" className="bg-[#4361ee] text-white px-6 py-2 rounded-lg font-bold hover:shadow-lg transition-all active:scale-95">Sign In</Link>
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="border border-slate-400 text-slate-500 px-3 py-1 rounded-full text-xs hover:border-[#4361ee] hover:text-[#4361ee] transition-all"
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <header className="flex flex-col md:flex-row items-center justify-between px-[8%] py-20 min-h-[85vh] gap-12">
+      <header className="flex flex-col md:flex-row items-center justify-between px-[8%] py-20 min-h-[80vh] gap-12">
         <div className="max-w-xl space-y-6">
-          <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-tight dark:text-white">Master Your <span className="text-[#4361ee]">Stock Level.</span></h1>
+          <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] dark:text-white">Master Your Stock Level.</h1>
           <p className="text-lg text-slate-500 dark:text-slate-400">The smartest way to manage inventory, track sales, and generate reports in real-time.</p>
           <Link 
             to="/order"
             onMouseMove={handleMagnetic}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translate(0,0)'}
-            className="inline-block bg-[#4361ee] text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-blue-500/40 transition-all"
+            onMouseLeave={resetMagnetic}
+            className="inline-block bg-[#4361ee] text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl shadow-blue-500/20 transition-transform duration-200"
           >
             Order Now
           </Link>
         </div>
         <div className="w-full md:w-1/2">
-          <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800" className="rounded-3xl shadow-2xl" alt="Warehouse" />
+          <img 
+            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" 
+            className="rounded-3xl shadow-2xl"
+            alt="Warehouse Management" 
+          />
         </div>
       </header>
 
-      {/* About Section */}
-      <section id="about" className="px-[8%] py-24 scroll-mt-24">
+      <section id="about" className="px-[8%] py-24">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800" className="rounded-3xl shadow-lg" alt="Operations" />
-          <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl p-12 rounded-[40px] border border-white/20">
-            <h2 className="text-3xl font-black mb-6 dark:text-white text-slate-900">Our Mission</h2>
-            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">We eliminate the chaos of manual stock counting. We empower businesses with enterprise-grade tools to streamline operations and maximize efficiency.</p>
+          <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80" className="rounded-3xl shadow-xl" alt="Operations" />
+          <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md p-12 rounded-[40px] border border-white/20 shadow-xl">
+            <h2 className="text-3xl font-black mb-6 dark:text-white">Our Mission</h2>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">We eliminate the chaos of manual stock counting. We empower businesses with enterprise-grade tools to streamline operations and maximize efficiency.</p>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section id="workflow" className="px-[8%] py-24 text-center scroll-mt-24">
-        <h2 className="text-4xl font-black mb-16 dark:text-white text-slate-900">Optimized Features</h2>
+      <section id="workflow" className="px-[8%] py-24 text-center">
+        <h2 className="text-4xl font-black mb-16 dark:text-white">Optimized Features</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { title: '⚡ Real-time Tracking', desc: 'Sync stock across teams instantly.' },
             { title: '📊 Advanced Reports', desc: 'One-click CSV/Excel exports.' },
             { title: '🛡️ Secure Access', desc: 'Role-based staff permissions.' }
-          ].map((f, i) => (
-            <div key={i} className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md p-10 rounded-3xl border border-white/10 hover:border-[#4361ee] transition-all text-left group">
-              <h3 className="text-xl font-bold mb-3 dark:text-white text-slate-900 group-hover:text-[#4361ee]">{f.title}</h3>
-              <p className="text-slate-500 dark:text-slate-400">{f.desc}</p>
+          ].map((feature, idx) => (
+            <div key={idx} className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-md p-10 rounded-3xl border border-white/10 hover:-translate-y-2 hover:border-[#4361ee] transition-all text-left">
+              <h3 className="text-xl font-bold mb-3 dark:text-white">{feature.title}</h3>
+              <p className="text-slate-500 dark:text-slate-400">{feature.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Contact Section */}
       <section className="px-[8%] py-24 bg-slate-900 text-white rounded-[60px] mx-4 mb-24">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
             <h2 className="text-4xl font-black mb-4">Get In Touch</h2>
             <p className="text-slate-400 font-mono">📍 T.Padilla, Cebu City, PH<br />📧 support@inventorypro.com</p>
           </div>
-          <div className="bg-white p-8 md:p-12 rounded-3xl text-slate-900 shadow-2xl">
+          <div className="bg-white p-8 md:p-12 rounded-3xl text-slate-900">
             {!formSubmitted ? (
               <form onSubmit={(e) => { e.preventDefault(); setFormSubmitted(true); }} className="space-y-4">
-                <input type="text" placeholder="Name" required className="w-full p-4 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4361ee]" />
-                <input type="email" placeholder="Email" required className="w-full p-4 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4361ee]" />
-                <textarea placeholder="Message" rows="4" className="w-full p-4 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4361ee]"></textarea>
-                <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-bold hover:scale-[1.02] transition-transform">Send Message</button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <input type="text" placeholder="Name" required className="w-full p-3 bg-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-[#4361ee]" />
+                  <input type="email" placeholder="Email" required className="w-full p-3 bg-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-[#4361ee]" />
+                </div>
+                <textarea placeholder="Message" rows="4" className="w-full p-3 bg-slate-100 rounded-lg outline-none focus:ring-2 focus:ring-[#4361ee]"></textarea>
+                <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors">Send Message</button>
               </form>
             ) : (
               <div className="text-center py-8">
                 <h3 className="text-2xl font-bold text-green-600 mb-2">✅ Message Sent!</h3>
                 <p className="text-slate-500 mb-6">We'll get back to you shortly.</p>
-                <button onClick={() => setFormSubmitted(false)} className="text-[#4361ee] font-bold underline">Send another</button>
+                <button onClick={() => setFormSubmitted(false)} className="text-[#4361ee] font-bold">Send another message</button>
               </div>
             )}
           </div>
