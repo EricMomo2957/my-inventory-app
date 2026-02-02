@@ -10,7 +10,7 @@ const LandingPage = () => {
   // 1. Dark Mode & Persistence
   useEffect(() => {
     if (isDarkMode) {
-      document.documentElement.classList.add('dark'); // Better for Tailwind 'dark:' classes
+      document.documentElement.classList.add('dark');
       document.body.classList.add('dark-mode');
       localStorage.setItem('landingTheme', 'dark');
     } else {
@@ -93,18 +93,20 @@ const LandingPage = () => {
     e.currentTarget.style.transform = `translate(0px, 0px)`;
   };
 
-  // 4. Scroll Logic
+  // 4. Scroll Logic (Optimized to prevent cascading renders)
   useEffect(() => {
-    const handleScroll = () => setShowScrollBtn(window.scrollY > 400);
+    const handleScroll = () => {
+      const shouldShow = window.scrollY > 400;
+      // Use a functional update to check previous state and avoid unnecessary re-renders
+      setShowScrollBtn((prev) => (prev !== shouldShow ? shouldShow : prev));
+    };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    // Added min-h-screen and overflow-y-auto to ensure scrollability
     <div className={`landing-wrapper min-h-screen overflow-y-auto relative ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
       
-      {/* ADDED pointer-events-none so it doesn't block scrolling */}
       <canvas 
         ref={canvasRef} 
         id="waveCanvas" 
@@ -114,7 +116,8 @@ const LandingPage = () => {
       {showScrollBtn && (
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-[100] shadow-lg animate-bounce flex items-center justify-center"
+          // LINT FIX: Changed z-[100] to z-100
+          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-100 shadow-lg animate-bounce flex items-center justify-center"
         >
           ↑
         </button>

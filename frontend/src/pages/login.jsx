@@ -90,9 +90,10 @@ export default function Login({ setIsLoggedIn }) {
             />
           </div>
 
+          {/* LINT FIX: Changed bg-gradient-to-r to bg-linear-to-r */}
           <button 
             type="submit"
-            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/25 transition-all active:scale-[0.97] transform hover:-translate-y-0.5"
+            className="w-full py-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/25 transition-all active:scale-[0.97] transform hover:-translate-y-0.5"
           >
             Sign In to Dashboard
           </button>
@@ -123,7 +124,6 @@ export default function Login({ setIsLoggedIn }) {
         </div>
       </div>
       
-      {/* Theme Toggle (Optional but helpful for testing login in both modes) */}
       <button 
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg md:block hidden"
