@@ -45,7 +45,7 @@ export default function Order() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  // FIXED: Pure function handling transaction ID generation
+  // FIXED: Transaction ID is now generated inside an event handler, making it pure.
   const handleCheckout = () => {
     setReceiptData({
       date: new Date().toLocaleString(),
@@ -73,7 +73,7 @@ export default function Order() {
         </div>
       )}
 
-      {/* FIXED: Using z-90 and proper layering */}
+      {/* LINT FIX: z-90 instead of z-[90] */}
       <div className={`fixed inset-y-0 right-0 w-full md:w-96 bg-[#111827] shadow-2xl z-90 transform transition-transform duration-300 ease-in-out border-l border-slate-800 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#1e293b]">
           <h2 className="text-xl font-black text-white">Review Cart</h2>
@@ -110,7 +110,7 @@ export default function Order() {
         </div>
       </div>
 
-      {/* FIXED: Using z-150 for the Modal and z-100 for the Receipt */}
+      {/* LINT FIX: z-150 instead of z-[150] */}
       {showReceipt && (
         <div className="fixed inset-0 z-150 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <div className="bg-white w-full max-w-sm rounded-sm shadow-2xl overflow-hidden flex flex-col text-slate-800 font-mono">
@@ -137,6 +137,7 @@ export default function Order() {
               </div>
               <div className="text-center pt-4">
                 <div className="h-8 w-32 mx-auto bg-[repeating-linear-gradient(90deg,#000,#000_2px,#fff_2px,#fff_4px)]"></div>
+                {/* LINT FIX: receiptData.trx is now stable */}
                 <p className="text-[8px] mt-2 font-bold text-slate-400">#TRX-{receiptData.trx}</p>
               </div>
             </div>
@@ -149,7 +150,7 @@ export default function Order() {
       )}
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* FIXED: Using bg-linear-to-r for canonical compliance */}
+        {/* LINT FIX: bg-linear-to-r instead of bg-gradient-to-r */}
         <section className="bg-linear-to-r from-[#4338ca] to-[#6d28d9] rounded-3xl p-10 flex flex-col md:flex-row justify-between items-center shadow-2xl">
           <div className="z-10">
             <button onClick={() => navigate(isLoggedIn ? '/dashboard' : '/login')} className="text-xs font-bold text-indigo-200 mb-4 hover:text-white">← Back</button>
@@ -162,6 +163,7 @@ export default function Order() {
           </div>
         </section>
 
+        {/* Search and Review */}
         <div className="bg-[#111827]/50 p-5 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-center justify-between">
           <input 
             type="text" placeholder="Search products..." value={searchQuery}
@@ -173,12 +175,14 @@ export default function Order() {
           </button>
         </div>
 
+        {/* Categories */}
         <div className="flex flex-wrap gap-2 py-2">
           {['All', 'Vegetables', 'Fruits', 'Supplies'].map((cat) => (
             <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 py-1.5 rounded-full text-[11px] font-bold border ${activeCategory === cat ? 'bg-indigo-600 text-white' : 'bg-[#1e293b] text-slate-400'}`}>{cat}</button>
           ))}
         </div>
 
+        {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredProducts.map(item => (
             <div key={item.id} className="bg-[#111827] rounded-2xl border border-slate-800 overflow-hidden flex flex-col p-4">
@@ -197,7 +201,7 @@ export default function Order() {
         </div>
       </div>
 
-      {/* FIXED: Using z-80 for background overlay */}
+      {/* LINT FIX: z-80 instead of z-[80] */}
       {isCartOpen && <div onClick={() => setIsCartOpen(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-80" />}
     </div>
   );
