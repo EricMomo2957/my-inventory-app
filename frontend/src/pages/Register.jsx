@@ -12,22 +12,27 @@ export default function Register() {
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('landingTheme') === 'dark');
   const navigate = useNavigate();
 
+  // Sync dark mode
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('landingTheme', 'dark'); // Added persistence sync here
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('landingTheme', 'light');
     }
   }, [isDarkMode]);
 
   const handleRegister = (e) => {
     e.preventDefault();
+    // Logic for registration would go here
     navigate('/login');
   };
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 font-sans transition-colors duration-500 ${isDarkMode ? 'bg-[#0b1120]' : 'bg-slate-50'}`}>
       
+      {/* Decorative Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute top-0 right-0 w-[50%] h-[50%] rounded-full blur-[120px] opacity-10 ${isDarkMode ? 'bg-indigo-500' : 'bg-blue-300'}`}></div>
         <div className={`absolute bottom-0 left-0 w-[50%] h-[50%] rounded-full blur-[120px] opacity-10 ${isDarkMode ? 'bg-blue-500' : 'bg-indigo-300'}`}></div>
@@ -54,6 +59,7 @@ export default function Register() {
             <input 
               type="text" 
               required 
+              value={formData.fullName}
               className={`w-full px-5 py-3.5 rounded-2xl border outline-none transition-all text-sm ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500'}`}
               onChange={(e) => setFormData({...formData, fullName: e.target.value})}
             />
@@ -64,6 +70,7 @@ export default function Register() {
             <input 
               type="text" 
               required 
+              value={formData.username}
               className={`w-full px-5 py-3.5 rounded-2xl border outline-none transition-all text-sm ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500'}`}
               onChange={(e) => setFormData({...formData, username: e.target.value})}
             />
@@ -75,7 +82,7 @@ export default function Register() {
               required 
               className={`w-full px-5 py-3.5 rounded-2xl border outline-none transition-all text-sm appearance-none cursor-pointer ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'}`}
               onChange={(e) => setFormData({...formData, role: e.target.value})}
-              defaultValue=""
+              value={formData.role}
             >
               <option value="" disabled>Select Role</option>
               <option value="admin">Administrator</option>
@@ -89,6 +96,7 @@ export default function Register() {
             <input 
               type="password" 
               required 
+              value={formData.password}
               className={`w-full px-5 py-3.5 rounded-2xl border outline-none transition-all text-sm ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500'}`}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
@@ -109,7 +117,6 @@ export default function Register() {
         </div>
       </div>
 
-      {/* Adding Theme Toggle Button back for consistency */}
       <button 
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg md:block hidden z-50"
