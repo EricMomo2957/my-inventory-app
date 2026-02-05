@@ -90,6 +90,18 @@ export default function Login({ setIsLoggedIn }) {
             />
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="flex justify-end pr-1">
+            <Link 
+              to="/forgot-password" 
+              className={`text-[10px] font-bold uppercase tracking-widest hover:text-blue-500 transition-colors ${
+                isDarkMode ? 'text-slate-500' : 'text-slate-400'
+              }`}
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
           {/* LINT FIX: Changed bg-gradient-to-r to bg-linear-to-r */}
           <button 
             type="submit"
@@ -116,7 +128,7 @@ export default function Login({ setIsLoggedIn }) {
           <div className={`inline-block p-4 rounded-2xl border ${isDarkMode ? 'bg-slate-800/30 border-slate-700' : 'bg-blue-50/50 border-blue-100'}`}>
             <p className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-500'} italic`}>
               Just here to buy?{' '}
-              <Link to="/orders" className="text-blue-600 font-black hover:underline not-italic">
+              <Link to="/order" className="text-blue-600 font-black hover:underline not-italic">
                 Place an Order
               </Link>
             </p>

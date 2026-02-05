@@ -317,6 +317,24 @@ app.delete('/api/schedules/:id', async (req, res) => {
     }
 });
 
+/** RESET PASSWORD UPDATE */
+app.post('/api/users/reset-password', async (req, res) => {
+    const { token, password } = req.body;
+    
+    // In a real system, you would verify the token from a 'password_resets' table.
+    // For this demonstration, we will assume the token is valid.
+    try {
+        // Here you would normally find the user associated with the token.
+        // For simplicity, let's assume you're updating a specific test user or have the email.
+        const sql = "UPDATE users SET password = ? WHERE email = 'eric@example.com'"; 
+        await db.query(sql, [password]);
+        
+        res.json({ success: true, message: "Password updated successfully." });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Database update failed." });
+    }
+});
+
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
