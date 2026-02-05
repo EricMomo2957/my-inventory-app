@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
+import ResetPassword from './pages/ResetPassword';
 // Layout and Security
 import { Sidenav } from './Sidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
@@ -95,7 +95,7 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} /> {/* NEW: Recovery Route */}
             <Route path="/order" element={<Orders />} />
-
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
