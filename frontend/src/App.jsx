@@ -6,9 +6,10 @@ import { Sidenav } from './Sidenav';
 import ProtectedRoute from './context/ProtectedRoute';
 
 // Public Pages
-import LandingPage from './pages/LandingPage'; // NEW: Imported Landing Page
+import LandingPage from './pages/LandingPage';
 import Login from './pages/login'; 
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword'; // NEW: Imported Forgot Password
 
 // Private Pages
 import Dashboard from './pages/Dashboard';
@@ -60,9 +61,6 @@ export default function App() {
 
   return (
     <Router>
-      {/* Adjusted the container: We only apply the dark dashboard background 
-        and Sidenav flex layout if the user is actually logged in.
-      */}
       <div className={`flex h-screen w-full font-sans overflow-hidden ${isLoggedIn ? 'bg-[#0b1120] text-slate-200' : ''}`}>
         
         {isLoggedIn && <Sidenav user={user} onLogout={handleLogout} />}
@@ -95,11 +93,11 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* NEW: Recovery Route */}
             <Route path="/order" element={<Orders />} />
 
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              {/* If user hits / after login, maybe you want them to stay on dashboard */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile user={user} />} />
