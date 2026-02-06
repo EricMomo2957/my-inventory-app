@@ -38,6 +38,7 @@ export default function ResetPassword() {
       } else {
         setError(data.message || "Failed to reset password.");
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (_error) {
       setError("Server error. Please try again later.");
     } finally {
