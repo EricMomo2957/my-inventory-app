@@ -15,7 +15,6 @@ export default function ForgotPassword() {
     setMessage('');
 
     try {
-      // Using native fetch to avoid the "missing axios" error we saw earlier
       const response = await fetch('http://localhost:3000/api/users/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -29,9 +28,9 @@ export default function ForgotPassword() {
       } else {
         setError(data.message || "No account found with that email.");
       }
-    // eslint-disable-next-line no-unused-vars
-    } catch (_error) {
-      // LINT FIX: Prefixed with underscore so the linter doesn't complain it's unused
+    } catch {
+      // LINT FIX: Removed 'err' entirely. 
+      // This is valid in modern JS and prevents "unused variable" errors.
       setError("Failed to connect to the server. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -42,7 +41,6 @@ export default function ForgotPassword() {
     <div className="min-h-screen bg-[#0b1120] flex items-center justify-center p-6 font-sans text-slate-300">
       <div className="w-full max-w-md bg-[#111827] rounded-3xl border border-slate-800 p-8 shadow-2xl relative overflow-hidden">
         
-        {/* Subtle background glow to match your theme */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/10 blur-3xl rounded-full"></div>
 
         <div className="relative z-10">
@@ -73,14 +71,12 @@ export default function ForgotPassword() {
               />
             </div>
 
-            {/* Error Message Display */}
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-bold p-4 rounded-xl flex items-center gap-3 animate-pulse">
                 <span>⚠️</span> {error}
               </div>
             )}
 
-            {/* Success Message Display */}
             {message && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-bold p-4 rounded-xl flex items-center gap-3">
                 <span>✅</span> {message}
