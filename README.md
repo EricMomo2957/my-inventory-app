@@ -2,14 +2,14 @@
     
     Inventory Pro is a robust web-based inventory management system developed to eliminate the chaos of manual stock counting and streamline business operations. The project provides enterprise-grade tools to manage stock levels, track sales via a smart checkout system, and generate real-time activity reports for audit trails.
 
-###🚦 Status
-
+# 🚦 Status
+ 
     *Repository state: Active / Fully Integrated.
     *Frontend: Modern "Glassmorphism" landing page with dynamic dark mode is fully functional.
     *Backend: Robust Express.js backend handling real-time transactions and automated activity logging.
     *Database: Structured MySQL schema with products, faqs, and activity_history.
 
-📖 About
+# 📖 About
 * **Inventory Pro provides:**
 
     *Real-time Visibility: Monitor stock levels across teams instantly.
@@ -26,7 +26,7 @@
     *Adaptive UI: High-end landing page with automatic dark mode detection and interactive "Magnetic" hover effects.
     *Secure Access: User authentication and profile management for staff and administrators.
 
-* **🏗️ Architecture & Structure**
+# 🏗️ Architecture & Structure
     
 The project follows a decoupled client-server architecture:
 
@@ -46,18 +46,20 @@ The project follows a decoupled client-server architecture:
     │   └── vite.config.js       # Vite build configuration
     └── READ.md                   # Project documentation
 
-* **🛠️ Tech Stack**
+# 🛠️ Tech Stack
+
     - [x]Frontend: HTML5, CSS3 (Tailwind/Glassmorphism), JavaScript (ES6+), React.js (Vite)
     - [x]Backend: Node.js, Express.js
     - [x]Database: MySQL
     - [x]Tools: Multer (File Uploads), Dotenv (Environment Security), Axios
-* **⚙️ Requirements**
+    
+# ⚙️ Requirements
     - [x]Node.js: v16.0 or higher
     - [x]Database: MySQL 8.0 or MariaDB
     - [x]Package Manager: npm (v8.0+)
     - [x]Tools: phpMyAdmin (recommended for DB setup)
 
-* **🚀 Installation (Developer)**
+# 🚀 Installation (Developer)**
 
     1.Clone the repository:
 
@@ -75,7 +77,7 @@ The project follows a decoupled client-server architecture:
 
         Import the SQL schema provided to create the products, transactions, faqs, and activity_history tables.
 
-* **📄 Configuration (.env example)**
+# 📄 Configuration (.env example)**
 
     Create a .env file in the /backend directory with the following content:
 
@@ -92,24 +94,22 @@ The project follows a decoupled client-server architecture:
     UPLOADS_PATH=uploads
     MAX_UPLOAD_SIZE=5242880 # 5MB limit in bytes
 
-* **🔒 Important Notes / Security**
+# 🔒 Important Notes / Security**
 
-    - [x]Transaction Integrity: The /api/checkout route utilizes database transactions. This ensures that if a stock update fails, the entire transaction is rolled back, preventing "ghost" orders.
+    - Transaction Integrity: The /api/checkout route utilizes database transactions. This ensures that if a stock update fails, the entire transaction is rolled back, preventing "ghost" orders.
 
-    - [x]Input Sanitization: All server-side inputs are validated to protect against SQL Injection.
+    - Input Sanitization: All server-side inputs are validated to protect against SQL Injection.
 
-    - [x]Environment Safety: Database credentials and API keys are stored in .env and are excluded from version control via .gitignore.
+    - Environment Safety: Database credentials and API keys are stored in .env and are excluded from version control via .gitignore.
 
-    - [x]File Security: Multer is configured to restrict file types to standard image formats to prevent malicious uploads.
+    - File Security: Multer is configured to restrict file types to standard image formats to prevent malicious uploads.
 
-* **👨‍💻 Project Development**
+# 👨‍💻 Project Development**
     
-    - [x]Eric Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.
+    - Eric Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.
 
-* **👤 Contact**
+# 👤 Contact**
 
-    - [x]GitHub Profile: EricMomo2957
-
-    - [x]Email: Momoe2957@gmail.com
-
-    - [x]Project Link: https://github.com/EricMomo2957/my-inventory-app
+    - GitHub Profile: EricMomo2957
+    - Email: Momoe2957@gmail.com
+    - Project Link: https://github.com/EricMomo2957/my-inventory-app
