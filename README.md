@@ -1,57 +1,115 @@
-📦 Inventory Pro | Smart Stock Management System
-A web-based inventory management system developed to eliminate the chaos of manual stock counting and streamline business operations. This project provides enterprise-grade tools to manage stock levels, track sales, and generate real-time activity reports.
+📦 Inventory Pro — Smart Stock Management System
 
-📌 Overview
-Inventory Pro allows businesses to monitor stock levels across teams instantly. It features a modern "Glassmorphism" landing page with dynamic dark mode, a secure staff dashboard, and a robust backend designed to handle real-time transactions and automated activity logging.
+        Inventory Pro is a robust, web-based inventory management system designed to eliminate the chaos of manual stock counting and streamline business operations. The project provides enterprise-grade tools to manage stock levels, track sales via a smart checkout system, and generate real-time activity reports for audit trails.
 
-🔧 Features
-Real-time Stock Tracking: Sync stock levels and monitor changes across teams instantly.
+🚦 Status
 
-Smart Checkout System: Secure /api/checkout route with database transaction support to prevent stock errors.
+        Repository state: Active / Full-Stack Integration.
 
-Activity History & Logs: Automatically records restock actions and sales history for audit trails.
+        Frontend: React (Vite) with custom Glassmorphism UI and dynamic dark mode is fully functional.
 
-Product Image Management: Integrated image upload functionality using Multer.
+        Backend: Express API server integrated with MySQL; handles real-time transactions and file uploads.
 
-Adaptive UI: High-end landing page with automatic dark mode detection and interactive "Magnetic" buttons.
+        Database: Structured MySQL schema with products, faqs, and activity_history.
 
-Secure Access: User authentication and profile management for staff and admins.
+📋 Table of Contents
 
-🛠️ Tech Stack
-Frontend: HTML5, CSS3 (Glassmorphism), JavaScript (ES6+)
+        About
 
-Backend: Node.js, Express.js
+        Key Features
 
-Database: MySQL
+        Architecture & Repository Structure
 
-Tools: Multer (File Uploads), Dotenv (Environment Security)
+        Requirements
 
-👨‍💻 Project Development
-Eric Momo – Full-Stack Development, Database Architecture, and System Logic
+        Installation (Developer)
 
-📂 How to Run the Project
-Clone the repository:
+        Configuration (.env example)
 
-Bash
-git clone https://github.com/EricMomo2957/my-inventory-app.git
-cd my-inventory-app
-Install Dependencies:
+        Database Schema
 
-Bash
-npm install
-Configure Environment Variables: Create a .env file in the root directory and add your MySQL credentials:
+Important Notes / Security
 
-Code snippet
-DB_HOST=localhost
-DB_USER=your_username
-DB_PASSWORD=your_password
-DB_NAME=inventory_db
-PORT=3000
+Contact
 
-Setup the Database: Import your SQL schema into your MySQL server to create the products, transactions, and activity_history tables.
+📖 About
+    Inventory Pro provides:
 
-Start the Server:
+        Real-time Stock Tracking: Instant synchronization of stock levels across multiple team members.
+        Smart Checkout: A secure transaction system that ensures database integrity during sales.
+        Activity Logging: Automated recording of every restock and sale for comprehensive auditing.
+        Asset Management: Integrated image handling for products using Multer.
 
-Bash
-node app.js
-Access the System: Open your browser and go to http://localhost:3000.
+✨ Key Features
+        ⚡ Real-time Tracking: Monitor stock changes as they happen.
+
+        🛒 Smart Checkout: Prevents stock errors with database transaction support.
+
+        🌙 Adaptive UI: High-end "Glassmorphism" design with automatic light/dark mode detection.
+
+        🛡️ Secure Access: Role-based staff permissions and authenticated profile management.
+
+        🏗️ Architecture & Repository Structure
+        The project follows a decoupled client-server architecture:
+
+
+        MY-INVENTORY-APP/
+        ├── backend/                  # Express.js API Server
+        │   ├── config/              # Database connection (db.js)
+        │   ├── routes/              # RESTful API endpoints (products, checkout, faqs)
+        │   ├── uploads/             # Physical storage for product images
+        │   ├── app.js               # Entry point and server middleware
+        │   └── .env                 # Sensitive credentials (git-ignored)
+        ├── frontend/                 # React.js SPA (Vite)
+        │   ├── src/                 
+        │   │   ├── components/      # Reusable UI (Navbar, Magnetic Buttons)
+        │   │   ├── pages/           # View logic (Order, LandingPage, Login)
+        │   │   └── App.jsx          # Root routing and state logic
+        │   └── vite.config.js       # Vite build configuration
+        └── READ.md                   # Project documentation
+
+
+⚙️ Requirements
+        Node.js: v16.0+ recommended
+
+        Database: MySQL 8.0 or MariaDB
+
+        Environment: npm or yarn
+
+        Tools: phpMyAdmin (for easy DB management).
+
+🚀 Installation (Developer)
+1. Clone the repository:
+   
+    git clone https://github.com/EricMomo2957/my-inventory-app.git
+    cd my-inventory-app
+
+2. Install PHP/Node dependencies: (Run in both /frontend and /backend folders)
+
+    npm install
+    
+3.  Setup Database:
+
+    Create a database named inventory_management_db in phpMyAdmin.
+
+    Import the provided SQL schema for products and faqs tables.
+
+📄 Configuration (.env example)
+    
+    Create a .env file in the /backend root with the following variables:
+
+🔒 Important Notes / Security
+    
+    Input Validation: All server-side inputs are sanitized to prevent SQL Injection.
+
+Transaction Integrity: The /api/checkout route uses database transactions to ensure data consistency during high-traffic sales.
+
+Environment Safety: Never commit your .env file; it is listed in .gitignore to protect your database credentials.
+
+👤 Contact
+    
+    Lead Developer: Eric Momo — GitHub Profile
+
+    Email: Momoe2957@gmail.com
+
+    Project Link: https://github.com/EricMomo2957/my-inventory-app
