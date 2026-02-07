@@ -2,37 +2,31 @@
     
     Inventory Pro is a robust web-based inventory management system developed to eliminate the chaos of manual stock counting and streamline business operations. The project provides enterprise-grade tools to manage stock levels, track sales via a smart checkout system, and generate real-time activity reports for audit trails.
 
-🚦 Status
+###🚦 Status
 
-    > Repository state: Active / Fully Integrated.
-
-    > Frontend: Modern "Glassmorphism" landing page with dynamic dark mode is fully functional.
-
-    > Backend: Robust Express.js backend handling real-time transactions and automated activity logging.
-
-    > Database: Structured MySQL schema with products, faqs, and activity_history.
+    *Repository state: Active / Fully Integrated.
+    *Frontend: Modern "Glassmorphism" landing page with dynamic dark mode is fully functional.
+    *Backend: Robust Express.js backend handling real-time transactions and automated activity logging.
+    *Database: Structured MySQL schema with products, faqs, and activity_history.
 
 📖 About
-Inventory Pro provides:
+* **Inventory Pro provides:**
 
-    > Real-time Visibility: Monitor stock levels across teams instantly.
+    *Real-time Visibility: Monitor stock levels across teams instantly.
+    *Transaction Integrity: A secure checkout system designed to prevent stock counting errors.
+    *Audit Readiness: Comprehensive activity logs for restocks and sales history.
+    *Modern UX: A high-end adaptive UI featuring "Magnetic" buttons and automatic dark mode detection.
 
-    > Transaction Integrity: A secure checkout system designed to prevent stock counting errors.
-
-    > Audit Readiness: Comprehensive activity logs for restocks and sales history.
-
-    > Modern UX: A high-end adaptive UI featuring "Magnetic" buttons and automatic dark mode detection.
-
-✨ Key Features
+* **✨ Key Features**
     
-    Real-time Stock Tracking: Sync stock levels and monitor changes across teams instantly.
-    Smart Checkout System: Secure /api/checkout route with database transaction support to prevent race conditions.
-    Activity History & Logs: Automatically records every restock action and sales history for transparent audit trails.
-    Product Image Management: Integrated image upload functionality using Multer for consistent product visualization.
-    Adaptive UI: High-end landing page with automatic dark mode detection and interactive "Magnetic" hover effects.
-    Secure Access: User authentication and profile management for staff and administrators.
+    *Real-time Stock Tracking: Sync stock levels and monitor changes across teams instantly.
+    *Smart Checkout System: Secure /api/checkout route with database transaction support to prevent race conditions.
+    *Activity History & Logs: Automatically records every restock action and sales history for transparent audit trails.
+    *Product Image Management: Integrated image upload functionality using Multer for consistent product visualization.
+    *Adaptive UI: High-end landing page with automatic dark mode detection and interactive "Magnetic" hover effects.
+    *Secure Access: User authentication and profile management for staff and administrators.
 
-🏗️ Architecture & Structure
+* **🏗️ Architecture & Structure**
     
 The project follows a decoupled client-server architecture:
 
@@ -52,18 +46,18 @@ The project follows a decoupled client-server architecture:
     │   └── vite.config.js       # Vite build configuration
     └── READ.md                   # Project documentation
 
-🛠️ Tech Stack
-    Frontend: HTML5, CSS3 (Tailwind/Glassmorphism), JavaScript (ES6+), React.js (Vite)
-    Backend: Node.js, Express.js
-    Database: MySQL
-    Tools: Multer (File Uploads), Dotenv (Environment Security), Axios
-⚙️ Requirements
-    Node.js: v16.0 or higher
-    Database: MySQL 8.0 or MariaDB
-    Package Manager: npm (v8.0+)
-    Tools: phpMyAdmin (recommended for DB setup)
+* **🛠️ Tech Stack**
+    - [x]Frontend: HTML5, CSS3 (Tailwind/Glassmorphism), JavaScript (ES6+), React.js (Vite)
+    - [x]Backend: Node.js, Express.js
+    - [x]Database: MySQL
+    - [x]Tools: Multer (File Uploads), Dotenv (Environment Security), Axios
+* **⚙️ Requirements**
+    - [x]Node.js: v16.0 or higher
+    - [x]Database: MySQL 8.0 or MariaDB
+    - [x]Package Manager: npm (v8.0+)
+    - [x]Tools: phpMyAdmin (recommended for DB setup)
 
-🚀 Installation (Developer)
+* **🚀 Installation (Developer)**
 
     1.Clone the repository:
 
@@ -81,7 +75,7 @@ The project follows a decoupled client-server architecture:
 
         Import the SQL schema provided to create the products, transactions, faqs, and activity_history tables.
 
-📄 Configuration (.env example)
+* **📄 Configuration (.env example)**
 
     Create a .env file in the /backend directory with the following content:
 
@@ -98,24 +92,24 @@ The project follows a decoupled client-server architecture:
     UPLOADS_PATH=uploads
     MAX_UPLOAD_SIZE=5242880 # 5MB limit in bytes
 
-🔒 Important Notes / Security
+* **🔒 Important Notes / Security**
 
-    Transaction Integrity: The /api/checkout route utilizes database transactions. This ensures that if a stock update fails, the entire transaction is rolled back, preventing "ghost" orders.
+    - [x]Transaction Integrity: The /api/checkout route utilizes database transactions. This ensures that if a stock update fails, the entire transaction is rolled back, preventing "ghost" orders.
 
-    Input Sanitization: All server-side inputs are validated to protect against SQL Injection.
+    - [x]Input Sanitization: All server-side inputs are validated to protect against SQL Injection.
 
-    Environment Safety: Database credentials and API keys are stored in .env and are excluded from version control via .gitignore.
+    - [x]Environment Safety: Database credentials and API keys are stored in .env and are excluded from version control via .gitignore.
 
-    File Security: Multer is configured to restrict file types to standard image formats to prevent malicious uploads.
+    - [x]File Security: Multer is configured to restrict file types to standard image formats to prevent malicious uploads.
 
-👨‍💻 Project Development
+* **👨‍💻 Project Development**
     
-    Eric Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.
+    - [x]Eric Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.
 
-👤 Contact
+* **👤 Contact**
 
-    GitHub Profile: EricMomo2957
+    - [x]GitHub Profile: EricMomo2957
 
-    Email: Momoe2957@gmail.com
+    - [x]Email: Momoe2957@gmail.com
 
-    Project Link: https://github.com/EricMomo2957/my-inventory-app
+    - [x]Project Link: https://github.com/EricMomo2957/my-inventory-app
