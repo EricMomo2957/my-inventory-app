@@ -60,7 +60,7 @@ The project follows a decoupled client-server architecture:
     * **Package Manager: npm (v8.0+)**
     * **Tools: phpMyAdmin (recommended for DB setup)**
 
-# 🚀 Installation (Developer)**
+# 🚀 Installation (Developer)
 
     1.Clone the repository:
 
@@ -78,7 +78,7 @@ The project follows a decoupled client-server architecture:
 
         Import the SQL schema provided to create the products, transactions, faqs, and activity_history tables.
 
-# 📄 Configuration (.env example)**
+# 📄 Configuration (.env example)
 
     Create a .env file in the /backend directory with the following content:
 
@@ -107,7 +107,7 @@ The project follows a decoupled client-server architecture:
 
 * **👨‍💻 Project Development**
     
-    * **Eric Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.**
+    * **Eric Dominic Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.**
 
 * **👤 Contact**
 
