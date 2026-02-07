@@ -34,7 +34,7 @@ Inventory Pro provides:
 
 🏗️ Architecture & Structure
     
-    The project follows a decoupled client-server architecture:
+The project follows a decoupled client-server architecture:
 
     MY-INVENTORY-APP/
     ├── backend/                  # Express.js API Server
@@ -57,9 +57,7 @@ Inventory Pro provides:
     Backend: Node.js, Express.js
     Database: MySQL
     Tools: Multer (File Uploads), Dotenv (Environment Security), Axios
-
 ⚙️ Requirements
-
     Node.js: v16.0 or higher
     Database: MySQL 8.0 or MariaDB
     Package Manager: npm (v8.0+)

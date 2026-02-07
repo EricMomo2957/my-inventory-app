@@ -1,114 +1,122 @@
 📦 Inventory Pro — Smart Stock Management System
-
-        Inventory Pro is a robust, web-based inventory management system designed to eliminate the chaos of manual stock counting and streamline business operations. The project provides enterprise-grade tools to manage stock levels, track sales via a smart checkout system, and generate real-time activity reports for audit trails.
+    
+    Inventory Pro is a robust web-based inventory management system developed to eliminate the chaos of manual stock counting and streamline business operations. The project provides enterprise-grade tools to manage stock levels, track sales via a smart checkout system, and generate real-time activity reports for audit trails.
 
 🚦 Status
 
-        Repository state: Active / Full-Stack Integration.
+    > Repository state: Active / Fully Integrated.
 
-        Frontend: React (Vite) with custom Glassmorphism UI and dynamic dark mode is fully functional.
+    > Frontend: Modern "Glassmorphism" landing page with dynamic dark mode is fully functional.
 
-        Backend: Express API server integrated with MySQL; handles real-time transactions and file uploads.
+    > Backend: Robust Express.js backend handling real-time transactions and automated activity logging.
 
-        Database: Structured MySQL schema with products, faqs, and activity_history.
-
-📋 Table of Contents
-
-        About
-
-        Key Features
-
-        Architecture & Repository Structure
-
-        Requirements
-
-        Installation (Developer)
-
-        Configuration (.env example)
-
-        Database Schema
-
-Important Notes / Security
-
-Contact
+    > Database: Structured MySQL schema with products, faqs, and activity_history.
 
 📖 About
-    Inventory Pro provides:
+Inventory Pro provides:
 
-        Real-time Stock Tracking: Instant synchronization of stock levels across multiple team members.
-        Smart Checkout: A secure transaction system that ensures database integrity during sales.
-        Activity Logging: Automated recording of every restock and sale for comprehensive auditing.
-        Asset Management: Integrated image handling for products using Multer.
+    > Real-time Visibility: Monitor stock levels across teams instantly.
+
+    > Transaction Integrity: A secure checkout system designed to prevent stock counting errors.
+
+    > Audit Readiness: Comprehensive activity logs for restocks and sales history.
+
+    > Modern UX: A high-end adaptive UI featuring "Magnetic" buttons and automatic dark mode detection.
 
 ✨ Key Features
-        ⚡ Real-time Tracking: Monitor stock changes as they happen.
+    
+    Real-time Stock Tracking: Sync stock levels and monitor changes across teams instantly.
+    Smart Checkout System: Secure /api/checkout route with database transaction support to prevent race conditions.
+    Activity History & Logs: Automatically records every restock action and sales history for transparent audit trails.
+    Product Image Management: Integrated image upload functionality using Multer for consistent product visualization.
+    Adaptive UI: High-end landing page with automatic dark mode detection and interactive "Magnetic" hover effects.
+    Secure Access: User authentication and profile management for staff and administrators.
 
-        🛒 Smart Checkout: Prevents stock errors with database transaction support.
+🏗️ Architecture & Structure
+    
+    The project follows a decoupled client-server architecture:
 
-        🌙 Adaptive UI: High-end "Glassmorphism" design with automatic light/dark mode detection.
+    MY-INVENTORY-APP/
+    ├── backend/                  # Express.js API Server
+    │   ├── config/              # Database connection (db.js)
+    │   ├── public/              # Static assets and placeholders
+    │   ├── routes/              # API Endpoints (products.js, checkout.js, faqs.js)
+    │   ├── uploads/             # Physical storage for product images
+    │   ├── .env                 # Sensitive credentials (git-ignored)
+    │   └── app.js               # Entry point and server middleware
+    ├── frontend/                 # React.js SPA (Vite)
+    │   ├── src/                 
+    │   │   ├── components/      # Reusable UI (Navbar, Sidebar, Magnetic Buttons)
+    │   │   ├── pages/           # View logic (LandingPage, Order, Login)
+    │   │   └── App.jsx          # Root routing and state logic
+    │   └── vite.config.js       # Vite build configuration
+    └── READ.md                   # Project documentation
 
-        🛡️ Secure Access: Role-based staff permissions and authenticated profile management.
-
-        🏗️ Architecture & Repository Structure
-        The project follows a decoupled client-server architecture:
-
-
-        MY-INVENTORY-APP/
-        ├── backend/                  # Express.js API Server
-        │   ├── config/              # Database connection (db.js)
-        │   ├── routes/              # RESTful API endpoints (products, checkout, faqs)
-        │   ├── uploads/             # Physical storage for product images
-        │   ├── app.js               # Entry point and server middleware
-        │   └── .env                 # Sensitive credentials (git-ignored)
-        ├── frontend/                 # React.js SPA (Vite)
-        │   ├── src/                 
-        │   │   ├── components/      # Reusable UI (Navbar, Magnetic Buttons)
-        │   │   ├── pages/           # View logic (Order, LandingPage, Login)
-        │   │   └── App.jsx          # Root routing and state logic
-        │   └── vite.config.js       # Vite build configuration
-        └── READ.md                   # Project documentation
-
+🛠️ Tech Stack
+    Frontend: HTML5, CSS3 (Tailwind/Glassmorphism), JavaScript (ES6+), React.js (Vite)
+    Backend: Node.js, Express.js
+    Database: MySQL
+    Tools: Multer (File Uploads), Dotenv (Environment Security), Axios
 
 ⚙️ Requirements
-        Node.js: v16.0+ recommended
 
-        Database: MySQL 8.0 or MariaDB
-
-        Environment: npm or yarn
-
-        Tools: phpMyAdmin (for easy DB management).
+    Node.js: v16.0 or higher
+    Database: MySQL 8.0 or MariaDB
+    Package Manager: npm (v8.0+)
+    Tools: phpMyAdmin (recommended for DB setup)
 
 🚀 Installation (Developer)
-1. Clone the repository:
-   
-    git clone https://github.com/EricMomo2957/my-inventory-app.git
-    cd my-inventory-app
 
-2. Install PHP/Node dependencies: (Run in both /frontend and /backend folders)
+    1.Clone the repository:
 
-    npm install
-    
-3.  Setup Database:
+        git clone https://github.com/EricMomo2957/my-inventory-app.git 
 
-    Create a database named inventory_management_db in phpMyAdmin.
+        cd my-inventory-app
 
-    Import the provided SQL schema for products and faqs tables.
+    2.Install Dependencies: In both /frontend and /backend folders, run:
+
+        npm install
+
+    3.Setup the Database:
+
+        Create a database named inventory_management_db in your local MySQL server.
+
+        Import the SQL schema provided to create the products, transactions, faqs, and activity_history tables.
 
 📄 Configuration (.env example)
-    
-    Create a .env file in the /backend root with the following variables:
+
+    Create a .env file in the /backend directory with the following content:
+
+    APP_ENV=development
+    PORT=3000
+
+    # Database
+    DB_HOST=localhost
+    DB_USER=root
+    DB_PASSWORD=your_password
+    DB_NAME=inventory_management_db
+
+    # File Uploads
+    UPLOADS_PATH=uploads
+    MAX_UPLOAD_SIZE=5242880 # 5MB limit in bytes
 
 🔒 Important Notes / Security
+
+    Transaction Integrity: The /api/checkout route utilizes database transactions. This ensures that if a stock update fails, the entire transaction is rolled back, preventing "ghost" orders.
+
+    Input Sanitization: All server-side inputs are validated to protect against SQL Injection.
+
+    Environment Safety: Database credentials and API keys are stored in .env and are excluded from version control via .gitignore.
+
+    File Security: Multer is configured to restrict file types to standard image formats to prevent malicious uploads.
+
+👨‍💻 Project Development
     
-    Input Validation: All server-side inputs are sanitized to prevent SQL Injection.
-
-Transaction Integrity: The /api/checkout route uses database transactions to ensure data consistency during high-traffic sales.
-
-Environment Safety: Never commit your .env file; it is listed in .gitignore to protect your database credentials.
+    Eric Momo — Lead Developer: Full-Stack Development, Database Architecture, and System Logic.
 
 👤 Contact
-    
-    Lead Developer: Eric Momo — GitHub Profile
+
+    GitHub Profile: EricMomo2957
 
     Email: Momoe2957@gmail.com
 
