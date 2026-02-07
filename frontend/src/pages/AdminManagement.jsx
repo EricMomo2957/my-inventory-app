@@ -4,7 +4,7 @@ export default function AdminManagement() {
       <header className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black text-white">Admin Management</h1>
-          <p className="text-slate-500 text-sm font-medium text-orange-500/80">Restricted Area: Administrators Only</p>
+          <p className="text-slate-500 text-sm font-medium">Restricted Area: Administrators Only</p>
         </div>
         <button className="bg-orange-500 hover:bg-orange-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-xl shadow-orange-600/20 active:scale-95 transition-all">+ New User</button>
       </header>

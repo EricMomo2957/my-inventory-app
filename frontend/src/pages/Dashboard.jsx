@@ -32,7 +32,7 @@ function TableSection({ title, data, headers }) {
             {data.map((row, i) => (
               <tr key={i} className="hover:bg-slate-800/20 text-slate-300 transition-colors">
                 {Object.values(row).map((val, j) => (
-                  <td key={j} className="p-4 px-6 truncate max-w-[150px]">{val}</td>
+                  <td key={j} className="p-4 px-6 truncate max-w-37.5">{val}</td>
                 ))}
               </tr>
             ))}
