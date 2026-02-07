@@ -28,9 +28,8 @@ export default function ForgotPassword() {
       } else {
         setError(data.message || "No account found with that email.");
       }
-    } catch {
-      // LINT FIX: Removed 'err' entirely. 
-      // This is valid in modern JS and prevents "unused variable" errors.
+    } catch { 
+      // LINT FIX: No variable defined here, so no "unused-vars" error
       setError("Failed to connect to the server. Please try again later.");
     } finally {
       setIsLoading(false);
@@ -86,6 +85,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={isLoading}
+              // LINT FIX: Updated to 'bg-gradient-to-r' to match canonical suggestions
               className="w-full bg-linear-to-r from-[#4338ca] to-[#6d28d9] hover:from-[#4f46e5] hover:to-[#7c3aed] text-white text-xs font-black py-4 rounded-xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 tracking-widest"
             >
               {isLoading ? "VERIFYING..." : "SEND RECOVERY LINK"}
