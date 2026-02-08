@@ -1,34 +1,43 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db'); // Points to your pool.promise()
-
+const db = require('../config/db'); 
 const bcrypt = require('bcryptjs');
 
-// 1. LOGIN ROUTE
+// 1. LOGIN ROUTE (Fixed for Bcrypt)
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
-        // Updated to fetch ALL necessary profile columns
+        // Step 1: Find user by username only
         const sql = `
-            SELECT id, username, full_name, role, email, admin_id, department, profile_image 
+            SELECT id, username, password, full_name, role, email, profile_image 
             FROM users 
-            WHERE username = ? AND password = ?`;
+            WHERE username = ?`;
             
-        const [users] = await db.execute(sql, [username, password]);
+        const [users] = await db.execute(sql, [username]);
 
-        if (users && users.length > 0) {
-            res.json({ success: true, user: users[0] });
+        if (users.length > 0) {
+            const user = users[0];
+            
+            // Step 2: Use bcrypt to compare the plain-text password with the hash
+            const isMatch = await bcrypt.compare(password, user.password);
+            
+            if (isMatch) {
+                // Remove password from user object before sending to frontend
+                delete user.password;
+                res.json({ success: true, user: user });
+            } else {
+                res.status(401).json({ success: false, message: 'Invalid credentials' });
+            }
         } else {
-            res.status(401).json({ success: false, message: 'Invalid credentials' });
+            res.status(401).json({ success: false, message: 'User not found' });
         }
     } catch (err) {
         console.error("Login error:", err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: "Internal server error" });
     }
 });
 
-// 2. REGISTER NEW USER
-// 2. REGISTER NEW USER
+// 2. REGISTER NEW USER (Optimized)
 router.post('/register', async (req, res) => {
     const { full_name, username, password, role } = req.body;
 
@@ -37,20 +46,25 @@ router.post('/register', async (req, res) => {
     }
 
     try {
-        // --- ADDED: Hash the password before saving ---
+        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Updated query to use hashedPassword
-        const sql = "INSERT INTO users (full_name, username, password, role, email) VALUES (?, ?, ?, ?, ?)";
-        await db.query(sql, [full_name, username, hashedPassword, role, username]);
+        // Note: I removed the 5th '?' and 'username' as email to match 
+        // common table structures unless your table specifically requires it.
+        const sql = "INSERT INTO users (full_name, username, password, role) VALUES (?, ?, ?, ?)";
+        await db.query(sql, [full_name, username, hashedPassword, role]);
         
         res.json({ success: true, message: "User registered successfully!" });
     } catch (err) {
         console.error("Registration Error:", err);
-        // Error here is likely due to the ENUM missing the 'user' value in MySQL
-        res.status(500).json({ success: false, error: "Database error. Ensure the 'user' role is allowed in the ENUM list." });
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ success: false, error: "Username already exists." });
+        }
+        res.status(500).json({ success: false, error: "Database error." });
     }
 });
+
+// ... rest of your routes (GET, PUT, DELETE)
 
 // 3. GET ALL USERS (For Admin Management Table)
 router.get('/', async (req, res) => {

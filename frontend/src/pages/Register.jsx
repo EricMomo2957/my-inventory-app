@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    fullName: '',
+    full_name: '',
     username: '',
     role: '',
     password: ''
@@ -12,21 +13,33 @@ export default function Register() {
   const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('landingTheme') === 'dark');
   const navigate = useNavigate();
 
-  // Sync dark mode
+  // Sync dark mode with your Landing Page theme
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('landingTheme', 'dark'); // Added persistence sync here
+      localStorage.setItem('landingTheme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('landingTheme', 'light');
     }
   }, [isDarkMode]);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Logic for registration would go here
-    navigate('/login');
+    try {
+      // In your app.js, userRoutes are mounted at /api/users
+      // Ensure your backend has a POST route at /api/users/register
+      const response = await axios.post('http://localhost:3000/api/users/register', formData);
+      
+      if (response.data.success || response.status === 201) {
+        alert("Account initialized successfully!");
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error("Registration Error:", err);
+      // Provides feedback if user already exists or server is down
+      alert(err.response?.data?.message || "Connection failed. Please check if your backend is running.");
+    }
   };
 
   return (
@@ -54,17 +67,20 @@ export default function Register() {
         </header>
 
         <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Full Name Field */}
           <div className="md:col-span-2 space-y-2">
             <label className={`block text-[11px] font-black uppercase tracking-widest ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>Full Name</label>
             <input 
               type="text" 
               required 
-              value={formData.fullName}
+              value={formData.full_name}
+              placeholder="e.g. Eric Cartman"
               className={`w-full px-5 py-3.5 rounded-2xl border outline-none transition-all text-sm ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-indigo-500'}`}
-              onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+              onChange={(e) => setFormData({...formData, full_name: e.target.value})}
             />
           </div>
 
+          {/* Username Field */}
           <div className="space-y-2">
             <label className={`block text-[11px] font-black uppercase tracking-widest ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>Username</label>
             <input 
@@ -76,6 +92,7 @@ export default function Register() {
             />
           </div>
 
+          {/* Role Field */}
           <div className="space-y-2">
             <label className={`block text-[11px] font-black uppercase tracking-widest ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>Access Role</label>
             <select 
@@ -91,6 +108,7 @@ export default function Register() {
             </select>
           </div>
 
+          {/* Password Field */}
           <div className="md:col-span-2 space-y-2">
             <label className={`block text-[11px] font-black uppercase tracking-widest ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-700'}`}>Secure Password</label>
             <input 
@@ -117,9 +135,10 @@ export default function Register() {
         </div>
       </div>
 
+      {/* Dark Mode Toggle */}
       <button 
         onClick={() => setIsDarkMode(!isDarkMode)}
-        className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg md:block hidden z-50"
+        className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg md:block hidden z-50 transition-transform active:scale-90"
       >
         {isDarkMode ? '☀️' : '🌙'}
       </button>
