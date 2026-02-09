@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import ResetPassword from './pages/ResetPassword';
+
 // Layout and Security
 import { Sidenav } from './Sidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
@@ -9,10 +9,13 @@ import ProtectedRoute from './context/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/login'; 
 import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword'; // NEW: Imported Forgot Password
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Private Pages
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard'; // General/Old Dashboard
+import UserDashboard from './pages/user_dashboard'; // YOUR NEW USER DASHBOARD
+import ClerkDashboard from './pages/ClerkDashboard'; // YOUR NEW CLERK DASHBOARD
 import Orders from './pages/order'; 
 import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
@@ -27,15 +30,27 @@ export default function App() {
     return !!localStorage.getItem('userToken');
   });
 
-  const [user] = useState({ 
-    name: "Eric Dominic Momo", 
-    role: "Administrator",
-    avatar: "https://ui-avatars.com/api/?name=Eric+Dominic&background=4361ee&color=fff" 
+  // Dynamic user state - updated to read from localStorage for role-based logic
+  const [user, setUser] = useState({ 
+    name: localStorage.getItem('userName') || "Guest", 
+    role: localStorage.getItem('userRole') || "User",
+    avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'User'}&background=4361ee&color=fff` 
   });
+
+  // Update user state whenever login status changes
+  useEffect(() => {
+    if (isLoggedIn) {
+      setUser({
+        name: localStorage.getItem('userName') || "User",
+        role: localStorage.getItem('userRole') || "User",
+        avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'User'}&background=4361ee&color=fff`
+      });
+    }
+  }, [isLoggedIn]);
 
   const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('http://localhost:3000/api/products');
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       setProducts(data);
@@ -55,7 +70,7 @@ export default function App() {
   }, [products, dismissedAlerts]);
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
+    localStorage.clear();
     setIsLoggedIn(false);
   };
 
@@ -63,7 +78,10 @@ export default function App() {
     <Router>
       <div className={`flex h-screen w-full font-sans overflow-hidden ${isLoggedIn ? 'bg-[#0b1120] text-slate-200' : ''}`}>
         
-        {isLoggedIn && <Sidenav user={user} onLogout={handleLogout} />}
+        {/* Only show Sidenav for Admin/Clerk roles, usually hidden for basic User Shop view */}
+        {isLoggedIn && (user.role === 'admin' || user.role === 'clerk' || user.role === 'Administrator') && (
+          <Sidenav user={user} onLogout={handleLogout} />
+        )}
 
         <main className="flex-1 flex flex-col h-full overflow-hidden relative">
           
@@ -93,23 +111,36 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} /> {/* NEW: Recovery Route */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/order" element={<Orders />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />   
+
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
+              {/* Role-Specific Dashboards */}
+              <Route path="/user-dashboard" element={<UserDashboard />} />
+              <Route path="/clerk-dashboard" element={<ClerkDashboard />} />
+              
+              {/* Legacy/General Dashboard */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
+              
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile user={user} />} />
               <Route path="/settings" element={<Settings />} />
               
               <Route path="/admin" element={
-                user.role === "Administrator" ? <AdminManagement /> : <Navigate to="/dashboard" replace />
+                (user.role === "Administrator" || user.role === "admin") ? <AdminManagement /> : <Navigate to="/dashboard" replace />
               } />
             </Route>
 
-            {/* CATCH ALL */}
-            <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/"} replace />} />
+            {/* CATCH ALL REDIRECT */}
+            <Route path="*" element={
+              <Navigate to={
+                isLoggedIn 
+                  ? (user.role === 'user' ? "/user-dashboard" : "/clerk-dashboard") 
+                  : "/"
+              } replace />
+            } />
           </Routes>
         </main>
       </div>
