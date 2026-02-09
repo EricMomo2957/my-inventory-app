@@ -22,6 +22,16 @@ export default function UserDashboard() {
     if (!user) {
       navigate('/login');
     }
+    
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/products');
+        setProducts(res.data);
+      } catch {
+        console.error("Load failed");
+      }
+    };
+
     fetchProducts();
 
     if (isDarkMode) {
@@ -30,15 +40,6 @@ export default function UserDashboard() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode, navigate]);
-
-  const fetchProducts = async () => {
-    try {
-      const res = await axios.get('http://localhost:3000/api/products');
-      setProducts(res.data);
-    } catch (err) {
-      console.error("Load failed", err);
-    }
-  };
 
   // --- Logic Helpers ---
   const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
@@ -120,7 +121,9 @@ export default function UserDashboard() {
       setCart([]);
       localStorage.removeItem('userCart');
       setIsCartOpen(false);
-      fetchProducts(); // Refresh stock counts
+      // Refresh products to show updated stock
+      const res = await axios.get('http://localhost:3000/api/products');
+      setProducts(res.data);
     } catch {
       alert("Checkout failed. Please try again.");
     } finally {
@@ -258,7 +261,7 @@ export default function UserDashboard() {
       </button>
 
       {/* Cart Sidebar */}
-      <div className={`fixed inset-y-0 right-0 w-100 z-50 transition-transform duration-500 transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-slate-900 border-l border-slate-800' : 'bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)]'}`}>
+      <div className={`fixed inset-y-0 right-0 w-80 z-50 transition-transform duration-500 transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-slate-900 border-l border-slate-800' : 'bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)]'}`}>
         <div className="flex flex-col h-full p-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-black">Your Cart</h2>
