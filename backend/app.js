@@ -317,6 +317,38 @@ app.delete('/api/schedules/:id', async (req, res) => {
     }
 });
 
+// --- AUTHENTICATION: LOGIN ROUTE ---
+// --- UPDATED LOGIN ROUTE ---
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        // Matches your database structure: id, username, full_name, role
+        const [rows] = await db.query(
+            "SELECT id, username, full_name, role FROM users WHERE username = ? AND password = ?", 
+            [username, password]
+        );
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            res.json({
+                success: true,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    full_name: user.full_name,
+                    role: user.role // Expected values: 'admin', 'manager', 'clerk', etc.
+                }
+            });
+        } else {
+            res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
 /** RESET PASSWORD UPDATE */
 app.post('/api/users/reset-password', async (req, res) => {
     const { token, password } = req.body;

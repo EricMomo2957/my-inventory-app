@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios'; // Ensure axios is installed
+import axios from 'axios';
 
 export default function Login({ setIsLoggedIn }) {
   const [username, setUsername] = useState('');
@@ -9,44 +9,52 @@ export default function Login({ setIsLoggedIn }) {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  // Sync theme with document root
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      localStorage.setItem('landingTheme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('landingTheme', 'light');
     }
   }, [isDarkMode]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(''); // Clear previous errors
 
     try {
-      // 1. Send login request to your backend
-      const response = await axios.post('http://localhost:3000/api/login', {
-        username,
-        password
+      const response = await axios.post('http://localhost:3000/api/login', { 
+        username, 
+        password 
       });
+      
+      if (response.data.success) {
+        const { user } = response.data;
+        
+        // --- Storage for Auth & Protected Routes ---
+        localStorage.setItem('userToken', 'dummy-token'); // Triggers isLoggedIn check in App.js
+        localStorage.setItem('userRole', user.role);
+        localStorage.setItem('userName', user.full_name);
+        localStorage.setItem('userId', user.id);
 
-      const { user, token } = response.data;
+        setIsLoggedIn(true);
 
-      // 2. Store user info and token in localStorage
-      localStorage.setItem('userToken', token);
-      localStorage.setItem('userId', user.id);
-      localStorage.setItem('userRole', user.role);
-      localStorage.setItem('userName', user.full_name);
-
-      setIsLoggedIn(true);
-
-      // 3. Role-Based Redirection Logic
-      if (user.role === 'admin' || user.role === 'clerk' || user.role === 'manager') {
-        navigate('/clerk-dashboard'); // Redirect staff to the management side
-      } else {
-        navigate('/user-dashboard'); // Redirect regular customers to the shop side
+        // --- Role-Based Redirection ---
+        if (user.role === 'clerk' || user.role === 'manager') {
+          navigate('/clerk-dashboard');
+        } else if (user.role === 'user') {
+          navigate('/user-dashboard');
+        } else if (user.role === 'admin' || user.role === 'Administrator') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       }
-
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      // Display backend error message or default fallback
+      setError(err.response?.data?.message || "Login failed. Please check your credentials.");
     }
   };
 
@@ -72,13 +80,14 @@ export default function Login({ setIsLoggedIn }) {
           <h1 className={`text-4xl font-black mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             Inventory<span className="text-blue-600">Pro</span>
           </h1>
-          <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-sm font-medium`}>
+          <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-50' } text-sm font-medium`}>
             Enter your credentials to manage stock
           </p>
         </header>
 
+        {/* Error Feedback */}
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold text-center">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold text-center animate-pulse">
             {error}
           </div>
         )}
@@ -144,9 +153,10 @@ export default function Login({ setIsLoggedIn }) {
         </div>
       </div>
       
+      {/* Theme Toggle Button */}
       <button 
         onClick={() => setIsDarkMode(!isDarkMode)}
-        className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg"
+        className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg hover:scale-110 transition-transform"
       >
         {isDarkMode ? '☀️' : '🌙'}
       </button>
