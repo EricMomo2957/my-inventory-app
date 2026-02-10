@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Order() {
@@ -16,11 +16,27 @@ export default function Order() {
   const user = JSON.parse(localStorage.getItem('user')) || null;
   const isLoggedIn = !!user;
 
+  // --- IMAGE LOGIC ---
+  const getLocalImage = (item) => {
+    // Converts "Red Apple" to "red-apple.jpg"
+    const fileName = item.name.toLowerCase().replace(/\s+/g, '-');
+    return `/codepic/${fileName}.jpg`; 
+  };
+
+  const handleImgError = (e, category) => {
+    // Fallback to category image (e.g., vegetables.jpg)
+    e.target.src = `/codepic/${category.toLowerCase()}.jpg`;
+    e.target.onerror = () => {
+      // Final fallback if category image is also missing
+      e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
+    };
+  };
+
+  // --- DATA FETCHING ---
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get('http://localhost:3000/api/products');
-        // Ensure price is treated as a number immediately
         const formattedData = res.data.map(p => ({
           ...p,
           price: parseFloat(p.price) || 0
@@ -33,8 +49,10 @@ export default function Order() {
     fetchProducts();
   }, []);
 
+  // --- CALCULATIONS ---
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  // --- HANDLERS ---
   const handleQuantityChange = (id, val) => {
     const value = parseInt(val);
     setQuantities(prev => ({ ...prev, [id]: value > 0 ? value : 1 }));
@@ -49,6 +67,8 @@ export default function Order() {
       }
       return [...prev, { ...product, quantity: qty }];
     });
+    // Reset quantity input for that item after adding
+    setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
   const handleCheckout = async () => {
@@ -67,13 +87,17 @@ export default function Order() {
       }
       setReceiptData({
         date: new Date().toLocaleString(),
-        trx: Math.floor(Math.random() * 1000000)
+        trx: Math.floor(100000 + Math.random() * 900000)
       });
       setIsCartOpen(false);
       setShowReceipt(true);
     } catch (err) {
-      alert("Error: " + (err.response?.data?.message || err.message));
+      alert("Checkout failed: " + (err.response?.data?.message || err.message));
     }
+  };
+
+  const printReceipt = () => {
+    window.print();
   };
 
   const filteredProducts = products.filter(item => {
@@ -83,123 +107,216 @@ export default function Order() {
   });
 
   return (
-    <div className="relative min-h-screen bg-[#0b1120] text-slate-300 overflow-x-hidden font-sans">
-      {!isLoggedIn && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 py-2 px-6 flex justify-center items-center gap-3 sticky top-0 z-50 backdrop-blur-md">
-          <p className="text-[11px] font-bold text-amber-200 uppercase tracking-widest">
-            Guest Mode: Sign in to finalize transactions. 
-            <button onClick={() => navigate('/login')} className="ml-3 text-white underline">Staff Login</button>
-          </p>
-        </div>
-      )}
-
-      {/* Cart Sidebar */}
-      <div className={`fixed inset-y-0 right-0 w-full md:w-96 bg-[#111827] shadow-2xl z-100 transform transition-transform duration-300 ease-in-out border-l border-slate-800 flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-[#1e293b]">
-          <h2 className="text-xl font-black text-white">Review Cart</h2>
-          <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-white text-2xl">✕</button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 text-slate-300">
-          {cart.length === 0 ? (
-            <div className="text-center py-20 text-slate-500">Your cart is empty</div>
-          ) : (
-            cart.map(item => (
-              <div key={item.id} className="flex gap-4 bg-[#0b1120] p-3 rounded-xl border border-slate-800">
-                <div className="flex-1">
-                  <h4 className="text-sm font-bold text-white">{item.name}</h4>
-                  <p className="text-xs text-slate-500">₱{(item.price || 0).toFixed(2)} x {item.quantity}</p>
-                </div>
-                <button onClick={() => setCart(cart.filter(c => c.id !== item.id))} className="text-red-500 p-2 text-sm">Remove</button>
-              </div>
-            ))
-          )}
-        </div>
-        <div className="p-6 bg-[#1e293b] border-t border-slate-800 space-y-4">
-          <div className="flex justify-between items-center text-white">
-            <span className="font-bold uppercase text-xs">Total</span>
-            <span className="text-2xl font-black">₱{cartTotal.toLocaleString()}</span>
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-[#1e293b] dark:text-[#f8fafc] transition-colors duration-300 font-sans pb-10">
+      <div className="max-w-[1400px] mx-auto p-5 md:p-8 space-y-6">
+        
+        {/* --- UPPER HEADER --- */}
+        <div className="bg-gradient-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-[24px] shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="space-y-3 text-center md:text-left">
+            <Link to="/" className="text-white/80 hover:text-white flex items-center gap-2 text-sm font-semibold transition-all">
+              ← Return to Dashboard
+            </Link>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Point of Sale</h1>
+            <p className="opacity-90 max-w-xl text-lg leading-relaxed">
+              Serving local images from <code className="bg-black/20 px-2 py-1 rounded">/public/codepic/</code>
+            </p>
           </div>
-          <button disabled={cart.length === 0} onClick={handleCheckout} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-xl disabled:opacity-50">
-            PROCEED TO CHECKOUT
+          <div className="text-center md:text-right">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 mb-1">Current Selection</p>
+            <p className="text-5xl md:text-6xl font-black drop-shadow-md">₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+          </div>
+        </div>
+
+        {/* --- STICKY ACTION BAR --- */}
+        <header className="sticky top-5 z-40 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 p-5 rounded-[20px] shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="relative w-full md:w-[400px]">
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#f1f5f9] dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3 outline-none focus:ring-2 focus:ring-[#4361ee] transition-all"
+            />
+          </div>
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="w-full md:w-auto bg-[#4361ee] hover:bg-[#3a0ca3] text-white px-8 py-3.5 rounded-xl font-bold shadow-lg active:scale-95 transition-all"
+          >
+            Review Cart ({cart.length})
           </button>
-        </div>
-      </div>
-
-      {/* Receipt Modal */}
-      {showReceipt && (
-        <div className="fixed inset-0 z-110 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-white w-full max-w-sm rounded-lg shadow-2xl overflow-hidden flex flex-col text-slate-800 font-mono">
-            <div className="p-8 space-y-6">
-              <div className="text-center border-b pb-4">
-                <h2 className="text-xl font-black uppercase">InventoryPro</h2>
-                <p className="text-[10px] text-slate-500">{receiptData.date}</p>
-              </div>
-              <div className="space-y-2">
-                {cart.map(item => (
-                  <div key={item.id} className="flex justify-between text-xs">
-                    <span>{item.name} x{item.quantity}</span>
-                    <span>₱{((item.price || 0) * item.quantity).toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t pt-4 flex justify-between font-black">
-                <span>TOTAL</span>
-                <span>₱{cartTotal.toFixed(2)}</span>
-              </div>
-              <p className="text-center text-[8px] text-slate-400">#TRX-{receiptData.trx}</p>
-            </div>
-            <button onClick={() => { setShowReceipt(false); setCart([]); }} className="m-4 bg-slate-800 text-white py-3 rounded-lg">Close</button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Grid */}
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <header className="bg-linear-to-r from-[#4338ca] to-[#6d28d9] rounded-3xl p-10 flex flex-col md:flex-row justify-between items-center shadow-2xl">
-          <div>
-            <h1 className="text-4xl font-black text-white mb-2">Point of Sale</h1>
-            <p className="text-indigo-100 text-sm">Select items to build an order.</p>
-          </div>
-          <div className="text-right">
-            <p className="text-6xl font-black text-white tracking-tighter">₱{cartTotal.toLocaleString()}</p>
-          </div>
         </header>
 
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <input type="text" placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#1e293b] border border-slate-700 rounded-lg px-4 py-2.5 w-full md:w-96 text-white outline-none focus:ring-2 focus:ring-indigo-500" />
-          <button onClick={() => setIsCartOpen(true)} className="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold">
-            Cart ({cart.length})
-          </button>
-        </div>
-
-        <div className="flex gap-2">
+        {/* --- CATEGORY BAR --- */}
+        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
           {['All', 'Vegetables', 'Fruits', 'Supplies'].map((cat) => (
-            <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 py-1.5 rounded-full text-[11px] font-bold border ${activeCategory === cat ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-[#1e293b] text-slate-400 border-slate-700'}`}>{cat}</button>
+            <button 
+              key={cat} 
+              onClick={() => setActiveCategory(cat)}
+              className={`px-6 py-2.5 rounded-full text-sm font-bold border transition-all ${
+                activeCategory === cat 
+                ? 'bg-[#4361ee] text-white border-[#4361ee]' 
+                : 'bg-white dark:bg-[#1e293b] text-slate-500 border-slate-200 dark:border-slate-700 hover:border-[#4361ee]'
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-20">
+        {/* --- PRODUCT GRID --- */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map(item => (
-            <div key={item.id} className="bg-[#111827] rounded-2xl border border-slate-800 p-4 flex flex-col hover:border-indigo-500/50 transition-colors">
-              <div className="flex-1">
-                <p className="text-[10px] font-bold text-indigo-500 uppercase">{item.category}</p>
-                <h3 className="font-bold text-white text-lg">{item.name}</h3>
-                <p className="text-slate-400 text-xs mb-2">Stock: {item.quantity}</p>
-                <p className="text-2xl font-black text-white">₱{(item.price || 0).toFixed(2)}</p>
+            <div key={item.id} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 p-5 rounded-[24px] group hover:-translate-y-2 hover:border-[#4361ee] transition-all duration-300 flex flex-col">
+              <div className="relative mb-4 overflow-hidden rounded-2xl">
+                <img 
+                  src={getLocalImage(item)} 
+                  onError={(e) => handleImgError(e, item.category)}
+                  className="w-full h-44 object-cover group-hover:scale-110 transition-transform duration-500 bg-slate-100" 
+                  alt={item.name} 
+                />
+                <span className="absolute top-3 left-3 bg-[#4361ee]/20 backdrop-blur-md text-[#4361ee] px-3 py-1 rounded-lg text-[10px] font-black uppercase">
+                  {item.category}
+                </span>
               </div>
-              <div className="flex gap-2 mt-4">
-                <input type="number" min="1" value={quantities[item.id] || 1} onChange={(e) => handleQuantityChange(item.id, e.target.value)} 
-                  className="w-14 bg-slate-900 border border-slate-700 rounded p-2 text-center text-white" />
-                <button onClick={() => addToCart(item)} disabled={item.quantity <= 0}
-                  className="flex-1 bg-indigo-600 text-white text-[10px] font-bold py-3 rounded-lg hover:bg-indigo-500 disabled:bg-slate-700">
-                  {item.quantity > 0 ? "ADD ITEM" : "OUT OF STOCK"}
+              
+              <div className="flex-1 space-y-2">
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{item.name}</h3>
+                <div className="inline-block bg-[#4361ee]/10 text-[#4361ee] px-3 py-1 rounded-md text-xs font-bold">
+                  Stock: {item.quantity}
+                </div>
+                <div className="text-3xl font-black text-[#4361ee] pt-2">
+                  ₱{item.price.toFixed(2)}
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-6">
+                <input 
+                  type="number" 
+                  min="1" 
+                  value={quantities[item.id] || 1}
+                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                  className="w-16 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-xl text-center font-bold"
+                />
+                <button 
+                  onClick={() => addToCart(item)}
+                  disabled={item.quantity <= 0}
+                  className="flex-1 bg-[#4361ee] hover:bg-[#3a0ca3] text-white py-3.5 rounded-xl font-bold uppercase tracking-widest transition-all disabled:bg-slate-300 shadow-lg shadow-indigo-500/10"
+                >
+                  {item.quantity > 0 ? "Add Item" : "Sold Out"}
                 </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* --- CART MODAL --- */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-[#1e293b] rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <header className="p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+              <h2 className="text-2xl font-black">Order Summary</h2>
+              <button onClick={() => setIsCartOpen(false)} className="text-3xl text-slate-400 hover:text-red-500 transition-colors">✕</button>
+            </header>
+            
+            <div className="p-8 max-h-[400px] overflow-y-auto space-y-4">
+              {cart.length === 0 ? (
+                <div className="text-center py-10 opacity-50 font-bold">Your cart is empty</div>
+              ) : (
+                cart.map(item => (
+                  <div key={item.id} className="flex justify-between items-center bg-[#f8fafc] dark:bg-[#0f172a] p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div>
+                      <p className="font-black text-slate-800 dark:text-white">{item.name}</p>
+                      <p className="text-xs text-slate-500 font-bold">₱{item.price.toFixed(2)} x {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-[#4361ee]">₱{(item.price * item.quantity).toFixed(2)}</p>
+                      <button onClick={() => setCart(cart.filter(c => c.id !== item.id))} className="text-[10px] text-red-500 font-bold uppercase underline">Remove</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="p-8 bg-[#f8fafc] dark:bg-[#162033] border-t border-slate-100 dark:border-slate-700">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">Total Amount</span>
+                <span className="text-3xl font-black text-[#4361ee]">₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => setIsCartOpen(false)} className="py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:bg-white transition-colors">Edit Cart</button>
+                <button 
+                  onClick={handleCheckout}
+                  disabled={cart.length === 0}
+                  className="py-4 rounded-2xl bg-[#4361ee] text-white font-black hover:bg-[#3a0ca3] transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50"
+                >
+                  Complete Order
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- RECEIPT MODAL --- */}
+      {showReceipt && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md animate-in fade-in">
+           <div className="bg-white p-10 rounded-xl text-black w-full max-w-md font-mono shadow-2xl relative overflow-hidden">
+              {/* Receipt Decoration */}
+              <div className="absolute top-0 left-0 w-full h-2 bg-[#4361ee]"></div>
+              
+              <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-6">
+                <h2 className="text-2xl font-black tracking-tighter">INVENTORY PRO</h2>
+                <p className="text-xs uppercase font-bold text-slate-500">Official Order Receipt</p>
+                <p className="text-[10px] text-slate-400 mt-1">{receiptData.date}</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {cart.map(item => (
+                  <div key={item.id} className="flex justify-between text-sm">
+                    <span className="uppercase">{item.name} <span className="text-slate-400 text-xs">x{item.quantity}</span></span>
+                    <span className="font-bold">₱{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t-2 border-dashed border-slate-200 pt-4 mb-6 flex justify-between font-black text-2xl">
+                <span>TOTAL</span>
+                <span>₱{cartTotal.toFixed(2)}</span>
+              </div>
+
+              <div className="text-center text-[10px] text-slate-400 mb-8">
+                TRANSACTION ID: #{receiptData.trx}<br/>
+                THANK YOU FOR YOUR PURCHASE!
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 print:hidden">
+                <button 
+                  onClick={printReceipt} 
+                  className="bg-slate-100 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-200 transition-colors"
+                >
+                  PRINT
+                </button>
+                <button 
+                  onClick={() => { setShowReceipt(false); setCart([]); }} 
+                  className="bg-black text-white py-3 rounded-lg font-bold hover:opacity-80 transition-opacity"
+                >
+                  CLOSE
+                </button>
+              </div>
+           </div>
+        </div>
+      )}
+      
+      {/* Styles for Printing */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .fixed.inset-0.z-\\[110\\] { position: absolute; left: 0; top: 0; width: 100%; visibility: visible; }
+          .fixed.inset-0.z-\\[110\\] * { visibility: visible; }
+          .print\\:hidden { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
