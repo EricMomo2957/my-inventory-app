@@ -34,6 +34,31 @@ export default function ClerkDashboard() {
     }
   }, []);
 
+  // Export to CSV Function
+  const downloadCSV = () => {
+    if (products.length === 0) return;
+
+    const headers = ["ID", "Name", "Category", "Price", "Quantity", "Status"];
+    const rows = products.map(p => [
+      p.id,
+      `"${p.name}"`, 
+      `"${p.category || 'General'}"`,
+      p.price,
+      p.quantity,
+      p.quantity <= lowStockThreshold ? "LOW STOCK" : "OK"
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `inventory_report_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Auth check and initial fetch
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -45,7 +70,7 @@ export default function ClerkDashboard() {
     }
   }, [navigate, fetchData]);
 
-  // FIX: Theme handling logic updated to avoid cascading render errors
+  // Theme handling logic
   useEffect(() => {
     const root = window.document.documentElement;
     if (isDarkMode) {
@@ -102,9 +127,15 @@ export default function ClerkDashboard() {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
               <div>
                 <h1 className="text-4xl font-black tracking-tight">Clerk Stock Portal</h1>
-                <p className="text-slate-500 font-medium mt-1">Inventory Management • {new Date().toLocaleDateString()}</p>
+                <p className="text-slate-500 font-medium mt-1">Live database control: {new Date().toLocaleDateString()}</p>
               </div>
               <div className="flex gap-3">
+                <button
+                  onClick={downloadCSV}
+                  className={`px-5 py-2.5 rounded-xl border font-bold flex items-center gap-2 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'}`}
+                >
+                  📥 Export CSV
+                </button>
                 <button
                   onClick={() => setActiveView('profile-view')}
                   className={`px-5 py-2.5 rounded-xl border font-bold flex items-center gap-2 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'}`}
@@ -130,7 +161,7 @@ export default function ClerkDashboard() {
               <span className="absolute inset-y-0 left-0 flex items-center pl-6 text-slate-400">🔍</span>
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Filter by product name..."
                 className={`w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800 focus:border-blue-500' : 'bg-white border-slate-200 focus:border-blue-500 shadow-sm'}`}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -161,7 +192,7 @@ export default function ClerkDashboard() {
                           <td className="p-5 font-black text-lg">{p.quantity}</td>
                           <td className="p-5">
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${isLow ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                              {isLow ? 'LOW STOCK' : 'IN STOCK'}
+                              {isLow ? 'LOW STOCK' : 'OK'}
                             </span>
                           </td>
                           <td className="p-5 text-right">
@@ -185,14 +216,12 @@ export default function ClerkDashboard() {
         {/* VIEW: PROFILE */}
         {activeView === 'profile-view' && (
           <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {/* FIX: Replaced hover:translate-x-[-4px] with hover:-translate-x-1 */}
             <button onClick={() => setActiveView('stock-view')} className="text-blue-500 font-bold mb-6 flex items-center gap-2 group hover:-translate-x-1 transition-transform">
               <span>←</span> Back to Dashboard
             </button>
             <h1 className="text-3xl font-black mb-8">User Profile</h1>
             <div className={`p-10 rounded-3xl border shadow-xl ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
                <div className="flex items-center gap-6 mb-8">
-                 {/* FIX: Replaced bg-gradient-to-br with bg-linear-to-br */}
                  <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center text-2xl font-black text-white shadow-lg">
                    {userData.full_name.split(' ').map(n => n[0]).join('')}
                  </div>
@@ -214,7 +243,6 @@ export default function ClerkDashboard() {
         {/* VIEW: SETTINGS */}
         {activeView === 'settings-view' && (
           <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {/* FIX: Replaced hover:translate-x-[-4px] with hover:-translate-x-1 */}
             <button onClick={() => setActiveView('stock-view')} className="text-blue-500 font-bold mb-6 flex items-center gap-2 group hover:-translate-x-1 transition-transform">
               <span>←</span> Back to Dashboard
             </button>
