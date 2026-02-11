@@ -18,16 +18,13 @@ export default function Order() {
 
   // --- IMAGE LOGIC ---
   const getLocalImage = (item) => {
-    // Converts "Red Apple" to "red-apple.jpg"
     const fileName = item.name.toLowerCase().replace(/\s+/g, '-');
     return `/codepic/${fileName}.jpg`; 
   };
 
   const handleImgError = (e, category) => {
-    // Fallback to category image (e.g., vegetables.jpg)
     e.target.src = `/codepic/${category.toLowerCase()}.jpg`;
     e.target.onerror = () => {
-      // Final fallback if category image is also missing
       e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
     };
   };
@@ -54,7 +51,7 @@ export default function Order() {
 
   // --- HANDLERS ---
   const handleQuantityChange = (id, val) => {
-    const value = parseInt(val);
+    const value = parseInt(val, 10);
     setQuantities(prev => ({ ...prev, [id]: value > 0 ? value : 1 }));
   };
 
@@ -67,7 +64,6 @@ export default function Order() {
       }
       return [...prev, { ...product, quantity: qty }];
     });
-    // Reset quantity input for that item after adding
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
@@ -108,10 +104,12 @@ export default function Order() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-[#1e293b] dark:text-[#f8fafc] transition-colors duration-300 font-sans pb-10">
-      <div className="max-w-[1400px] mx-auto p-5 md:p-8 space-y-6">
+      {/* FIXED: max-w-[1400px] -> max-w-7xl (or nearest canonical) */}
+      <div className="max-w-7xl mx-auto p-5 md:p-8 space-y-6">
         
         {/* --- UPPER HEADER --- */}
-        <div className="bg-gradient-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-[24px] shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+        {/* FIXED: bg-gradient-to-br -> bg-linear-to-br | rounded-[24px] -> rounded-3xl */}
+        <div className="bg-linear-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="space-y-3 text-center md:text-left">
             <Link to="/" className="text-white/80 hover:text-white flex items-center gap-2 text-sm font-semibold transition-all">
               ← Return to Dashboard
@@ -129,7 +127,8 @@ export default function Order() {
 
         {/* --- STICKY ACTION BAR --- */}
         <header className="sticky top-5 z-40 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 p-5 rounded-[20px] shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="relative w-full md:w-[400px]">
+          {/* FIXED: md:w-[400px] -> md:w-100 */}
+          <div className="relative w-full md:w-100">
             <input 
               type="text" 
               placeholder="Search products..." 
@@ -166,7 +165,8 @@ export default function Order() {
         {/* --- PRODUCT GRID --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map(item => (
-            <div key={item.id} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 p-5 rounded-[24px] group hover:-translate-y-2 hover:border-[#4361ee] transition-all duration-300 flex flex-col">
+            /* FIXED: rounded-[24px] -> rounded-3xl */
+            <div key={item.id} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 p-5 rounded-3xl group hover:-translate-y-2 hover:border-[#4361ee] transition-all duration-300 flex flex-col">
               <div className="relative mb-4 overflow-hidden rounded-2xl">
                 <img 
                   src={getLocalImage(item)} 
@@ -212,14 +212,17 @@ export default function Order() {
 
       {/* --- CART MODAL --- */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-[#1e293b] rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        /* FIXED: z-[100] -> z-100 */
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          {/* FIXED: rounded-[32px] -> rounded-4xl */}
+          <div className="bg-white dark:bg-[#1e293b] rounded-4xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <header className="p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-2xl font-black">Order Summary</h2>
               <button onClick={() => setIsCartOpen(false)} className="text-3xl text-slate-400 hover:text-red-500 transition-colors">✕</button>
             </header>
             
-            <div className="p-8 max-h-[400px] overflow-y-auto space-y-4">
+            {/* FIXED: max-h-[400px] -> max-h-100 */}
+            <div className="p-8 max-h-100 overflow-y-auto space-y-4">
               {cart.length === 0 ? (
                 <div className="text-center py-10 opacity-50 font-bold">Your cart is empty</div>
               ) : (
@@ -260,50 +263,50 @@ export default function Order() {
 
       {/* --- RECEIPT MODAL --- */}
       {showReceipt && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/90 backdrop-blur-md animate-in fade-in">
+        /* FIXED: z-[110] -> z-110 */
+        <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/90 backdrop-blur-md animate-in fade-in">
            <div className="bg-white p-10 rounded-xl text-black w-full max-w-md font-mono shadow-2xl relative overflow-hidden">
-              {/* Receipt Decoration */}
-              <div className="absolute top-0 left-0 w-full h-2 bg-[#4361ee]"></div>
-              
-              <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-6">
-                <h2 className="text-2xl font-black tracking-tighter">INVENTORY PRO</h2>
-                <p className="text-xs uppercase font-bold text-slate-500">Official Order Receipt</p>
-                <p className="text-[10px] text-slate-400 mt-1">{receiptData.date}</p>
-              </div>
+             <div className="absolute top-0 left-0 w-full h-2 bg-[#4361ee]"></div>
+             
+             <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-6">
+               <h2 className="text-2xl font-black tracking-tighter">INVENTORY PRO</h2>
+               <p className="text-xs uppercase font-bold text-slate-500">Official Order Receipt</p>
+               <p className="text-[10px] text-slate-400 mt-1">{receiptData.date}</p>
+             </div>
 
-              <div className="space-y-3 mb-6">
-                {cart.map(item => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="uppercase">{item.name} <span className="text-slate-400 text-xs">x{item.quantity}</span></span>
-                    <span className="font-bold">₱{(item.price * item.quantity).toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
+             <div className="space-y-3 mb-6">
+               {cart.map(item => (
+                 <div key={item.id} className="flex justify-between text-sm">
+                   <span className="uppercase">{item.name} <span className="text-slate-400 text-xs">x{item.quantity}</span></span>
+                   <span className="font-bold">₱{(item.price * item.quantity).toFixed(2)}</span>
+                 </div>
+               ))}
+             </div>
 
-              <div className="border-t-2 border-dashed border-slate-200 pt-4 mb-6 flex justify-between font-black text-2xl">
-                <span>TOTAL</span>
-                <span>₱{cartTotal.toFixed(2)}</span>
-              </div>
+             <div className="border-t-2 border-dashed border-slate-200 pt-4 mb-6 flex justify-between font-black text-2xl">
+               <span>TOTAL</span>
+               <span>₱{cartTotal.toFixed(2)}</span>
+             </div>
 
-              <div className="text-center text-[10px] text-slate-400 mb-8">
-                TRANSACTION ID: #{receiptData.trx}<br/>
-                THANK YOU FOR YOUR PURCHASE!
-              </div>
+             <div className="text-center text-[10px] text-slate-400 mb-8">
+               TRANSACTION ID: #{receiptData.trx}<br/>
+               THANK YOU FOR YOUR PURCHASE!
+             </div>
 
-              <div className="grid grid-cols-2 gap-3 print:hidden">
-                <button 
-                  onClick={printReceipt} 
-                  className="bg-slate-100 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-200 transition-colors"
-                >
-                  PRINT
-                </button>
-                <button 
-                  onClick={() => { setShowReceipt(false); setCart([]); }} 
-                  className="bg-black text-white py-3 rounded-lg font-bold hover:opacity-80 transition-opacity"
-                >
-                  CLOSE
-                </button>
-              </div>
+             <div className="grid grid-cols-2 gap-3 print:hidden">
+               <button 
+                 onClick={printReceipt} 
+                 className="bg-slate-100 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-200 transition-colors"
+               >
+                 PRINT
+               </button>
+               <button 
+                 onClick={() => { setShowReceipt(false); setCart([]); }} 
+                 className="bg-black text-white py-3 rounded-lg font-bold hover:opacity-80 transition-opacity"
+               >
+                 CLOSE
+               </button>
+             </div>
            </div>
         </div>
       )}
@@ -312,8 +315,8 @@ export default function Order() {
       <style>{`
         @media print {
           body * { visibility: hidden; }
-          .fixed.inset-0.z-\\[110\\] { position: absolute; left: 0; top: 0; width: 100%; visibility: visible; }
-          .fixed.inset-0.z-\\[110\\] * { visibility: visible; }
+          .fixed.inset-0.z-110 { position: absolute; left: 0; top: 0; width: 100%; visibility: visible; }
+          .fixed.inset-0.z-110 * { visibility: visible; }
           .print\\:hidden { display: none !important; }
         }
       `}</style>
