@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ClerkSetting from './clerkSetting'; 
@@ -10,22 +10,24 @@ export default function ClerkDashboard() {
   const [activeView, setActiveView] = useState('stock-view');
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // FIXED: Removed direct setIsDarkMode call to satisfy "unused var" linter error
-  const [isDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
-  const [lowStockThreshold] = useState(() => parseInt(localStorage.getItem('lowStockThreshold') || '10', 10));
-
-  // Use useMemo or simple state for constant data to keep render "pure"
-  const [userData] = useState({
-    id: localStorage.getItem('userId'),
-    full_name: localStorage.getItem('userName') || 'Clerk User',
-    role: localStorage.getItem('userRole') || 'clerk',
-    username: localStorage.getItem('userName')?.toLowerCase().replace(' ', '_') || 'clerk_01'
-  });
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [adjustment, setAdjustment] = useState('');
+
+  // Fixed: Standard state initialization for constants
+  const [isDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
+  const [lowStockThreshold] = useState(() => parseInt(localStorage.getItem('lowStockThreshold') || '10', 10));
+
+  // useMemo for pure data derived from localStorage
+  const userData = useMemo(() => ({
+    id: localStorage.getItem('userId'),
+    full_name: localStorage.getItem('userName') || 'Clerk User',
+    role: localStorage.getItem('userRole') || 'clerk',
+    username: localStorage.getItem('userName')?.toLowerCase().replace(/\s/g, '_') || 'clerk_01'
+  }), []);
+
+  // Fixed: Memoize the date to prevent impure render errors
+  const todayDate = useMemo(() => new Date().toLocaleDateString(), []);
 
   // --- Functions ---
   const fetchData = useCallback(async () => {
@@ -39,7 +41,7 @@ export default function ClerkDashboard() {
     }
   }, []);
 
-  // FIXED: Auth check separated from data fetching to resolve "synchronous setState" error
+  // Auth Check
   useEffect(() => {
     const role = localStorage.getItem('userRole');
     if (role !== 'clerk' && role !== 'admin') {
@@ -53,7 +55,7 @@ export default function ClerkDashboard() {
     fetchData();
   }, [fetchData]);
 
-  // Theme handling logic
+  // Theme handling
   useEffect(() => {
     const root = window.document.documentElement;
     if (isDarkMode) {
@@ -124,7 +126,7 @@ export default function ClerkDashboard() {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
               <div>
                 <h1 className="text-4xl font-black tracking-tight">Clerk Stock Portal</h1>
-                <p className="text-slate-500 font-medium mt-1">Live database control: {new Date().toLocaleDateString()}</p>
+                <p className="text-slate-500 font-medium mt-1">Live database control: {todayDate}</p>
               </div>
               <div className="flex gap-3">
                 <button onClick={downloadCSV} className={`px-5 py-2.5 rounded-xl border font-bold flex items-center gap-2 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'}`}>
