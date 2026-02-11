@@ -3,23 +3,30 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const LandingPage = () => {
-  const [isDarkMode, setIsDarkMode] = useState(localStorage.getItem('landingTheme') === 'dark');
+  // Safe initialization of state from localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('landingTheme') === 'dark';
+  });
+  
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [faqs, setFaqs] = useState([]);
   const [activeFaq, setActiveFaq] = useState(null);
   const canvasRef = useRef(null);
 
+  // THEME EFFECT: Syncs with DOM safely
   useEffect(() => {
+    const root = document.documentElement;
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
+      root.classList.add('dark');
       localStorage.setItem('landingTheme', 'dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      root.classList.remove('dark');
       localStorage.setItem('landingTheme', 'light');
     }
   }, [isDarkMode]);
 
+  // DATA EFFECT: Fetch FAQs
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
@@ -32,14 +39,16 @@ const LandingPage = () => {
     fetchFaqs();
   }, []);
 
+  // SCROLL EFFECT: Toggle visibility of "Top" button
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollBtn(window.scrollY > 400);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // ANIMATION EFFECT: Interactive Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -65,13 +74,11 @@ const LandingPage = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const lineGap = 120;
       const rowCount = Math.ceil(canvas.height / lineGap) + 1;
-
       for (let i = 0; i < rowCount; i++) {
         const centerY = i * lineGap;
         ctx.beginPath();
         ctx.strokeStyle = isDarkMode ? 'rgba(67, 97, 238, 0.15)' : 'rgba(67, 97, 238, 0.08)';
         ctx.lineWidth = 1.5;
-
         for (let x = 0; x <= canvas.width; x += 30) {
           const dx = mouse.x - x;
           const dy = mouse.y - centerY;
@@ -107,14 +114,14 @@ const LandingPage = () => {
   };
 
   return (
-    <div className={`landing-wrapper relative w-full overflow-x-hidden transition-colors duration-500 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`}>
+    <div className={`landing-wrapper relative w-full overflow-x-hidden transition-colors duration-500 min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`}>
       
       <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none" />
 
       {showScrollBtn && (
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-[100] shadow-lg flex items-center justify-center animate-bounce hover:scale-110 transition-transform"
+          className="fixed bottom-8 right-8 w-12 h-12 bg-[#4361ee] text-white rounded-full z-50 shadow-lg flex items-center justify-center animate-bounce hover:scale-110 transition-transform"
         >
           ↑
         </button>
@@ -128,14 +135,7 @@ const LandingPage = () => {
           <a href="#features" className="hidden md:block hover:text-[#4361ee] font-bold transition-colors">Features</a>
           <a href="#contact" className="hidden sm:block hover:text-[#4361ee] font-bold transition-colors">Contact</a>
           
-          <Link 
-            to="/login" 
-            className={`px-6 py-2 rounded-xl font-bold transition-all border ${
-              isDarkMode 
-                ? 'border-slate-700 hover:bg-slate-800 text-white' 
-                : 'border-slate-200 hover:bg-slate-50 text-slate-900'
-            }`}
-          >
+          <Link to="/login" className={`px-6 py-2 rounded-xl font-bold transition-all border ${isDarkMode ? 'border-slate-700 hover:bg-slate-800 text-white' : 'border-slate-200 hover:bg-slate-50 text-slate-900'}`}>
             Login
           </Link>
 
@@ -145,63 +145,46 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <header className="flex flex-col md:flex-row items-center justify-between px-[8%] py-24 min-h-[85vh] gap-12">
-        <div className="max-w-xl space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
+        <div className="max-w-xl space-y-8">
           <h1 className="text-6xl md:text-8xl font-black leading-tight tracking-tighter">Master Your <span className="text-[#4361ee]">Stock.</span></h1>
-          <p className="text-xl text-slate-500 dark:text-slate-400 font-medium">The smartest way to manage inventory, track sales, and generate reports in real-time.</p>
-          <div className="flex flex-wrap gap-4">
-            <Link 
-              to="/order" 
-              onMouseMove={handleMagnetic} 
-              onMouseLeave={resetMagnetic} 
-              className="inline-block bg-[#4361ee] text-white px-12 py-5 rounded-2xl font-black text-xl shadow-2xl shadow-blue-500/30 transition-all"
-            >
-              Get Started
-            </Link>
-          </div>
+          <p className="text-xl text-slate-500 dark:text-slate-400 font-medium">The smartest way to manage inventory in real-time.</p>
+          <Link to="/order" onMouseMove={handleMagnetic} onMouseLeave={resetMagnetic} className="inline-block bg-[#4361ee] text-white px-12 py-5 rounded-2xl font-black text-xl shadow-2xl transition-all">
+            Get Started
+          </Link>
         </div>
-        <div className="relative group w-full md:w-1/2 animate-in fade-in slide-in-from-right-8 duration-700">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
-          <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" className="relative rounded-3xl shadow-2xl w-full object-cover h-[450px]" alt="Warehouse" />
+        <div className="relative group w-full md:w-1/2">
+          <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-cyan-500 rounded-3xl blur opacity-25"></div>
+          <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" className="relative rounded-3xl shadow-2xl w-full object-cover h-112.5" alt="Warehouse" />
         </div>
       </header>
 
-      {/* About Section */}
+      {/* About */}
       <section id="about" className="px-[8%] py-24 scroll-mt-20">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div className="space-y-6">
             <h2 className="text-4xl font-black">Why Inventory Pro?</h2>
-            <p className="text-lg text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-              We developed Inventory Pro to eliminate the chaos of manual stock counting. Whether you are managing a single warehouse or multiple teams, our system provides the visibility you need to make smart business decisions.
+            <p className="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+              We developed Inventory Pro to eliminate the chaos of manual counting.
             </p>
-            <div className="flex gap-12 border-t border-slate-100 dark:border-slate-800 pt-8">
-              <div>
-                <h4 className="text-4xl font-black text-[#4361ee]">99.9%</h4>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">Accuracy</p>
-              </div>
-              <div>
-                <h4 className="text-4xl font-black text-[#4361ee]">24/7</h4>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">Real-time Sync</p>
-              </div>
-            </div>
           </div>
-          <div className="bg-slate-50 dark:bg-slate-800/30 p-10 rounded-[40px] border border-slate-200 dark:border-slate-700 backdrop-blur-sm">
+          <div className="bg-slate-50 dark:bg-slate-800/30 p-10 rounded-[40px] border border-slate-200 dark:border-slate-700">
              <h3 className="text-2xl font-black mb-4">Enterprise Reliability</h3>
-             <p className="text-slate-500 dark:text-slate-400 font-medium">Built on modern architecture, designed to handle high transaction volumes with full data integrity.</p>
+             <p className="text-slate-500 dark:text-slate-400 font-medium">Built for high transaction volumes.</p>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features */}
       <section id="features" className="px-[8%] py-24 bg-slate-50/50 dark:bg-slate-800/10 scroll-mt-20">
         <div className="grid md:grid-cols-3 gap-8">
           {[
-            { title: "Stock Tracking", desc: "Sync stock levels across all devices instantly with cloud precision.", icon: "⚡" },
-            { title: "Smart Checkout", desc: "Prevents counting errors via transaction locks and verification.", icon: "🛒" },
-            { title: "Audit Trails", desc: "Automated activity logs for every action, from login to sale.", icon: "📊" }
+            { title: "Stock Tracking", desc: "Sync levels across all devices.", icon: "⚡" },
+            { title: "Smart Checkout", desc: "Prevents counting errors.", icon: "🛒" },
+            { title: "Audit Trails", desc: "Automated activity logs.", icon: "📊" }
           ].map((f, i) => (
-            <div key={i} className="p-10 bg-white dark:bg-slate-800 rounded-3xl shadow-xl hover:-translate-y-2 transition-all border border-slate-100 dark:border-slate-700">
+            <div key={i} className="p-10 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700">
               <div className="text-5xl mb-6">{f.icon}</div>
               <h3 className="text-xl font-black mb-3">{f.title}</h3>
               <p className="text-slate-500 dark:text-slate-400 font-medium">{f.desc}</p>
@@ -210,24 +193,19 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ */}
       <section id="faq" className="px-[8%] py-24 scroll-mt-20">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-4xl font-black mb-12 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-4xl font-black mb-12 text-center">Questions?</h2>
           <div className="space-y-4">
             {faqs.map((faq) => (
               <div key={faq.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
-                <button 
-                  onClick={() => setActiveFaq(activeFaq === faq.id ? null : faq.id)} 
-                  className="w-full p-6 text-left flex justify-between items-center group"
-                >
+                <button onClick={() => setActiveFaq(activeFaq === faq.id ? null : faq.id)} className="w-full p-6 text-left flex justify-between items-center group">
                   <span className="font-bold group-hover:text-[#4361ee] transition-colors">{faq.question}</span>
                   <span className={`transition-transform duration-300 ${activeFaq === faq.id ? 'rotate-180 text-[#4361ee]' : 'text-slate-400'}`}>▾</span>
                 </button>
-                <div className={`transition-all duration-300 ease-in-out ${activeFaq === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <p className="px-6 pb-6 text-slate-500 dark:text-slate-400 border-t border-slate-50 dark:border-slate-700 pt-4 font-medium">
-                    {faq.answer}
-                  </p>
+                <div className={`transition-all duration-300 ${activeFaq === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <p className="px-6 pb-6 text-slate-500 dark:text-slate-400 pt-4 font-medium">{faq.answer}</p>
                 </div>
               </div>
             ))}
@@ -235,45 +213,27 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Contact Section */}
+      {/* Contact */}
       <section id="contact" className="px-[8%] py-24 mb-20 scroll-mt-20">
         <div className="bg-slate-900 text-white rounded-[60px] p-12 md:p-24 relative overflow-hidden">
-          <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
-            <div>
-              <h2 className="text-5xl font-black mb-6">Let's Connect.</h2>
-              <p className="text-slate-400 text-lg mb-8 font-medium">Have questions about implementation? Our team is ready to help you optimize your inventory.</p>
-              <div className="space-y-4 text-slate-300 font-mono text-sm">
-                <p>📍 Cebu City, Philippines</p>
-                <p>📧 support@inventorypro.com</p>
-              </div>
+          {!formSubmitted ? (
+            <form onSubmit={(e) => { e.preventDefault(); setFormSubmitted(true); }} className="max-w-md mx-auto space-y-4 relative z-10">
+              <h2 className="text-4xl font-black text-center mb-8">Contact Us</h2>
+              <input type="text" placeholder="Name" required className="w-full p-4 bg-slate-800 rounded-xl outline-none" />
+              <textarea placeholder="Message" rows="4" className="w-full p-4 bg-slate-800 rounded-xl outline-none"></textarea>
+              <button type="submit" className="w-full bg-[#4361ee] py-4 rounded-xl font-black text-lg">Send</button>
+            </form>
+          ) : (
+            <div className="text-center py-10">
+              <h3 className="text-2xl font-black text-green-400">Sent!</h3>
+              <button onClick={() => setFormSubmitted(false)} className="mt-4 text-[#4361ee] underline">Send another</button>
             </div>
-            <div className="bg-white p-10 rounded-3xl text-slate-900 shadow-2xl">
-              {!formSubmitted ? (
-                <form onSubmit={(e) => { e.preventDefault(); setFormSubmitted(true); }} className="space-y-4">
-                  <input type="text" placeholder="Your Name" required className="w-full p-4 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4361ee]" />
-                  <input type="email" placeholder="Email Address" required className="w-full p-4 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4361ee]" />
-                  <textarea placeholder="How can we help?" rows="4" className="w-full p-4 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-[#4361ee]"></textarea>
-                  <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-black text-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-500/20">
-                    Send Message
-                  </button>
-                </form>
-              ) : (
-                <div className="text-center py-10 animate-in zoom-in-95 duration-300">
-                  <div className="text-6xl mb-4">🎉</div>
-                  <h3 className="text-2xl font-black text-green-600 mb-2">Message Received!</h3>
-                  <p className="text-slate-500 font-medium">We'll get back to you within 24 hours.</p>
-                  <button onClick={() => setFormSubmitted(false)} className="mt-8 text-[#4361ee] font-black hover:underline">
-                    Send another message
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
       <footer className="py-12 text-center text-slate-500 border-t border-slate-100 dark:border-slate-800">
-        <p className="font-bold">&copy; 2026 Inventory Pro Systems. All rights reserved.</p>
+        <p className="font-bold">&copy; 2026 Inventory Pro Systems.</p>
       </footer>
     </div>
   );
