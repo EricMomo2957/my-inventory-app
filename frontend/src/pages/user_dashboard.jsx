@@ -9,7 +9,7 @@ export default function UserDashboard() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('userCart')) || []);
   const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('userFavorites')) || []);
-  const [currentView, setCurrentView] = useState('all'); // 'all' or 'favorites'
+  const [currentView, setCurrentView] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -121,7 +121,6 @@ export default function UserDashboard() {
       setCart([]);
       localStorage.removeItem('userCart');
       setIsCartOpen(false);
-      // Refresh products to show updated stock
       const res = await axios.get('http://localhost:3000/api/products');
       setProducts(res.data);
     } catch {
@@ -137,10 +136,11 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className={`min-h-screen flex font-sans transition-colors duration-300 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    // UPDATED: Ensure min-h-screen and overflow-x-hidden for proper layout
+    <div className={`min-h-screen overflow-x-hidden transition-colors duration-300 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* Sidebar */}
-      <aside className={`w-64 fixed h-screen border-r flex flex-col p-6 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+      {/* Sidebar - FIXED: Added z-index to stay above content */}
+      <aside className={`w-64 fixed top-0 left-0 h-screen border-r flex flex-col p-6 z-30 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className="flex items-center gap-3 mb-10 text-blue-500 text-xl font-extrabold tracking-tight">
           <div className="w-8 h-8 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/30" />
           Inventory<span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Pro</span>
@@ -149,31 +149,31 @@ export default function UserDashboard() {
         <nav className="grow space-y-2">
           <button 
             onClick={() => setCurrentView('all')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'all' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-blue-50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'all' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-blue-100/50'}`}
           >
             <span>📦</span> Catalog
           </button>
           <button 
             onClick={() => setCurrentView('favorites')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'favorites' ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-red-50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'favorites' ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-red-100/50'}`}
           >
             <span>❤️</span> Favorites
           </button>
-          <Link to="/orders" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-50">
+          <Link to="/orders" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-100/50 transition-all">
             <span>📜</span> My Orders
           </Link>
-          <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-50">
+          <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-100/50 transition-all">
             <span>⚙️</span> Settings
           </Link>
         </nav>
 
-        <button onClick={logout} className="mt-auto flex items-center gap-3 px-4 py-3 text-red-500 font-bold hover:bg-red-50 rounded-xl transition-all">
+        <button onClick={logout} className="mt-auto flex items-center gap-3 px-4 py-3 text-red-500 font-bold hover:bg-red-100/50 rounded-xl transition-all">
           <span>🚪</span> Logout
         </button>
       </aside>
 
-      {/* Main Content */}
-      <main className="ml-64 grow p-10">
+      {/* Main Content - UPDATED: ml-64 ensures it starts after sidebar, min-h-screen for scrolling */}
+      <main className="ml-64 p-10 min-h-screen">
         <header className="mb-8">
           <h1 className="text-3xl font-black">Welcome back! 👋</h1>
           <p className="text-slate-500 font-medium">
@@ -205,12 +205,12 @@ export default function UserDashboard() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
           {filteredProducts.map(product => {
             const isOut = product.quantity <= 0;
             const isFav = favorites.includes(product.id);
             return (
-              <div key={product.id} className={`group relative p-4 rounded-4xl border transition-all hover:-translate-y-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'}`}>
+              <div key={product.id} className={`group relative p-4 rounded-3xl border transition-all hover:-translate-y-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'}`}>
                 <button 
                   onClick={() => toggleFavorite(product.id)}
                   className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90 ${isFav ? 'bg-red-50 text-red-500' : 'bg-white text-slate-300'}`}
