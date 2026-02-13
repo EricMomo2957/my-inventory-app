@@ -5,22 +5,27 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Sidenav } from './Sidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
 
-// Public Pages
+// Public & Auth Pages (Moved to /pages/auth/)
 import LandingPage from './pages/LandingPage';
-import Login from './pages/login'; 
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+import Login from './pages/auth/login'; 
+import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
-// Private Pages
-import Dashboard from './pages/Dashboard'; // General/Old Dashboard
-import UserDashboard from './pages/user_dashboard'; // YOUR NEW USER DASHBOARD
-import ClerkDashboard from './pages/ClerkDashboard'; // YOUR NEW CLERK DASHBOARD
-import Orders from './pages/order'; 
-import Calendar from './pages/Calendar';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import AdminManagement from './pages/AdminManagement';
+// Private Pages - User Folder
+import UserDashboard from './pages/user/user_dashboard';
+import UserOrders from './pages/user/Orders'; // The link from Login goes here
+import Profile from './pages/user/Profile';
+import Settings from './pages/user/Settings';
+
+// Private Pages - Clerk Folder
+import ClerkDashboard from './pages/clerk/ClerkDashboard';
+import ClerkOrderManagement from './pages/clerk/order';
+
+// Private Pages - Admin Folder
+import Dashboard from './pages/admin/Dashboard'; // General Admin Dashboard
+import AdminManagement from './pages/admin/AdminManagement';
+import Calendar from './pages/admin/Calendar';
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -30,14 +35,12 @@ export default function App() {
     return !!localStorage.getItem('userToken');
   });
 
-  // Dynamic user state - updated to read from localStorage for role-based logic
   const [user, setUser] = useState({ 
     name: localStorage.getItem('userName') || "Guest", 
     role: localStorage.getItem('userRole') || "User",
     avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'User'}&background=4361ee&color=fff` 
   });
 
-  // Update user state whenever login status changes
   useEffect(() => {
     if (isLoggedIn) {
       setUser({
@@ -78,7 +81,6 @@ export default function App() {
     <Router>
       <div className={`flex h-screen w-full font-sans overflow-hidden ${isLoggedIn ? 'bg-[#0b1120] text-slate-200' : ''}`}>
         
-        {/* Only show Sidenav for Admin/Clerk roles, usually hidden for basic User Shop view */}
         {isLoggedIn && (user.role === 'admin' || user.role === 'clerk' || user.role === 'Administrator') && (
           <Sidenav user={user} onLogout={handleLogout} />
         )}
@@ -112,18 +114,18 @@ export default function App() {
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/order" element={<Orders />} />
-            <Route path="/reset-password" element={<ResetPassword />} />   
+            <Route path="/reset-password" element={<ResetPassword />} />  
+            
+            {/* PUBLIC ACCESS TO ORDERS (as requested for the Login link) */}
+            <Route path="/order" element={<UserOrders />} />
 
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              {/* Role-Specific Dashboards */}
               <Route path="/user-dashboard" element={<UserDashboard />} />
               <Route path="/clerk-dashboard" element={<ClerkDashboard />} />
+              <Route path="/manage-orders" element={<ClerkOrderManagement />} />
               
-              {/* Legacy/General Dashboard */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
-              
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/profile" element={<Profile user={user} />} />
               <Route path="/settings" element={<Settings />} />
