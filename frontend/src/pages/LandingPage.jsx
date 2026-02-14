@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const LandingPage = () => {
-  // Safe initialization of state from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('landingTheme') === 'dark';
   });
@@ -14,7 +13,6 @@ const LandingPage = () => {
   const [activeFaq, setActiveFaq] = useState(null);
   const canvasRef = useRef(null);
 
-  // THEME EFFECT: Syncs with DOM safely
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -26,7 +24,6 @@ const LandingPage = () => {
     }
   }, [isDarkMode]);
 
-  // DATA EFFECT: Fetch FAQs
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
@@ -39,7 +36,6 @@ const LandingPage = () => {
     fetchFaqs();
   }, []);
 
-  // SCROLL EFFECT: Toggle visibility of "Top" button
   useEffect(() => {
     const handleScroll = () => {
       setShowScrollBtn(window.scrollY > 400);
@@ -48,7 +44,6 @@ const LandingPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // ANIMATION EFFECT: Interactive Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -133,6 +128,7 @@ const LandingPage = () => {
         <div className="flex items-center gap-4 md:gap-8">
           <a href="#about" className="hidden lg:block hover:text-[#4361ee] font-bold transition-colors">About</a>
           <a href="#features" className="hidden md:block hover:text-[#4361ee] font-bold transition-colors">Features</a>
+          <a href="#faq" className="hidden md:block hover:text-[#4361ee] font-bold transition-colors">Questions</a>
           <a href="#contact" className="hidden sm:block hover:text-[#4361ee] font-bold transition-colors">Contact</a>
           
           <Link to="/login" className={`px-6 py-2 rounded-xl font-bold transition-all border ${isDarkMode ? 'border-slate-700 hover:bg-slate-800 text-white' : 'border-slate-200 hover:bg-slate-50 text-slate-900'}`}>
@@ -193,22 +189,37 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* FAQ SECTION - RESTORED */}
       <section id="faq" className="px-[8%] py-24 scroll-mt-20">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl font-black mb-12 text-center">Questions?</h2>
           <div className="space-y-4">
-            {faqs.map((faq) => (
-              <div key={faq.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
-                <button onClick={() => setActiveFaq(activeFaq === faq.id ? null : faq.id)} className="w-full p-6 text-left flex justify-between items-center group">
-                  <span className="font-bold group-hover:text-[#4361ee] transition-colors">{faq.question}</span>
-                  <span className={`transition-transform duration-300 ${activeFaq === faq.id ? 'rotate-180 text-[#4361ee]' : 'text-slate-400'}`}>▾</span>
-                </button>
-                <div className={`transition-all duration-300 ${activeFaq === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <p className="px-6 pb-6 text-slate-500 dark:text-slate-400 pt-4 font-medium">{faq.answer}</p>
+            {faqs.length > 0 ? (
+              faqs.map((faq) => (
+                <div key={faq.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:border-blue-500/50 transition-colors">
+                  <button 
+                    onClick={() => setActiveFaq(activeFaq === faq.id ? null : faq.id)} 
+                    className="w-full p-6 text-left flex justify-between items-center group"
+                  >
+                    <span className={`font-bold transition-colors ${activeFaq === faq.id ? 'text-[#4361ee]' : 'group-hover:text-[#4361ee]'}`}>
+                      {faq.question}
+                    </span>
+                    <span className={`text-2xl transition-transform duration-300 ${activeFaq === faq.id ? 'rotate-180 text-[#4361ee]' : 'text-slate-400'}`}>
+                      ▾
+                    </span>
+                  </button>
+                  <div className={`transition-all duration-300 ease-in-out ${activeFaq === faq.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}>
+                    <div className="px-6 pb-6 pt-2 border-t border-slate-50 dark:border-slate-700/50">
+                      <p className="text-slate-500 dark:text-slate-400 font-medium">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center text-slate-400">Loading common questions...</p>
+            )}
           </div>
         </div>
       </section>
@@ -219,14 +230,16 @@ const LandingPage = () => {
           {!formSubmitted ? (
             <form onSubmit={(e) => { e.preventDefault(); setFormSubmitted(true); }} className="max-w-md mx-auto space-y-4 relative z-10">
               <h2 className="text-4xl font-black text-center mb-8">Contact Us</h2>
-              <input type="text" placeholder="Name" required className="w-full p-4 bg-slate-800 rounded-xl outline-none" />
-              <textarea placeholder="Message" rows="4" className="w-full p-4 bg-slate-800 rounded-xl outline-none"></textarea>
-              <button type="submit" className="w-full bg-[#4361ee] py-4 rounded-xl font-black text-lg">Send</button>
+              <input type="text" placeholder="Name" required className="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-[#4361ee] transition-all" />
+              <textarea placeholder="Message" rows="4" className="w-full p-4 bg-slate-800 rounded-xl outline-none border border-slate-700 focus:border-[#4361ee] transition-all"></textarea>
+              <button type="submit" className="w-full bg-[#4361ee] py-4 rounded-xl font-black text-lg hover:bg-blue-600 transition-colors shadow-xl shadow-blue-500/20">Send</button>
             </form>
           ) : (
             <div className="text-center py-10">
-              <h3 className="text-2xl font-black text-green-400">Sent!</h3>
-              <button onClick={() => setFormSubmitted(false)} className="mt-4 text-[#4361ee] underline">Send another</button>
+              <div className="text-6xl mb-4">✉️</div>
+              <h3 className="text-2xl font-black text-green-400">Message Sent!</h3>
+              <p className="text-slate-400 mt-2">We'll get back to you shortly.</p>
+              <button onClick={() => setFormSubmitted(false)} className="mt-8 text-[#4361ee] font-bold hover:underline">Send another</button>
             </div>
           )}
         </div>
