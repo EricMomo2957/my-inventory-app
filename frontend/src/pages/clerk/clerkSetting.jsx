@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useTheme } from '../context/ThemeContext'; 
+import { useTheme } from '../../context/ThemeContext'; 
 
 export default function ClerkSetting() {
   const { isDark, toggleTheme } = useTheme();
