@@ -6,11 +6,12 @@ const ClerkSidenav = () => {
 
   // Paths are mapped to match standard routing for your files
   const menuItems = [
-    { name: 'Dashboard', path: '/clerk/ClerkDashboard', icon: '📊' },
-    { name: 'Inventory', path: '/clerk/inventory', icon: '📦' }, 
-    { name: 'Manage Orders', path: '/clerk/orders', icon: '🛒' },
-    { name: 'Settings', path: '/clerk/clerkSetting', icon: '⚙️' },
-  ];
+  { name: 'Dashboard', path: '/clerk/dashboard', icon: '📊' },
+  { name: 'Inventory', path: '/clerk/inventory', icon: '📦' }, 
+  { name: 'Manage Orders', path: '/clerk/orders', icon: '🛒' },
+  { name: 'Calendar', path: '/clerk/calendar', icon: '📅' }, // Added this
+  { name: 'Settings', path: '/clerk/settings', icon: '⚙️' },
+];
 
   const isActive = (path) => location.pathname === path;
 
