@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Layout and Security
 import { Sidenav } from './Sidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
+import ClerkCalendar from './pages/clerk/clerkCalendar';
 
 // Public & Auth Pages (Moved to /pages/auth/)
 import LandingPage from './pages/LandingPage';
@@ -124,6 +125,7 @@ export default function App() {
               <Route path="/user-dashboard" element={<UserDashboard />} />
               <Route path="/clerk-dashboard" element={<ClerkDashboard />} />
               <Route path="/manage-orders" element={<ClerkOrderManagement />} />
+              <Route path="/clerk/calendar" element={<ClerkCalendar />} />
               
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
