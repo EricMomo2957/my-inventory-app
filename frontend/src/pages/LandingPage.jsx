@@ -105,13 +105,29 @@ const LandingPage = () => {
   };
 
   return (
-    <div className={`transition-colors duration-500 min-h-screen relative ${isDarkMode ? 'bg-[#0f172a] text-slate-200' : 'bg-white text-slate-800'}`}>
+    // FIX 1: Explicitly set overflow-y: auto and ensure no height restriction
+    <div className={`transition-colors duration-500 min-h-screen relative w-full overflow-y-auto ${isDarkMode ? 'bg-[#0f172a] text-slate-200' : 'bg-white text-slate-800'}`}>
       
-      {/* Background stays fixed while you scroll */}
-      <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />
+      {/* Global CSS Inject to override any problematic body styles */}
+      <style>{`
+        html, body {
+          margin: 0;
+          padding: 0;
+          height: auto !important;
+          overflow-y: auto !important;
+          overflow-x: hidden;
+        }
+      `}</style>
 
-      {/* Main Content Wrapper - Ensures Scrollability */}
-      <div className="relative z-10">
+      {/* FIX 2: Canvas Background - pointer-events-none is vital */}
+      <canvas 
+        ref={canvasRef} 
+        className="fixed inset-0 z-0 pointer-events-none" 
+        style={{ height: '100vh', width: '100vw' }}
+      />
+
+      {/* Main Content Wrapper */}
+      <div className="relative z-10 w-full flex flex-col">
         
         {/* Navigation */}
         <nav className={`flex justify-between items-center py-4 px-[8%] sticky top-0 z-50 backdrop-blur-md border-b ${isDarkMode ? 'bg-[#0f172a]/70 border-white/5' : 'bg-white/70 border-black/5'}`}>
@@ -206,9 +222,12 @@ const LandingPage = () => {
         </footer>
       </div>
 
-      {/* Scroll to Top */}
+      {/* Scroll to Top Button */}
       {showScrollBtn && (
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="fixed bottom-10 right-10 w-14 h-14 bg-[#4361ee] text-white rounded-full shadow-2xl z-50 flex items-center justify-center font-bold">
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+          className="fixed bottom-10 right-10 w-14 h-14 bg-[#4361ee] text-white rounded-full shadow-2xl z-50 flex items-center justify-center font-bold hover:scale-110 transition-transform"
+        >
           ↑
         </button>
       )}
