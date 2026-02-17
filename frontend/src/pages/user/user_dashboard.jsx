@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import UserCalendarView from './user_calendar'; // Ensure filename matches exactly
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ export default function UserDashboard() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('userCart')) || []);
   const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('userFavorites')) || []);
-  const [currentView, setCurrentView] = useState('all');
+  const [currentView, setCurrentView] = useState('all'); // 'all', 'favorites', or 'calendar'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -47,7 +48,7 @@ export default function UserDashboard() {
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-    const matchesView = currentView === 'all' || favorites.includes(p.id);
+    const matchesView = currentView !== 'favorites' || favorites.includes(p.id);
     return matchesSearch && matchesCategory && matchesView;
   });
 
@@ -136,10 +137,9 @@ export default function UserDashboard() {
   };
 
   return (
-    // UPDATED: Ensure min-h-screen and overflow-x-hidden for proper layout
     <div className={`min-h-screen overflow-x-hidden transition-colors duration-300 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* Sidebar - FIXED: Added z-index to stay above content */}
+      {/* Sidebar */}
       <aside className={`w-64 fixed top-0 left-0 h-screen border-r flex flex-col p-6 z-30 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className="flex items-center gap-3 mb-10 text-blue-500 text-xl font-extrabold tracking-tight">
           <div className="w-8 h-8 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/30" />
@@ -149,16 +149,25 @@ export default function UserDashboard() {
         <nav className="grow space-y-2">
           <button 
             onClick={() => setCurrentView('all')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'all' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-blue-100/50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'all' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:bg-blue-100/50'}`}
           >
             <span>📦</span> Catalog
           </button>
+
+          <button 
+            onClick={() => setCurrentView('calendar')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'calendar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:bg-indigo-100/50'}`}
+          >
+            <span>📅</span> Calendar
+          </button>
+
           <button 
             onClick={() => setCurrentView('favorites')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'favorites' ? 'bg-red-500 text-white' : 'text-slate-500 hover:bg-red-100/50'}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'favorites' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-slate-500 hover:bg-red-100/50'}`}
           >
             <span>❤️</span> Favorites
           </button>
+          
           <Link to="/orders" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-100/50 transition-all">
             <span>📜</span> My Orders
           </Link>
@@ -172,79 +181,87 @@ export default function UserDashboard() {
         </button>
       </aside>
 
-      {/* Main Content - UPDATED: ml-64 ensures it starts after sidebar, min-h-screen for scrolling */}
+      {/* Main Content */}
       <main className="ml-64 p-10 min-h-screen">
-        <header className="mb-8">
-          <h1 className="text-3xl font-black">Welcome back! 👋</h1>
-          <p className="text-slate-500 font-medium">
-            {currentView === 'all' ? 'Discover our latest inventory.' : 'Your favorite items in one place.'}
-          </p>
-        </header>
+        {currentView === 'calendar' ? (
+          <UserCalendarView /> 
+        ) : (
+          <>
+            <header className="mb-8">
+              <h1 className="text-3xl font-black">
+                {currentView === 'all' ? 'Welcome back! 👋' : 'My Favorites ❤️'}
+              </h1>
+              <p className="text-slate-500 font-medium">
+                {currentView === 'all' ? 'Discover our latest inventory.' : 'Items you have saved for later.'}
+              </p>
+            </header>
 
-        {/* Toolbar */}
-        <div className={`flex gap-4 p-4 rounded-2xl mb-8 border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-          <div className="grow relative">
-            <span className="absolute left-4 top-3 opacity-50">🔍</span>
-            <input 
-              type="text" 
-              placeholder="Search products..." 
-              className={`w-full pl-12 pr-4 py-2.5 rounded-xl border outline-none focus:border-blue-500 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <select 
-            className={`px-4 py-2.5 rounded-xl border outline-none font-bold ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-          {filteredProducts.map(product => {
-            const isOut = product.quantity <= 0;
-            const isFav = favorites.includes(product.id);
-            return (
-              <div key={product.id} className={`group relative p-4 rounded-3xl border transition-all hover:-translate-y-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'}`}>
-                <button 
-                  onClick={() => toggleFavorite(product.id)}
-                  className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90 ${isFav ? 'bg-red-50 text-red-500' : 'bg-white text-slate-300'}`}
-                >
-                  {isFav ? '❤️' : '🤍'}
-                </button>
-                
-                <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-slate-100">
-                  <img 
-                    src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'} 
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <h3 className="font-bold text-lg mb-1 truncate">{product.name}</h3>
-                <p className={`text-xs font-black mb-4 ${isOut ? 'text-red-500' : 'text-slate-400'}`}>
-                  {isOut ? 'OUT OF STOCK' : `STOCK: ${product.quantity}`}
-                </p>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-xl font-black text-blue-600">₱{parseFloat(product.price).toLocaleString()}</span>
-                  <button 
-                    disabled={isOut}
-                    onClick={() => addToCart(product)}
-                    className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'}`}
-                  >
-                    {isOut ? 'Sold Out' : '+ Cart'}
-                  </button>
-                </div>
+            {/* Toolbar */}
+            <div className={`flex gap-4 p-4 rounded-2xl mb-8 border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className="grow relative">
+                <span className="absolute left-4 top-3 opacity-50">🔍</span>
+                <input 
+                  type="text" 
+                  placeholder="Search products..." 
+                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border outline-none focus:border-blue-500 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
-            );
-          })}
-        </div>
+              <select 
+                className={`px-4 py-2.5 rounded-xl border outline-none font-bold ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Product Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+              {filteredProducts.map(product => {
+                const isOut = product.quantity <= 0;
+                const isFav = favorites.includes(product.id);
+                return (
+                  <div key={product.id} className={`group relative p-4 rounded-3xl border transition-all hover:-translate-y-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'}`}>
+                    <button 
+                      onClick={() => toggleFavorite(product.id)}
+                      className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90 ${isFav ? 'bg-red-50 text-red-500' : 'bg-white text-slate-300'}`}
+                    >
+                      {isFav ? '❤️' : '🤍'}
+                    </button>
+                    
+                    <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-slate-100">
+                      <img 
+                        src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'} 
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <h3 className="font-bold text-lg mb-1 truncate">{product.name}</h3>
+                    <p className={`text-xs font-black mb-4 ${isOut ? 'text-red-500' : 'text-slate-400'}`}>
+                      {isOut ? 'OUT OF STOCK' : `STOCK: ${product.quantity}`}
+                    </p>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-xl font-black text-blue-600">₱{parseFloat(product.price).toLocaleString()}</span>
+                      <button 
+                        disabled={isOut}
+                        onClick={() => addToCart(product)}
+                        className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'}`}
+                      >
+                        {isOut ? 'Sold Out' : '+ Cart'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </main>
 
       {/* Cart Trigger */}
@@ -283,9 +300,9 @@ export default function UserDashboard() {
                     <p className="text-blue-600 font-black text-sm">₱{(item.price * item.qty).toLocaleString()}</p>
                   </div>
                   <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-xl">
-                    <button onClick={() => updateCartQty(item.id, -1)} className="font-black text-blue-600">-</button>
+                    <button onClick={() => updateCartQty(item.id, -1)} className="font-black text-blue-600 p-1">-</button>
                     <span className="text-xs font-black">{item.qty}</span>
-                    <button onClick={() => updateCartQty(item.id, 1)} className="font-black text-blue-600">+</button>
+                    <button onClick={() => updateCartQty(item.id, 1)} className="font-black text-blue-600 p-1">+</button>
                   </div>
                 </div>
               ))
