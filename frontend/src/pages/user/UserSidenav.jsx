@@ -73,31 +73,27 @@ export default function UserSidenav({ user, onLogout, setCurrentView }) {
         <NavItem 
           icon="📦" 
           label="Catalog" 
-          to="/dashboard" 
+          to="/user_dashboard" 
           isCollapsed={isCollapsed} 
           onClick={() => setCurrentView?.('all')} 
         />
         <NavItem 
           icon="📅" 
           label="Calendar" 
-          to="/dashboard" // Keeps user on dashboard but swaps view
+          to="/user_calendar" // Keeps user on dashboard but swaps view
           isCollapsed={isCollapsed} 
           onClick={() => setCurrentView?.('calendar')} 
         />
-        <NavItem 
-          icon="❤️" 
-          label="Favorites" 
-          to="/dashboard" // Keeps user on dashboard but swaps view
-          isCollapsed={isCollapsed} 
-          onClick={() => setCurrentView?.('favorites')} 
-        />
+        
         
         {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-8">Account</p>}
         
         {/* Individual Pages in User Folder */}
-        <NavItem icon="📜" label="My Orders" to="/orders" isCollapsed={isCollapsed} />
-        <NavItem icon="👤" label="Profile" to="/profile" isCollapsed={isCollapsed} />
-        <NavItem icon="⚙️" label="Settings" to="/settings" isCollapsed={isCollapsed} />
+        <NavItem icon="📜" label="My Orders" to="/Orders" isCollapsed={isCollapsed} />
+        <NavItem icon="👤" label="Profile" to="/Profile" isCollapsed={isCollapsed} />
+        <NavItem icon="⚙️" label="Settings" to="/Settings" isCollapsed={isCollapsed} />
+        <NavItem icon="📦" label="user_dashboard" to="/user_dashboard" isCollapsed={isCollapsed} />
+        <NavItem icon="📅" label="user-calendar" to="/user-calendar" isCollapsed={isCollapsed} />
       </nav>
 
       {/* Logout Button */}
