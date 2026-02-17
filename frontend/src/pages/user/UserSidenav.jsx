@@ -26,12 +26,13 @@ function NavItem({ icon, label, to, isCollapsed, color = "text-slate-400", onCli
 export default function UserSidenav({ user, onLogout, setCurrentView }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // Generates initials for the avatar (e.g., "SA" for System Administrator)
   const initials = user?.name 
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() 
     : "U";
 
   return (
-    <aside className={`bg-[#0b1120] border-r border-slate-800/50 flex flex-col shrink-0 h-screen transition-all duration-300 ease-in-out sticky top-0 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`bg-[#0b1120] border-r border-slate-800/50 flex flex-col shrink-0 h-screen transition-all duration-300 ease-in-out sticky top-0 z-50 ${isCollapsed ? 'w-20' : 'w-64'}`}>
       
       {/* Brand Header */}
       <div className={`p-7 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-2`}>
@@ -49,10 +50,10 @@ export default function UserSidenav({ user, onLogout, setCurrentView }) {
         </button>
       </div>
       
-      {/* User Info Card */}
+      {/* User Info Card - Styled after your Profile Screenshot */}
       <div className={`${isCollapsed ? 'flex justify-center' : 'mx-4'} mb-6`}>
         <div className={`p-4 bg-[#1e293b]/50 border border-slate-800/50 rounded-[1.25rem] flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-12 h-12 p-0 justify-center' : ''}`}>
-          <div className="w-10 h-10 bg-[#4361ee] shrink-0 rounded-xl flex items-center justify-center text-white font-black text-xs">
+          <div className="w-10 h-10 bg-[#4361ee] shrink-0 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-inner">
             {initials}
           </div>
           {!isCollapsed && (
@@ -64,26 +65,46 @@ export default function UserSidenav({ user, onLogout, setCurrentView }) {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Connected to your user folder files */}
       <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-        {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-4">Shopping</p>}
+        {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-4">Main Menu</p>}
         
-        {/* Logic: We use 'to' for routing, but you can also use onClick to trigger local state changes */}
-        <NavItem icon="📦" label="Catalog" to="/dashboard" isCollapsed={isCollapsed} onClick={() => setCurrentView?.('all')} />
-        <NavItem icon="📅" label="Calendar" to="/dashboard/calendar" isCollapsed={isCollapsed} onClick={() => setCurrentView?.('calendar')} />
-        <NavItem icon="❤️" label="Favorites" to="/dashboard/favorites" isCollapsed={isCollapsed} onClick={() => setCurrentView?.('favorites')} />
+        {/* Dashboard Actions */}
+        <NavItem 
+          icon="📦" 
+          label="Catalog" 
+          to="/dashboard" 
+          isCollapsed={isCollapsed} 
+          onClick={() => setCurrentView?.('all')} 
+        />
+        <NavItem 
+          icon="📅" 
+          label="Calendar" 
+          to="/dashboard" // Keeps user on dashboard but swaps view
+          isCollapsed={isCollapsed} 
+          onClick={() => setCurrentView?.('calendar')} 
+        />
+        <NavItem 
+          icon="❤️" 
+          label="Favorites" 
+          to="/dashboard" // Keeps user on dashboard but swaps view
+          isCollapsed={isCollapsed} 
+          onClick={() => setCurrentView?.('favorites')} 
+        />
         
         {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-8">Account</p>}
-        <NavItem icon="🛒" label="My Orders" to="/orders" isCollapsed={isCollapsed} />
+        
+        {/* Individual Pages in User Folder */}
+        <NavItem icon="📜" label="My Orders" to="/orders" isCollapsed={isCollapsed} />
         <NavItem icon="👤" label="Profile" to="/profile" isCollapsed={isCollapsed} />
         <NavItem icon="⚙️" label="Settings" to="/settings" isCollapsed={isCollapsed} />
       </nav>
 
-      {/* Logout */}
+      {/* Logout Button */}
       <div className="p-4 border-t border-slate-800/50 mt-auto">
         <button 
           onClick={onLogout} 
-          className={`w-full flex items-center gap-2 py-3 text-sm font-black text-red-400 bg-red-400/5 rounded-2xl hover:bg-red-500 hover:text-white transition-all ${isCollapsed ? 'justify-center' : 'px-3'}`}
+          className={`w-full flex items-center gap-2 py-3 text-sm font-black text-red-400 bg-red-400/5 rounded-2xl hover:bg-red-500 hover:text-white transition-all duration-200 ${isCollapsed ? 'justify-center' : 'px-3'}`}
         >
           <span>🚪</span>
           {!isCollapsed && <span>Logout</span>}
