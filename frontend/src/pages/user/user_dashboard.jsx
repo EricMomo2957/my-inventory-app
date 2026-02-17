@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import UserCalendarView from './user_calendar'; // Ensure filename matches exactly
+import UserSidenav from './UserSidenav'; 
+import UserCalendarView from './user_calendar';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
 
   // --- State ---
+  const [user, setUser] = useState({ name: "User", role: "Customer" });
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('userCart')) || []);
   const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('userFavorites')) || []);
-  const [currentView, setCurrentView] = useState('all'); // 'all', 'favorites', or 'calendar'
+  const [currentView, setCurrentView] = useState('all'); 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -19,17 +21,23 @@ export default function UserDashboard() {
 
   // --- Initialization ---
   useEffect(() => {
-    const user = localStorage.getItem('userId');
-    if (!user) {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
       navigate('/login');
+      return;
     }
+
+    setUser({ 
+      name: localStorage.getItem('userName') || "User", 
+      role: localStorage.getItem('userRole') || "Customer" 
+    });
     
     const fetchProducts = async () => {
       try {
         const res = await axios.get('http://localhost:3000/api/products');
         setProducts(res.data);
-      } catch {
-        console.error("Load failed");
+      } catch (err) {
+        console.error("Load failed", err);
       }
     };
 
@@ -95,7 +103,7 @@ export default function UserDashboard() {
     const updatedCart = cart.map(item => {
       if (item.id === id) {
         const newQty = item.qty + delta;
-        if (newQty > 0 && newQty <= product.quantity) return { ...item, qty: newQty };
+        if (newQty > 0 && newQty <= (product?.quantity || 999)) return { ...item, qty: newQty };
       }
       return item;
     }).filter(item => item.qty > 0);
@@ -137,59 +145,24 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className={`min-h-screen overflow-x-hidden transition-colors duration-300 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`flex min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* Sidebar */}
-      <aside className={`w-64 fixed top-0 left-0 h-screen border-r flex flex-col p-6 z-30 transition-colors ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="flex items-center gap-3 mb-10 text-blue-500 text-xl font-extrabold tracking-tight">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/30" />
-          Inventory<span className={isDarkMode ? 'text-white' : 'text-slate-900'}>Pro</span>
-        </div>
+      {/* Sidebar Component */}
+      <UserSidenav 
+        user={user} 
+        onLogout={logout} 
+        setCurrentView={setCurrentView} 
+      />
 
-        <nav className="grow space-y-2">
-          <button 
-            onClick={() => setCurrentView('all')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'all' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-slate-500 hover:bg-blue-100/50'}`}
-          >
-            <span>📦</span> Catalog
-          </button>
-
-          <button 
-            onClick={() => setCurrentView('calendar')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'calendar' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:bg-indigo-100/50'}`}
-          >
-            <span>📅</span> Calendar
-          </button>
-
-          <button 
-            onClick={() => setCurrentView('favorites')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${currentView === 'favorites' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-slate-500 hover:bg-red-100/50'}`}
-          >
-            <span>❤️</span> Favorites
-          </button>
-          
-          <Link to="/orders" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-100/50 transition-all">
-            <span>📜</span> My Orders
-          </Link>
-          <Link to="/settings" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-blue-100/50 transition-all">
-            <span>⚙️</span> Settings
-          </Link>
-        </nav>
-
-        <button onClick={logout} className="mt-auto flex items-center gap-3 px-4 py-3 text-red-500 font-bold hover:bg-red-100/50 rounded-xl transition-all">
-          <span>🚪</span> Logout
-        </button>
-      </aside>
-
-      {/* Main Content */}
-      <main className="ml-64 p-10 min-h-screen">
+      {/* Main Content Area */}
+      <main className="flex-1 p-10">
         {currentView === 'calendar' ? (
           <UserCalendarView /> 
         ) : (
           <>
             <header className="mb-8">
               <h1 className="text-3xl font-black">
-                {currentView === 'all' ? 'Welcome back! 👋' : 'My Favorites ❤️'}
+                {currentView === 'all' ? 'Welcome back! 👋' : 'Your Favorites ❤️'}
               </h1>
               <p className="text-slate-500 font-medium">
                 {currentView === 'all' ? 'Discover our latest inventory.' : 'Items you have saved for later.'}
@@ -203,7 +176,7 @@ export default function UserDashboard() {
                 <input 
                   type="text" 
                   placeholder="Search products..." 
-                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border outline-none focus:border-blue-500 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
+                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border outline-none focus:border-[#4361ee] transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -247,11 +220,11 @@ export default function UserDashboard() {
                     </p>
 
                     <div className="flex justify-between items-center">
-                      <span className="text-xl font-black text-blue-600">₱{parseFloat(product.price).toLocaleString()}</span>
+                      <span className="text-xl font-black text-[#4361ee]">₱{parseFloat(product.price).toLocaleString()}</span>
                       <button 
                         disabled={isOut}
                         onClick={() => addToCart(product)}
-                        className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'}`}
+                        className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-[#4361ee] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'}`}
                       >
                         {isOut ? 'Sold Out' : '+ Cart'}
                       </button>
@@ -264,10 +237,10 @@ export default function UserDashboard() {
         )}
       </main>
 
-      {/* Cart Trigger */}
+      {/* Cart Button & Sidebar Logic remains below */}
       <button 
         onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-500/40 flex items-center justify-center text-2xl hover:scale-110 transition-transform z-40"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-[#4361ee] text-white rounded-full shadow-2xl shadow-blue-500/40 flex items-center justify-center text-2xl hover:scale-110 transition-transform z-40"
       >
         🛒
         {cartCount > 0 && (
@@ -278,7 +251,7 @@ export default function UserDashboard() {
       </button>
 
       {/* Cart Sidebar */}
-      <div className={`fixed inset-y-0 right-0 w-80 z-50 transition-transform duration-500 transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-slate-900 border-l border-slate-800' : 'bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)]'}`}>
+      <div className={`fixed inset-y-0 right-0 w-80 z-50 transition-transform duration-500 transform ${isCartOpen ? 'translate-x-0' : 'translate-x-full'} ${isDarkMode ? 'bg-[#0b1120] border-l border-slate-800' : 'bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)]'}`}>
         <div className="flex flex-col h-full p-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-black">Your Cart</h2>
@@ -293,31 +266,31 @@ export default function UserDashboard() {
               </div>
             ) : (
               cart.map(item => (
-                <div key={item.id} className="flex items-center gap-4 p-3 rounded-2xl border border-slate-100">
-                  <img src={item.img || 'https://via.placeholder.com/50'} className="w-16 h-16 rounded-xl object-cover" alt="" />
+                <div key={item.id} className={`flex items-center gap-4 p-3 rounded-2xl border ${isDarkMode ? 'border-slate-800 bg-slate-800/30' : 'border-slate-100 bg-slate-50'}`}>
+                  <img src={item.img || 'https://via.placeholder.com/50'} className="w-14 h-14 rounded-xl object-cover" alt="" />
                   <div className="grow">
-                    <h4 className="font-bold text-sm truncate w-32">{item.name}</h4>
-                    <p className="text-blue-600 font-black text-sm">₱{(item.price * item.qty).toLocaleString()}</p>
+                    <h4 className="font-bold text-sm truncate w-24">{item.name}</h4>
+                    <p className="text-[#4361ee] font-black text-sm">₱{(item.price * item.qty).toLocaleString()}</p>
                   </div>
-                  <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-xl">
-                    <button onClick={() => updateCartQty(item.id, -1)} className="font-black text-blue-600 p-1">-</button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => updateCartQty(item.id, -1)} className="font-black text-[#4361ee] hover:bg-blue-100 w-6 h-6 rounded-lg">-</button>
                     <span className="text-xs font-black">{item.qty}</span>
-                    <button onClick={() => updateCartQty(item.id, 1)} className="font-black text-blue-600 p-1">+</button>
+                    <button onClick={() => updateCartQty(item.id, 1)} className="font-black text-[#4361ee] hover:bg-blue-100 w-6 h-6 rounded-lg">+</button>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          <div className="mt-8 pt-8 border-t-2 border-dashed border-slate-200">
+          <div className="mt-8 pt-8 border-t-2 border-dashed border-slate-700/50">
             <div className="flex justify-between items-center mb-6">
-              <span className="font-bold text-slate-400 uppercase tracking-widest text-xs">Total Amount</span>
-              <span className="text-2xl font-black text-blue-600">₱{cartTotal.toLocaleString()}</span>
+              <span className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">Total Amount</span>
+              <span className="text-2xl font-black text-[#4361ee]">₱{cartTotal.toLocaleString()}</span>
             </div>
             <button 
               onClick={handleCheckout}
               disabled={cart.length === 0 || isProcessing}
-              className={`w-full py-4 rounded-2xl font-black text-white transition-all ${cart.length === 0 ? 'bg-slate-300' : 'bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95'}`}
+              className={`w-full py-4 rounded-2xl font-black text-white transition-all ${cart.length === 0 ? 'bg-slate-700 text-slate-500' : 'bg-[#4361ee] hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95'}`}
             >
               {isProcessing ? 'Processing...' : 'Complete Purchase'}
             </button>
