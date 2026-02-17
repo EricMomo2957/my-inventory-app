@@ -17,6 +17,7 @@ import UserDashboard from './pages/user/user_dashboard';
 import UserOrders from './pages/user/Orders'; // The link from Login goes here
 import Profile from './pages/user/Profile';
 import Settings from './pages/user/Settings';
+import UserCalendar from './pages/user/user_calendar';
 
 // Private Pages - Clerk Folder
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
@@ -127,6 +128,7 @@ export default function App() {
               <Route path="/manage-orders" element={<ClerkOrderManagement />} />
               <Route path="/clerk/calendar" element={<ClerkCalendar />} />
               <Route path="/clerk/settings" element={<ClerkSetting />} />
+              <Route path="/user/calendar" element={<UserCalendar />} />
               
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
