@@ -23,10 +23,9 @@ function NavItem({ icon, label, to, isCollapsed, color = "text-slate-400", onCli
   );
 }
 
-export default function UserSidenav({ user, onLogout, setCurrentView }) {
+export default function UserSidenav({ user, onLogout }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Generates initials for the avatar (e.g., "SA" for System Administrator)
   const initials = user?.name 
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() 
     : "U";
@@ -50,7 +49,7 @@ export default function UserSidenav({ user, onLogout, setCurrentView }) {
         </button>
       </div>
       
-      {/* User Info Card - Styled after your Profile Screenshot */}
+      {/* User Info Card */}
       <div className={`${isCollapsed ? 'flex justify-center' : 'mx-4'} mb-6`}>
         <div className={`p-4 bg-[#1e293b]/50 border border-slate-800/50 rounded-[1.25rem] flex items-center gap-3 overflow-hidden ${isCollapsed ? 'w-12 h-12 p-0 justify-center' : ''}`}>
           <div className="w-10 h-10 bg-[#4361ee] shrink-0 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-inner">
@@ -65,26 +64,25 @@ export default function UserSidenav({ user, onLogout, setCurrentView }) {
         </div>
       </div>
 
-      {/* Navigation - Connected to your user folder files */}
+      {/* Navigation */}
       <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
         {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-4">Main Menu</p>}
         
-        {/* Dashboard Actions */}
+        {/* Linked to user_dashboard.jsx */}
         <NavItem 
-          icon="📦" 
-          label="Catalog" 
+          icon="🏠" 
+          label="Dashboard" 
           to="/user_dashboard" 
           isCollapsed={isCollapsed} 
-          onClick={() => setCurrentView?.('all')} 
         />
+
+        {/* Linked to user_calendar.jsx */}
         <NavItem 
           icon="📅" 
           label="Calendar" 
-          to="/user_calendar" // Keeps user on dashboard but swaps view
+          to="/user_calendar" 
           isCollapsed={isCollapsed} 
-          onClick={() => setCurrentView?.('calendar')} 
         />
-        
         
         {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-8">Account</p>}
         
@@ -92,8 +90,6 @@ export default function UserSidenav({ user, onLogout, setCurrentView }) {
         <NavItem icon="📜" label="My Orders" to="/Orders" isCollapsed={isCollapsed} />
         <NavItem icon="👤" label="Profile" to="/Profile" isCollapsed={isCollapsed} />
         <NavItem icon="⚙️" label="Settings" to="/Settings" isCollapsed={isCollapsed} />
-        <NavItem icon="📦" label="user_dashboard" to="/user_dashboard" isCollapsed={isCollapsed} />
-        <NavItem icon="📅" label="user-calendar" to="/user-calendar" isCollapsed={isCollapsed} />
       </nav>
 
       {/* Logout Button */}
