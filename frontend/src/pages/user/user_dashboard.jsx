@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import UserSidenav from './UserSidenav'; 
-import UserCalendarView from './user_calendar';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
 
   // --- State ---
-  const [user, setUser] = useState({ name: "User", role: "Customer" });
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('userCart')) || []);
   const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('userFavorites')) || []);
-  const [currentView, setCurrentView] = useState('all'); 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -26,11 +22,6 @@ export default function UserDashboard() {
       navigate('/login');
       return;
     }
-
-    setUser({ 
-      name: localStorage.getItem('userName') || "User", 
-      role: localStorage.getItem('userRole') || "Customer" 
-    });
     
     const fetchProducts = async () => {
       try {
@@ -42,13 +33,7 @@ export default function UserDashboard() {
     };
 
     fetchProducts();
-
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode, navigate]);
+  }, [navigate]);
 
   // --- Logic Helpers ---
   const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
@@ -56,8 +41,7 @@ export default function UserDashboard() {
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-    const matchesView = currentView !== 'favorites' || favorites.includes(p.id);
-    return matchesSearch && matchesCategory && matchesView;
+    return matchesSearch && matchesCategory;
   });
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -103,7 +87,7 @@ export default function UserDashboard() {
     const updatedCart = cart.map(item => {
       if (item.id === id) {
         const newQty = item.qty + delta;
-        if (newQty > 0 && newQty <= (product?.quantity || 999)) return { ...item, qty: newQty };
+        if (newQty > 0 && (newQty <= (product?.quantity || 999))) return { ...item, qty: newQty };
       }
       return item;
     }).filter(item => item.qty > 0);
@@ -139,105 +123,79 @@ export default function UserDashboard() {
     }
   };
 
-  const logout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
-
   return (
-    <div className={`flex min-h-screen overflow-x-hidden ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-      
-      {/* Sidebar Component */}
-      <UserSidenav 
-        user={user} 
-        onLogout={logout} 
-        setCurrentView={setCurrentView} 
-      />
+    <div className="flex-1 overflow-y-auto p-10">
+      <header className="mb-8">
+        <h1 className="text-3xl font-black">Welcome back! 👋</h1>
+        <p className="text-slate-500 font-medium">Discover our latest inventory.</p>
+      </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-10">
-        {currentView === 'calendar' ? (
-          <UserCalendarView /> 
-        ) : (
-          <>
-            <header className="mb-8">
-              <h1 className="text-3xl font-black">
-                {currentView === 'all' ? 'Welcome back! 👋' : 'Your Favorites ❤️'}
-              </h1>
-              <p className="text-slate-500 font-medium">
-                {currentView === 'all' ? 'Discover our latest inventory.' : 'Items you have saved for later.'}
-              </p>
-            </header>
+      {/* Toolbar */}
+      <div className={`flex gap-4 p-4 rounded-2xl mb-8 border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className="grow relative">
+          <span className="absolute left-4 top-3 opacity-50">🔍</span>
+          <input 
+            type="text" 
+            placeholder="Search products..." 
+            className={`w-full pl-12 pr-4 py-2.5 rounded-xl border outline-none focus:border-[#4361ee] transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <select 
+          className={`px-4 py-2.5 rounded-xl border outline-none font-bold ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+          ))}
+        </select>
+      </div>
 
-            {/* Toolbar */}
-            <div className={`flex gap-4 p-4 rounded-2xl mb-8 border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-              <div className="grow relative">
-                <span className="absolute left-4 top-3 opacity-50">🔍</span>
-                <input 
-                  type="text" 
-                  placeholder="Search products..." 
-                  className={`w-full pl-12 pr-4 py-2.5 rounded-xl border outline-none focus:border-[#4361ee] transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+        {filteredProducts.map(product => {
+          const isOut = product.quantity <= 0;
+          const isFav = favorites.includes(product.id);
+          return (
+            <div key={product.id} className={`group relative p-4 rounded-3xl border transition-all hover:-translate-y-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'}`}>
+              <button 
+                onClick={() => toggleFavorite(product.id)}
+                className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90 ${isFav ? 'bg-red-50 text-red-500' : 'bg-white text-slate-300'}`}
+              >
+                {isFav ? '❤️' : '🤍'}
+              </button>
+              
+              <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-slate-100">
+                <img 
+                  src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'} 
+                  alt={product.name}
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <select 
-                className={`px-4 py-2.5 rounded-xl border outline-none font-bold ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                {categories.map(cat => (
-                  <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                ))}
-              </select>
+
+              <h3 className="font-bold text-lg mb-1 truncate">{product.name}</h3>
+              <p className={`text-xs font-black mb-4 ${isOut ? 'text-red-500' : 'text-slate-400'}`}>
+                {isOut ? 'OUT OF STOCK' : `STOCK: ${product.quantity}`}
+              </p>
+
+              <div className="flex justify-between items-center">
+                <span className="text-xl font-black text-[#4361ee]">₱{parseFloat(product.price).toLocaleString()}</span>
+                <button 
+                  disabled={isOut}
+                  onClick={() => addToCart(product)}
+                  className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-[#4361ee] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'}`}
+                >
+                  {isOut ? 'Sold Out' : '+ Cart'}
+                </button>
+              </div>
             </div>
+          );
+        })}
+      </div>
 
-            {/* Product Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-              {filteredProducts.map(product => {
-                const isOut = product.quantity <= 0;
-                const isFav = favorites.includes(product.id);
-                return (
-                  <div key={product.id} className={`group relative p-4 rounded-3xl border transition-all hover:-translate-y-2 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl'}`}>
-                    <button 
-                      onClick={() => toggleFavorite(product.id)}
-                      className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90 ${isFav ? 'bg-red-50 text-red-500' : 'bg-white text-slate-300'}`}
-                    >
-                      {isFav ? '❤️' : '🤍'}
-                    </button>
-                    
-                    <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-slate-100">
-                      <img 
-                        src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    <h3 className="font-bold text-lg mb-1 truncate">{product.name}</h3>
-                    <p className={`text-xs font-black mb-4 ${isOut ? 'text-red-500' : 'text-slate-400'}`}>
-                      {isOut ? 'OUT OF STOCK' : `STOCK: ${product.quantity}`}
-                    </p>
-
-                    <div className="flex justify-between items-center">
-                      <span className="text-xl font-black text-[#4361ee]">₱{parseFloat(product.price).toLocaleString()}</span>
-                      <button 
-                        disabled={isOut}
-                        onClick={() => addToCart(product)}
-                        className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${isOut ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-[#4361ee] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'}`}
-                      >
-                        {isOut ? 'Sold Out' : '+ Cart'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </main>
-
-      {/* Cart Button & Sidebar Logic remains below */}
+      {/* Cart Button */}
       <button 
         onClick={() => setIsCartOpen(true)}
         className="fixed bottom-8 right-8 w-16 h-16 bg-[#4361ee] text-white rounded-full shadow-2xl shadow-blue-500/40 flex items-center justify-center text-2xl hover:scale-110 transition-transform z-40"

@@ -68,7 +68,7 @@ export default function UserSidenav({ user, onLogout }) {
       <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
         {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-4">Main Menu</p>}
         
-        {/* Linked to user_dashboard.jsx */}
+        {/* FIXED: Using underscores to match your file structure */}
         <NavItem 
           icon="🏠" 
           label="Dashboard" 
@@ -76,7 +76,6 @@ export default function UserSidenav({ user, onLogout }) {
           isCollapsed={isCollapsed} 
         />
 
-        {/* Linked to user_calendar.jsx */}
         <NavItem 
           icon="📅" 
           label="Calendar" 
@@ -86,7 +85,7 @@ export default function UserSidenav({ user, onLogout }) {
         
         {!isCollapsed && <p className="px-3 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3 mt-8">Account</p>}
         
-        {/* Individual Pages in User Folder */}
+        {/* FIXED: Capitalization to match file names in image_c89417.png */}
         <NavItem icon="📜" label="My Orders" to="/Orders" isCollapsed={isCollapsed} />
         <NavItem icon="👤" label="Profile" to="/Profile" isCollapsed={isCollapsed} />
         <NavItem icon="⚙️" label="Settings" to="/Settings" isCollapsed={isCollapsed} />
