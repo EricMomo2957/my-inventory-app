@@ -9,7 +9,7 @@ export default function UserCalendarView() {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
 
-  // Load events from backend (Assuming the same endpoint or a user-specific one)
+  // Load events from backend
   useEffect(() => {
     fetch('http://localhost:3000/api/schedules')
       .then(res => res.json())
@@ -72,7 +72,16 @@ export default function UserCalendarView() {
         setIsEditing(false);
         setEditId(null);
         setFormData({ title: '', date: '', category: 'Personal Task' });
-        window.location.reload(); 
+        // Refresh local state instead of reloading page for a smoother SPA experience
+        const refreshed = await fetch('http://localhost:3000/api/schedules').then(r => r.json());
+        setEvents(refreshed.map(item => ({
+          id: item.id,
+          title: item.title || item.name,
+          date: item.date,
+          category: item.category,
+          backgroundColor: item.category === 'Delivery' ? '#10b981' : '#6366f1',
+          borderColor: 'transparent'
+        })));
       }
     } catch (err) {
       console.error("Save failed:", err);
@@ -80,16 +89,16 @@ export default function UserCalendarView() {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-[#0b1120] text-slate-300">
-      <header className="mb-6">
+    <div className="flex-1 overflow-y-auto p-10">
+      <header className="mb-8">
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
           📅 My Schedule & Requests
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Manage your personal tasks and view delivery dates</p>
+        <p className="text-slate-500 font-medium">Manage your personal tasks and view delivery dates</p>
       </header>
 
       {/* TOP SECTION: CALENDAR */}
-      <div className="bg-white rounded-2xl p-6 mb-8 shadow-2xl calendar-container">
+      <div className="bg-white rounded-3xl p-6 mb-8 shadow-xl calendar-container overflow-hidden">
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -105,8 +114,8 @@ export default function UserCalendarView() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 pb-10">
-        {/* SIDEBAR: ADD/EDIT FORM */}
-        <aside className="w-full lg:w-96 bg-[#111827] rounded-2xl border border-slate-800 p-8 shadow-xl h-fit">
+        {/* FORM SECTION */}
+        <div className="w-full lg:w-96 bg-slate-900/50 rounded-3xl border border-slate-800 p-8 shadow-xl h-fit">
           <h2 className="text-xl font-bold text-white mb-6">
             {isEditing ? '📝 Update Entry' : '➕ Request New Entry'}
           </h2>
@@ -115,7 +124,7 @@ export default function UserCalendarView() {
               <label className="block text-[10px] uppercase font-black text-slate-500 mb-2 tracking-widest">Description</label>
               <input 
                 type="text" 
-                className="w-full bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500"
                 placeholder="e.g. Pickup Order #123"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -125,7 +134,7 @@ export default function UserCalendarView() {
               <label className="block text-[10px] uppercase font-black text-slate-500 mb-2 tracking-widest">Date</label>
               <input 
                 type="date" 
-                className="w-full bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none"
                 style={{ colorScheme: 'dark' }}
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
@@ -134,7 +143,7 @@ export default function UserCalendarView() {
             <div>
               <label className="block text-[10px] uppercase font-black text-slate-500 mb-2 tracking-widest">Type</label>
               <select 
-                className="w-full bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none"
                 value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
               >
@@ -148,7 +157,7 @@ export default function UserCalendarView() {
               <button 
                 type="submit"
                 className={`w-full font-black py-4 rounded-xl transition-all shadow-lg ${
-                  isEditing ? 'bg-amber-500 hover:bg-amber-400 text-black' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20'
+                  isEditing ? 'bg-amber-500 hover:bg-amber-400 text-black' : 'bg-[#4361ee] hover:bg-blue-700 text-white shadow-blue-600/20'
                 }`}
               >
                 {isEditing ? 'Save Changes' : 'Submit Request'}
@@ -165,12 +174,12 @@ export default function UserCalendarView() {
               )}
             </div>
           </form>
-        </aside>
+        </div>
 
-        {/* TABLE LIST */}
-        <main className="flex-1 bg-[#111827] rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+        {/* TABLE SECTION */}
+        <div className="flex-1 bg-slate-900/50 rounded-3xl border border-slate-800 overflow-hidden shadow-xl">
           <table className="w-full text-left">
-            <thead className="bg-[#0b1120] border-b border-slate-800">
+            <thead className="bg-slate-950 border-b border-slate-800">
               <tr>
                 <th className="p-5 text-[10px] font-black uppercase text-slate-500 tracking-widest">Date</th>
                 <th className="p-5 text-[10px] font-black uppercase text-slate-500 tracking-widest">Event</th>
@@ -196,13 +205,14 @@ export default function UserCalendarView() {
               )}
             </tbody>
           </table>
-        </main>
+        </div>
       </div>
 
       <style>{`
         .calendar-container { color: #1e293b; }
         .fc-toolbar-title { font-weight: 900 !important; font-size: 1.1rem !important; text-transform: uppercase; color: #1e293b; }
-        .fc-button-primary { background-color: #4f46e5 !important; border: none !important; font-weight: bold !important; border-radius: 10px !important; }
+        .fc-button-primary { background-color: #4361ee !important; border: none !important; font-weight: bold !important; border-radius: 12px !important; }
+        .fc-daygrid-day-number { color: #1e293b; font-weight: bold; text-decoration: none; }
       `}</style>
     </div>
   );
