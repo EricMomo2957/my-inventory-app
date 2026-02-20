@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layout and Security
-import { Sidenav } from './Sidenav'; 
-import UserSidenav from './pages/user/UserSidenav'; // Import the new User Sidenav
+import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
+import UserSidenav from './pages/user/UserSidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
 
 // Public & Auth Pages
@@ -25,7 +25,8 @@ import ClerkDashboard from './pages/clerk/ClerkDashboard';
 import ClerkOrderManagement from './pages/clerk/order';
 import ClerkCalendar from './pages/clerk/clerkCalendar';
 import ClerkSetting from './pages/clerk/clerkSetting';
-import ClerkProfile from './pages/clerk/clerkProfile';
+import ClerkProfile from './pages/clerk/clerkProfile'; // Added this missing import
+
 // Private Pages - Admin Folder
 import Dashboard from './pages/admin/Dashboard'; 
 import AdminManagement from './pages/admin/AdminManagement';
@@ -88,9 +89,9 @@ export default function App() {
         {/* CONDITIONAL SIDENAV LOGIC */}
         {isLoggedIn && (
           <>
-            {/* Show Admin/Clerk Sidenav */}
+            {/* Show Clerk/Admin Sidebar */}
             {(user.role === 'admin' || user.role === 'clerk' || user.role === 'Administrator') && (
-              <Sidenav user={user} onLogout={handleLogout} />
+              <ClerkSidenav user={user} onLogout={handleLogout} />
             )}
             
             {/* Show User Sidenav */}
@@ -132,7 +133,7 @@ export default function App() {
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               
-              {/* USER ROUTES - Fixed to use underscores to match file structure */}
+              {/* USER ROUTES */}
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
               <Route path="/Orders" element={<UserOrders />} />
@@ -140,12 +141,12 @@ export default function App() {
               <Route path="/Settings" element={<Settings />} />
 
               {/* CLERK ROUTES */}
-              <Route path="/clerk-dashboard" element={<ClerkDashboard />} />
-              <Route path="/manage-orders" element={<ClerkOrderManagement />} />
-              <Route path="/clerk/calendar" element={<ClerkCalendar />} />
-              <Route path="/clerk/settings" element={<ClerkSetting />} />
-              <Route path="/clerk/profile" element={<ClerkProfile />} />
-
+              <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
+              <Route path="/clerk/order" element={<ClerkOrderManagement />} />
+              <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
+              <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
+              <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
+              
               {/* ADMIN ROUTES */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
@@ -158,7 +159,7 @@ export default function App() {
             <Route path="*" element={
               <Navigate to={
                 isLoggedIn 
-                  ? (user.role === 'user' || user.role === 'User' ? "/user_dashboard" : "/clerk-dashboard") 
+                  ? (user.role === 'user' || user.role === 'User' ? "/user_dashboard" : "/clerk/ClerkDashboard") 
                   : "/"
               } replace />
             } />
