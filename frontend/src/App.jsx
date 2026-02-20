@@ -25,7 +25,7 @@ import ClerkDashboard from './pages/clerk/ClerkDashboard';
 import ClerkOrderManagement from './pages/clerk/order';
 import ClerkCalendar from './pages/clerk/clerkCalendar';
 import ClerkSetting from './pages/clerk/clerkSetting';
-
+import ClerkProfile from './pages/clerk/clerkProfile';
 // Private Pages - Admin Folder
 import Dashboard from './pages/admin/Dashboard'; 
 import AdminManagement from './pages/admin/AdminManagement';
@@ -144,7 +144,8 @@ export default function App() {
               <Route path="/manage-orders" element={<ClerkOrderManagement />} />
               <Route path="/clerk/calendar" element={<ClerkCalendar />} />
               <Route path="/clerk/settings" element={<ClerkSetting />} />
-              
+              <Route path="/clerk/profile" element={<ClerkProfile />} />
+
               {/* ADMIN ROUTES */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
