@@ -6,11 +6,11 @@ const ClerkSidenav = () => {
 
   // Updated paths to match the filenames in your clerk folder
   const menuItems = [
-    { name: 'Dashboard', path: '/clerk/dashboard', icon: '📊' },
-    { name: 'Calendar', path: '/clerk/calendar', icon: '📅' },
-    { name: 'Manage Orders', path: '/clerk/orders', icon: '🛒' },
-    { name: 'Profile', path: '/clerk/profile', icon: '👤' },
-    { name: 'Settings', path: '/clerk/settings', icon: '⚙️' },
+    { name: 'Dashboard', path: '/clerk/ClerkDashboard', icon: '📊' },
+    { name: 'Calendar', path: '/clerk/clerkCalendar', icon: '📅' },
+    { name: 'Manage Orders', path: '/clerk/order', icon: '🛒' },
+    { name: 'Profile', path: '/clerk/clerkProfile', icon: '👤' },
+    { name: 'Settings', path: '/clerk/clerkSetting', icon: '⚙️' },
   ];
 
   const isActive = (path) => location.pathname === path;
