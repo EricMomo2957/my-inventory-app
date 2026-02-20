@@ -1,29 +1,29 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const ClerkSidenav = () => {
+const ClerkSidenav = ({ user, onLogout }) => {
   const location = useLocation();
 
-  // Paths are mapped to match standard routing for your files
+  // FIX: Paths must match App.jsx exactly to work
   const menuItems = [
-  { name: 'Dashboard', path: '/clerk/dashboard', icon: '📊' },
-  { name: 'Inventory', path: '/clerk/inventory', icon: '📦' }, 
-  { name: 'Calendar', path: '/clerk/calendar', icon: '📅' }, // Added this
-  { name: 'Manage Orders', path: '/clerk/orders', icon: '🛒' },
-  { name: 'Settings', path: '/clerk/settings', icon: '⚙️' },
-];
+    { name: 'Dashboard', path: '/clerk/ClerkDashboard', icon: '📊' },
+    { name: 'Manage Orders', path: '/clerk/order', icon: '🛒' },
+    { name: 'Calendar', path: '/clerk/clerkCalendar', icon: '📅' },
+    { name: 'Profile', path: '/clerk/clerkProfile', icon: '👤' },
+    { name: 'Settings', path: '/clerk/clerkSetting', icon: '⚙️' },
+  ];
 
   const isActive = (path) => location.pathname === path;
 
-  // Pulling real user data if available in localStorage
-  const userName = localStorage.getItem('userName') || 'Clerk Staff';
+  // Pulling real user data
+  const userName = user?.name || localStorage.getItem('userName') || 'Clerk Staff';
   const userEmail = localStorage.getItem('userEmail') || 'staff@pro.com';
 
   return (
     <aside className="w-64 h-screen bg-[#0b1120] border-r border-slate-800 flex flex-col sticky top-0 z-50">
       {/* Logo Section */}
       <div className="p-8">
-        <Link to="/clerk/clerkDashboard" className="text-xl font-black text-white flex items-center gap-2">
+        <Link to="/clerk/ClerkDashboard" className="text-xl font-black text-white flex items-center gap-2">
           <div className="bg-[#4361ee] p-1.5 rounded-lg flex items-center justify-center">
              <span className="text-lg">📦</span>
           </div>
@@ -33,6 +33,7 @@ const ClerkSidenav = () => {
 
       {/* Navigation Links */}
       <nav className="flex-1 px-4 space-y-2">
+        <p className="px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Main Menu</p>
         {menuItems.map((item) => (
           <Link
             key={item.path}
@@ -54,8 +55,8 @@ const ClerkSidenav = () => {
       {/* User Info / Logout Section */}
       <div className="p-4 border-t border-slate-800">
         <div className="bg-[#111827]/50 p-4 rounded-2xl border border-slate-800/50 flex items-center gap-3">
-          {/* Dynamic Avatar Initial */}
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white font-bold border-2 border-[#0b1120]">
+          {/* Dynamic Avatar */}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white font-bold border-2 border-[#0b1120]">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 overflow-hidden">
@@ -64,13 +65,12 @@ const ClerkSidenav = () => {
           </div>
         </div>
         
-        <Link 
-          to="/login" 
-          onClick={() => localStorage.clear()} // Clear session on logout
+        <button 
+          onClick={onLogout} // Uses the central logout function from App.jsx
           className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 text-red-400 font-bold text-xs hover:bg-red-500/10 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
         >
           🚪 Logout
-        </Link>
+        </button>
       </div>
     </aside>
   );
