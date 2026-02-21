@@ -25,7 +25,7 @@ import ClerkDashboard from './pages/clerk/ClerkDashboard';
 import ClerkOrderManagement from './pages/clerk/order';
 import ClerkCalendar from './pages/clerk/clerkCalendar';
 import ClerkSetting from './pages/clerk/clerkSetting';
-import ClerkProfile from './pages/clerk/clerkProfile'; // Added this missing import
+import ClerkProfile from './pages/clerk/clerkProfile';
 
 // Private Pages - Admin Folder
 import Dashboard from './pages/admin/Dashboard'; 
@@ -86,7 +86,7 @@ export default function App() {
     <Router>
       <div className={`flex h-screen w-full font-sans overflow-hidden ${isLoggedIn ? 'bg-[#0b1120] text-slate-200' : ''}`}>
         
-        {/* CONDITIONAL SIDENAV LOGIC */}
+        {/* GLOBAL SIDENAV LOGIC - RENDERED ONCE */}
         {isLoggedIn && (
           <>
             {/* Show Clerk/Admin Sidebar */}
@@ -101,13 +101,14 @@ export default function App() {
           </>
         )}
 
-        <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 flex flex-col h-full overflow-y-auto relative scrollbar-hide">
           
           {/* Global Low Stock Notifications */}
           {isLoggedIn && activeAlerts.length > 0 && (
-            <div className="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
+            <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
               {activeAlerts.map(item => (
-                <div key={item.id} className="pointer-events-auto bg-[#1e293b] p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-slide-in w-80 border border-slate-800 border-l-4 border-l-red-500">
+                <div key={item.id} className="pointer-events-auto bg-[#1e293b] p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-right-full w-80 border border-slate-800 border-l-4 border-l-red-500">
                   <div className="text-xl">⚠️</div>
                   <div className="flex-1">
                     <h4 className="text-sm font-black text-white">Low Stock</h4>
@@ -115,7 +116,7 @@ export default function App() {
                   </div>
                   <button 
                     onClick={() => setDismissedAlerts(prev => [...prev, item.id])} 
-                    className="text-slate-500 hover:text-white"
+                    className="text-slate-500 hover:text-white p-1"
                   >✕</button>
                 </div>
               ))}

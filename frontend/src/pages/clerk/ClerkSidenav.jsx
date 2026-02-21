@@ -56,7 +56,7 @@ const ClerkSidenav = ({ user, onLogout }) => {
       <div className="p-4 border-t border-slate-800">
         <div className="bg-[#111827]/50 p-4 rounded-2xl border border-slate-800/50 flex items-center gap-3">
           {/* Dynamic Avatar */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white font-bold border-2 border-[#0b1120]">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white font-bold border-2 border-[#0b1120]">
             {userName.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 overflow-hidden">
