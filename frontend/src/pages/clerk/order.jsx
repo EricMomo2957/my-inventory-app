@@ -13,6 +13,8 @@ export default function Order() {
   const [activeCategory, setActiveCategory] = useState('All');
   const navigate = useNavigate();
 
+  // Handle Theme (Sync with global)
+  const isDarkMode = localStorage.getItem('landingTheme') === 'dark';
   const user = JSON.parse(localStorage.getItem('user')) || null;
   const isLoggedIn = !!user;
 
@@ -46,24 +48,36 @@ export default function Order() {
     fetchProducts();
   }, []);
 
-  // --- CALCULATIONS ---
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   // --- HANDLERS ---
   const handleQuantityChange = (id, val) => {
-    const value = parseInt(val, 10);
-    setQuantities(prev => ({ ...prev, [id]: value > 0 ? value : 1 }));
+    // Allows empty string so user can delete and type new numbers
+    const value = val === '' ? '' : parseInt(val, 10);
+    setQuantities(prev => ({ ...prev, [id]: value }));
   };
 
   const addToCart = (product) => {
-    const qty = quantities[product.id] || 1;
+    // Ensure qty is at least 1 and is a valid number
+    const qty = parseInt(quantities[product.id]) || 1;
+    
+    if (qty <= 0) return;
+
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      // Use String conversion to avoid type-mismatch bugs (1 vs "1")
+      const existing = prev.find(item => String(item.id) === String(product.id));
+      
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + qty } : item);
+        return prev.map(item => 
+          String(item.id) === String(product.id) 
+            ? { ...item, quantity: item.quantity + qty } 
+            : item
+        );
       }
       return [...prev, { ...product, quantity: qty }];
     });
+
+    // Reset local quantity input for that specific product back to 1
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
@@ -103,88 +117,83 @@ export default function Order() {
   });
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-[#1e293b] dark:text-[#f8fafc] transition-colors duration-300 font-sans pb-10">
-      {/* FIXED: max-w-[1400px] -> max-w-7xl (or nearest canonical) */}
-      <div className="max-w-7xl mx-auto p-5 md:p-8 space-y-6">
+    <div className={`w-full transition-colors duration-300 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+      <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-700">
         
-        {/* --- UPPER HEADER --- */}
-        {/* FIXED: bg-gradient-to-br -> bg-linear-to-br | rounded-[24px] -> rounded-3xl */}
-        <div className="bg-linear-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-3xl shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="space-y-3 text-center md:text-left">
-            <Link to="/" className="text-white/80 hover:text-white flex items-center gap-2 text-sm font-semibold transition-all">
-              ← Return to Dashboard
-            </Link>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Point of Sale</h1>
-            <p className="opacity-90 max-w-xl text-lg leading-relaxed">
-              Serving local images from <code className="bg-black/20 px-2 py-1 rounded">/public/codepic/</code>
-            </p>
+        {/* --- MODERN HEADER --- */}
+        <div className="bg-linear-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-4xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+          
+          <div className="space-y-3 z-10 text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl font-black tracking-tighter">Point of Sale</h1>
+            <p className="text-blue-100/80 font-medium">Process orders and manage instant stock deductions</p>
           </div>
-          <div className="text-center md:text-right">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 mb-1">Current Selection</p>
-            <p className="text-5xl md:text-6xl font-black drop-shadow-md">₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+          <div className="text-center md:text-right z-10">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-1">Total Balance</p>
+            <p className="text-5xl font-black">₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
           </div>
         </div>
 
-        {/* --- STICKY ACTION BAR --- */}
-        <header className="sticky top-5 z-40 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 p-5 rounded-[20px] shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
-          {/* FIXED: md:w-[400px] -> md:w-100 */}
-          <div className="relative w-full md:w-100">
+        {/* --- STICKY GLASS ACTION BAR --- */}
+        <header className="sticky top-4 z-40 backdrop-blur-xl bg-[#111827]/60 border border-slate-800 p-4 rounded-2xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="relative w-full md:w-96">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40">🔍</span>
             <input 
               type="text" 
               placeholder="Search products..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f1f5f9] dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-xl px-5 py-3 outline-none focus:ring-2 focus:ring-[#4361ee] transition-all"
+              className="w-full bg-[#0b1120] border border-slate-800 rounded-xl pl-12 pr-5 py-3.5 outline-none focus:border-[#4361ee] transition-all text-sm"
             />
           </div>
-          <button 
-            onClick={() => setIsCartOpen(true)}
-            className="w-full md:w-auto bg-[#4361ee] hover:bg-[#3a0ca3] text-white px-8 py-3.5 rounded-xl font-bold shadow-lg active:scale-95 transition-all"
-          >
-            Review Cart ({cart.length})
-          </button>
-        </header>
-
-        {/* --- CATEGORY BAR --- */}
-        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-          {['All', 'Vegetables', 'Fruits', 'Supplies'].map((cat) => (
+          
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {['All', 'Vegetables', 'Fruits', 'Supplies'].map((cat) => (
+                <button 
+                  key={cat} 
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                    activeCategory === cat 
+                    ? 'bg-[#4361ee] text-white border-[#4361ee]' 
+                    : 'bg-slate-900/50 text-slate-500 border-slate-800 hover:border-slate-600'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
             <button 
-              key={cat} 
-              onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold border transition-all ${
-                activeCategory === cat 
-                ? 'bg-[#4361ee] text-white border-[#4361ee]' 
-                : 'bg-white dark:bg-[#1e293b] text-slate-500 border-slate-200 dark:border-slate-700 hover:border-[#4361ee]'
-              }`}
+              onClick={() => setIsCartOpen(true)}
+              className="bg-white text-black px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-all flex items-center gap-2 shrink-0"
             >
-              {cat}
+              Cart <span className="bg-[#4361ee] text-white w-5 h-5 rounded-full flex items-center justify-center text-[8px]">{cart.length}</span>
             </button>
-          ))}
-        </div>
+          </div>
+        </header>
 
         {/* --- PRODUCT GRID --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map(item => (
-            /* FIXED: rounded-[24px] -> rounded-3xl */
-            <div key={item.id} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 p-5 rounded-3xl group hover:-translate-y-2 hover:border-[#4361ee] transition-all duration-300 flex flex-col">
-              <div className="relative mb-4 overflow-hidden rounded-2xl">
+            <div key={item.id} className="bg-[#111827]/40 backdrop-blur-md border border-slate-800 p-5 rounded-3xl group hover:border-[#4361ee]/50 transition-all duration-500 flex flex-col hover:shadow-2xl hover:shadow-blue-500/5">
+              <div className="relative mb-5 overflow-hidden rounded-2xl aspect-square">
                 <img 
                   src={getLocalImage(item)} 
                   onError={(e) => handleImgError(e, item.category)}
-                  className="w-full h-44 object-cover group-hover:scale-110 transition-transform duration-500 bg-slate-100" 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 bg-slate-900" 
                   alt={item.name} 
                 />
-                <span className="absolute top-3 left-3 bg-[#4361ee]/20 backdrop-blur-md text-[#4361ee] px-3 py-1 rounded-lg text-[10px] font-black uppercase">
+                <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter">
                   {item.category}
-                </span>
+                </div>
               </div>
               
-              <div className="flex-1 space-y-2">
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{item.name}</h3>
-                <div className="inline-block bg-[#4361ee]/10 text-[#4361ee] px-3 py-1 rounded-md text-xs font-bold">
-                  Stock: {item.quantity}
-                </div>
-                <div className="text-3xl font-black text-[#4361ee] pt-2">
+              <div className="flex-1 space-y-1">
+                <h3 className="text-lg font-black text-white group-hover:text-[#4361ee] transition-colors">{item.name}</h3>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Stock: <span className={item.quantity < 5 ? 'text-red-500' : 'text-emerald-500'}>{item.quantity} available</span>
+                </p>
+                <div className="text-2xl font-black text-white pt-2">
                   ₱{item.price.toFixed(2)}
                 </div>
               </div>
@@ -193,16 +202,17 @@ export default function Order() {
                 <input 
                   type="number" 
                   min="1" 
-                  value={quantities[item.id] || 1}
+                  value={quantities[item.id] ?? ''} 
+                  placeholder="1"
                   onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                  className="w-16 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-xl text-center font-bold"
+                  className="w-14 bg-[#0b1120] border border-slate-800 rounded-xl text-center font-black text-sm text-white focus:border-[#4361ee] outline-none"
                 />
                 <button 
                   onClick={() => addToCart(item)}
                   disabled={item.quantity <= 0}
-                  className="flex-1 bg-[#4361ee] hover:bg-[#3a0ca3] text-white py-3.5 rounded-xl font-bold uppercase tracking-widest transition-all disabled:bg-slate-300 shadow-lg shadow-indigo-500/10"
+                  className="flex-1 bg-[#4361ee] hover:bg-[#3651d4] text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] transition-all disabled:bg-slate-800 disabled:text-slate-600 shadow-xl shadow-blue-500/10 active:scale-95"
                 >
-                  {item.quantity > 0 ? "Add Item" : "Sold Out"}
+                  {item.quantity > 0 ? "Add to Cart" : "Out of Stock"}
                 </button>
               </div>
             </div>
@@ -212,50 +222,44 @@ export default function Order() {
 
       {/* --- CART MODAL --- */}
       {isCartOpen && (
-        /* FIXED: z-[100] -> z-100 */
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          {/* FIXED: rounded-[32px] -> rounded-4xl */}
-          <div className="bg-white dark:bg-[#1e293b] rounded-4xl w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <header className="p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-              <h2 className="text-2xl font-black">Order Summary</h2>
-              <button onClick={() => setIsCartOpen(false)} className="text-3xl text-slate-400 hover:text-red-500 transition-colors">✕</button>
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-[#111827] border border-slate-800 rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
+            <header className="p-8 border-b border-slate-800/50 flex justify-between items-center">
+              <h2 className="text-xl font-black text-white uppercase tracking-tighter">Current Order</h2>
+              <button onClick={() => setIsCartOpen(false)} className="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center transition-colors">✕</button>
             </header>
             
-            {/* FIXED: max-h-[400px] -> max-h-100 */}
-            <div className="p-8 max-h-100 overflow-y-auto space-y-4">
+            <div className="p-8 max-h-100 overflow-y-auto space-y-4 custom-scrollbar">
               {cart.length === 0 ? (
-                <div className="text-center py-10 opacity-50 font-bold">Your cart is empty</div>
+                <div className="text-center py-10 text-slate-500 font-bold uppercase text-xs tracking-widest">Your cart is empty</div>
               ) : (
                 cart.map(item => (
-                  <div key={item.id} className="flex justify-between items-center bg-[#f8fafc] dark:bg-[#0f172a] p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                  <div key={item.id} className="flex justify-between items-center bg-[#0b1120] p-5 rounded-2xl border border-slate-800">
                     <div>
-                      <p className="font-black text-slate-800 dark:text-white">{item.name}</p>
-                      <p className="text-xs text-slate-500 font-bold">₱{item.price.toFixed(2)} x {item.quantity}</p>
+                      <p className="font-black text-white text-sm">{item.name}</p>
+                      <p className="text-[10px] text-slate-500 font-black uppercase">₱{item.price.toFixed(2)} × {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-[#4361ee]">₱{(item.price * item.quantity).toFixed(2)}</p>
-                      <button onClick={() => setCart(cart.filter(c => c.id !== item.id))} className="text-[10px] text-red-500 font-bold uppercase underline">Remove</button>
+                      <p className="font-black text-[#4361ee]">₱{(item.price * item.quantity).toFixed(2)}</p>
+                      <button onClick={() => setCart(cart.filter(c => c.id !== item.id))} className="text-[9px] text-red-500 font-black uppercase tracking-tighter hover:underline">Remove</button>
                     </div>
                   </div>
                 ))
               )}
             </div>
 
-            <div className="p-8 bg-[#f8fafc] dark:bg-[#162033] border-t border-slate-100 dark:border-slate-700">
+            <div className="p-8 bg-[#0b1120]/50 border-t border-slate-800">
               <div className="flex justify-between items-center mb-6">
-                <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">Total Amount</span>
-                <span className="text-3xl font-black text-[#4361ee]">₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <span className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Grand Total</span>
+                <span className="text-3xl font-black text-white">₱{cartTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <button onClick={() => setIsCartOpen(false)} className="py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:bg-white transition-colors">Edit Cart</button>
-                <button 
-                  onClick={handleCheckout}
-                  disabled={cart.length === 0}
-                  className="py-4 rounded-2xl bg-[#4361ee] text-white font-black hover:bg-[#3a0ca3] transition-all shadow-xl shadow-indigo-500/20 disabled:opacity-50"
-                >
-                  Complete Order
-                </button>
-              </div>
+              <button 
+                onClick={handleCheckout}
+                disabled={cart.length === 0}
+                className="w-full py-5 rounded-2xl bg-[#4361ee] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-[#3651d4] transition-all shadow-2xl shadow-blue-500/20 disabled:opacity-20"
+              >
+                Complete Transaction
+              </button>
             </div>
           </div>
         </div>
@@ -263,60 +267,62 @@ export default function Order() {
 
       {/* --- RECEIPT MODAL --- */}
       {showReceipt && (
-        /* FIXED: z-[110] -> z-110 */
-        <div className="fixed inset-0 z-110 flex items-center justify-center bg-slate-900/90 backdrop-blur-md animate-in fade-in">
-           <div className="bg-white p-10 rounded-xl text-black w-full max-w-md font-mono shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 left-0 w-full h-2 bg-[#4361ee]"></div>
-             
-             <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-6">
-               <h2 className="text-2xl font-black tracking-tighter">INVENTORY PRO</h2>
-               <p className="text-xs uppercase font-bold text-slate-500">Official Order Receipt</p>
-               <p className="text-[10px] text-slate-400 mt-1">{receiptData.date}</p>
-             </div>
+        <div className="fixed inset-0 z-110 flex items-center justify-center bg-black/90 backdrop-blur-xl animate-in fade-in">
+             <div className="bg-white p-10 rounded-4xl text-black w-full max-w-sm font-mono shadow-2xl relative overflow-hidden receipt-container">
+               <div className="absolute top-0 left-0 w-full h-3 bg-[#4361ee]"></div>
+               
+               <div className="text-center border-b-2 border-dashed border-slate-200 pb-6 mb-6">
+                 <h2 className="text-2xl font-black tracking-tighter">INVENTORY PRO</h2>
+                 <p className="text-[9px] uppercase font-black text-slate-400">Order ID: #{receiptData.trx}</p>
+                 <p className="text-[9px] text-slate-400 mt-1">{receiptData.date}</p>
+               </div>
 
-             <div className="space-y-3 mb-6">
-               {cart.map(item => (
-                 <div key={item.id} className="flex justify-between text-sm">
-                   <span className="uppercase">{item.name} <span className="text-slate-400 text-xs">x{item.quantity}</span></span>
-                   <span className="font-bold">₱{(item.price * item.quantity).toFixed(2)}</span>
-                 </div>
-               ))}
-             </div>
+               <div className="space-y-3 mb-6">
+                 {cart.map(item => (
+                   <div key={item.id} className="flex justify-between text-[11px] uppercase">
+                     <span>{item.name} <span className="text-slate-400 ml-1">x{item.quantity}</span></span>
+                     <span className="font-bold">₱{(item.price * item.quantity).toFixed(2)}</span>
+                   </div>
+                 ))}
+               </div>
 
-             <div className="border-t-2 border-dashed border-slate-200 pt-4 mb-6 flex justify-between font-black text-2xl">
-               <span>TOTAL</span>
-               <span>₱{cartTotal.toFixed(2)}</span>
-             </div>
+               <div className="border-t-2 border-dashed border-slate-200 pt-4 mb-8 flex justify-between font-black text-2xl">
+                 <span>TOTAL</span>
+                 <span>₱{cartTotal.toFixed(2)}</span>
+               </div>
 
-             <div className="text-center text-[10px] text-slate-400 mb-8">
-               TRANSACTION ID: #{receiptData.trx}<br/>
-               THANK YOU FOR YOUR PURCHASE!
+               <div className="grid grid-cols-2 gap-3 print:hidden">
+                 <button 
+                   onClick={printReceipt}
+                   className="bg-slate-100 text-black py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all"
+                 >
+                   Print
+                 </button>
+                 <button 
+                   onClick={() => { setShowReceipt(false); setCart([]); }} 
+                   className="bg-black text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-80 transition-opacity"
+                 >
+                   Done
+                 </button>
+               </div>
              </div>
-
-             <div className="grid grid-cols-2 gap-3 print:hidden">
-               <button 
-                 onClick={printReceipt} 
-                 className="bg-slate-100 text-slate-800 py-3 rounded-lg font-bold hover:bg-slate-200 transition-colors"
-               >
-                 PRINT
-               </button>
-               <button 
-                 onClick={() => { setShowReceipt(false); setCart([]); }} 
-                 className="bg-black text-white py-3 rounded-lg font-bold hover:opacity-80 transition-opacity"
-               >
-                 CLOSE
-               </button>
-             </div>
-           </div>
         </div>
       )}
-      
-      {/* Styles for Printing */}
+
       <style>{`
         @media print {
           body * { visibility: hidden; }
-          .fixed.inset-0.z-110 { position: absolute; left: 0; top: 0; width: 100%; visibility: visible; }
-          .fixed.inset-0.z-110 * { visibility: visible; }
+          .receipt-container, .receipt-container * { visibility: visible; }
+          .receipt-container { 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            max-width: 100%; 
+            box-shadow: none;
+            border-radius: 0;
+            padding: 20px;
+          }
           .print\\:hidden { display: none !important; }
         }
       `}</style>
