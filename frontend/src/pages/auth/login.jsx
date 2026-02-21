@@ -151,6 +151,11 @@ export default function Login({ setIsLoggedIn }) {
             Don't have an account? <Link to="/register" className="text-blue-500 font-bold hover:underline">Register</Link>
           </p>
         </div>
+        <div className="space-y-4 text-center">
+          <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+            Do you can go in Landing page? <Link to="/LandingPage" className="text-blue-500 font-bold hover:underline">Landing Page</Link>
+          </p>
+        </div>
       </div>
       
       {/* Theme Toggle Button */}

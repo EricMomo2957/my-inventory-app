@@ -106,7 +106,7 @@ export default function App() {
           
           {/* Global Low Stock Notifications */}
           {isLoggedIn && activeAlerts.length > 0 && (
-            <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+            <div className="fixed top-6 right-6 z-100 flex flex-col gap-3 pointer-events-none">
               {activeAlerts.map(item => (
                 <div key={item.id} className="pointer-events-auto bg-[#1e293b] p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-right-full w-80 border border-slate-800 border-l-4 border-l-red-500">
                   <div className="text-xl">⚠️</div>
