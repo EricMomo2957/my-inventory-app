@@ -162,6 +162,7 @@ const LandingPage = () => {
             <div className={`p-12 rounded-[40px] border backdrop-blur-md ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white/80 border-black/5'}`}>
               <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
               <p className="text-xl text-slate-500 leading-relaxed">We empower businesses with enterprise-grade tools to eliminate manual stock counting and maximize operational efficiency.</p>
+      
             </div>
           </div>
         </section>
