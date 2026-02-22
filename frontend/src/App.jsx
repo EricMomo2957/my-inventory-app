@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import CustomerOrder from './pages/CustomerOrder';
 
 // Layout and Security
 import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
@@ -130,6 +131,7 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />  
+            <Route path="/shop" element={<CustomerOrder />} />
             
             {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
