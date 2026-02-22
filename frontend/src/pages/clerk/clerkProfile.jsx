@@ -34,8 +34,8 @@ export default function ClerkProfile() {
               : 'bg-white/80 border border-slate-200 shadow-xl'
           }`}>
             <div className="relative group mb-6">
-              <div className="w-32 h-32 rounded-full border-[4px] border-[#4361ee]/20 p-1 flex items-center justify-center">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white text-4xl font-black relative overflow-hidden shadow-2xl">
+              <div className="w-32 h-32 rounded-full border-4 border-[#4361ee]/20 p-1 flex items-center justify-center">
+                <div className="w-full h-full rounded-full bg-linear-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white text-4xl font-black relative overflow-hidden shadow-2xl">
                   {userData.full_name.charAt(0).toUpperCase()}
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-sm">
                     <span className="text-[10px] font-black tracking-tighter">UPDATE PHOTO</span>

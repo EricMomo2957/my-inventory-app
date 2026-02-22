@@ -148,7 +148,7 @@ const LandingPage = () => {
           <div className="max-w-xl">
             <h1 className="text-6xl font-extrabold mb-6 leading-tight">Master Your <span className="text-[#4361ee]">Stock Level.</span></h1>
             <p className="text-lg text-slate-500 mb-10">Real-time tracking, advanced reporting, and secure staff access for modern businesses.</p>
-            <Link to="/order" className="inline-block bg-[#4361ee] text-white px-10 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-transform">Order Now</Link>
+            <Link to="/shop" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-2xl shadow-blue-500/20">Order Now</Link>
           </div>
           <div className="w-full md:w-1/2 mt-12 md:mt-0">
             <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" className="rounded-3xl shadow-2xl" alt="Dashboard" />
