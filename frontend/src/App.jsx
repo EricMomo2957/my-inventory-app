@@ -2,6 +2,9 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CustomerOrder from './pages/CustomerOrder';
 
+// Theme Support
+import { useTheme } from './context/ThemeContext'; // Ensure this path is correct
+
 // Layout and Security
 import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
 import UserSidenav from './pages/user/UserSidenav'; 
@@ -34,6 +37,7 @@ import AdminManagement from './pages/admin/AdminManagement';
 import Calendar from './pages/admin/Calendar';
 
 export default function App() {
+  const { isDark } = useTheme(); // 1. Pull the theme state
   const [products, setProducts] = useState([]);
   const [dismissedAlerts, setDismissedAlerts] = useState([]); 
 
@@ -85,17 +89,18 @@ export default function App() {
 
   return (
     <Router>
-      <div className={`flex h-screen w-full font-sans overflow-hidden ${isLoggedIn ? 'bg-[#0b1120] text-slate-200' : ''}`}>
+      {/* 2. Dynamic background logic for the whole app container */}
+      <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 ${
+        isDark ? 'bg-[#0b1120] text-slate-200' : 'bg-slate-50 text-slate-900'
+      }`}>
         
-        {/* GLOBAL SIDENAV LOGIC - RENDERED ONCE */}
+        {/* GLOBAL SIDENAV LOGIC */}
         {isLoggedIn && (
           <>
-            {/* Show Clerk/Admin Sidebar */}
             {(user.role === 'admin' || user.role === 'clerk' || user.role === 'Administrator') && (
               <ClerkSidenav user={user} onLogout={handleLogout} />
             )}
             
-            {/* Show User Sidenav */}
             {(user.role === 'User' || user.role === 'user' || user.role === 'Member') && (
               <UserSidenav user={user} onLogout={handleLogout} />
             )}
@@ -109,10 +114,12 @@ export default function App() {
           {isLoggedIn && activeAlerts.length > 0 && (
             <div className="fixed top-6 right-6 z-100 flex flex-col gap-3 pointer-events-none">
               {activeAlerts.map(item => (
-                <div key={item.id} className="pointer-events-auto bg-[#1e293b] p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-right-full w-80 border border-slate-800 border-l-4 border-l-red-500">
+                <div key={item.id} className={`pointer-events-auto p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-right-full w-80 border border-l-4 border-l-red-500 ${
+                  isDark ? 'bg-[#1e293b] border-slate-800' : 'bg-white border-slate-200'
+                }`}>
                   <div className="text-xl">⚠️</div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-black text-white">Low Stock</h4>
+                    <h4 className={`text-sm font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Low Stock</h4>
                     <p className="text-xs text-slate-400">{item.name}: {item.quantity} left</p>
                   </div>
                   <button 
@@ -125,7 +132,6 @@ export default function App() {
           )}
 
           <Routes>
-            {/* PUBLIC ROUTES */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
@@ -133,24 +139,19 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />  
             <Route path="/shop" element={<CustomerOrder />} />
 
-            {/* PROTECTED PRIVATE ROUTES */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              
-              {/* USER ROUTES */}
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
               <Route path="/Orders" element={<UserOrders />} />
               <Route path="/Profile" element={<Profile user={user} />} />
               <Route path="/Settings" element={<Settings />} />
 
-              {/* CLERK ROUTES */}
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
               <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
               <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
               
-              {/* ADMIN ROUTES */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/admin" element={
@@ -158,7 +159,6 @@ export default function App() {
               } />
             </Route>
 
-            {/* CATCH ALL REDIRECT */}
             <Route path="*" element={
               <Navigate to={
                 isLoggedIn 
