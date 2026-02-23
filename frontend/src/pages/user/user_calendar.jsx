@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { useTheme } from '../../context/ThemeContext'; // Adjust path as needed
 
 export default function UserCalendarView() {
+  const { isDark } = useTheme();
   const [events, setEvents] = useState([]);
   const [formData, setFormData] = useState({ title: '', date: '', category: 'Personal Task' });
   const [isEditing, setIsEditing] = useState(false);
@@ -72,7 +74,6 @@ export default function UserCalendarView() {
         setIsEditing(false);
         setEditId(null);
         setFormData({ title: '', date: '', category: 'Personal Task' });
-        // Refresh local state instead of reloading page for a smoother SPA experience
         const refreshed = await fetch('http://localhost:3000/api/schedules').then(r => r.json());
         setEvents(refreshed.map(item => ({
           id: item.id,
@@ -89,16 +90,22 @@ export default function UserCalendarView() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-10">
+    <div className={`flex-1 overflow-y-auto p-10 transition-colors duration-500 ${
+      isDark ? 'bg-[#0b1120]' : 'bg-slate-50'
+    }`}>
       <header className="mb-8">
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
+        <h1 className={`text-3xl font-black flex items-center gap-3 ${
+          isDark ? 'text-white' : 'text-slate-900'
+        }`}>
           📅 My Schedule & Requests
         </h1>
         <p className="text-slate-500 font-medium">Manage your personal tasks and view delivery dates</p>
       </header>
 
       {/* TOP SECTION: CALENDAR */}
-      <div className="bg-white rounded-3xl p-6 mb-8 shadow-xl calendar-container overflow-hidden">
+      <div className={`rounded-3xl p-6 mb-8 shadow-xl calendar-container overflow-hidden transition-colors ${
+        isDark ? 'bg-[#111827] border border-slate-800' : 'bg-white border border-slate-200'
+      }`}>
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -115,8 +122,10 @@ export default function UserCalendarView() {
 
       <div className="flex flex-col lg:flex-row gap-8 pb-10">
         {/* FORM SECTION */}
-        <div className="w-full lg:w-96 bg-slate-900/50 rounded-3xl border border-slate-800 p-8 shadow-xl h-fit">
-          <h2 className="text-xl font-bold text-white mb-6">
+        <div className={`w-full lg:w-96 rounded-3xl border p-8 shadow-xl h-fit transition-colors ${
+          isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200'
+        }`}>
+          <h2 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {isEditing ? '📝 Update Entry' : '➕ Request New Entry'}
           </h2>
           <form onSubmit={handleSaveEntry} className="space-y-5">
@@ -124,7 +133,9 @@ export default function UserCalendarView() {
               <label className="block text-[10px] uppercase font-black text-slate-500 mb-2 tracking-widest">Description</label>
               <input 
                 type="text" 
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-blue-500"
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500 transition-all ${
+                  isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
                 placeholder="e.g. Pickup Order #123"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -134,8 +145,10 @@ export default function UserCalendarView() {
               <label className="block text-[10px] uppercase font-black text-slate-500 mb-2 tracking-widest">Date</label>
               <input 
                 type="date" 
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none"
-                style={{ colorScheme: 'dark' }}
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
+                  isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
+                style={{ colorScheme: isDark ? 'dark' : 'light' }}
                 value={formData.date}
                 onChange={(e) => setFormData({...formData, date: e.target.value})}
               />
@@ -143,7 +156,9 @@ export default function UserCalendarView() {
             <div>
               <label className="block text-[10px] uppercase font-black text-slate-500 mb-2 tracking-widest">Type</label>
               <select 
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                className={`w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all ${
+                  isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
                 value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
               >
@@ -157,7 +172,9 @@ export default function UserCalendarView() {
               <button 
                 type="submit"
                 className={`w-full font-black py-4 rounded-xl transition-all shadow-lg ${
-                  isEditing ? 'bg-amber-500 hover:bg-amber-400 text-black' : 'bg-[#4361ee] hover:bg-blue-700 text-white shadow-blue-600/20'
+                  isEditing 
+                  ? 'bg-amber-500 hover:bg-amber-400 text-black' 
+                  : 'bg-[#4361ee] hover:bg-blue-700 text-white shadow-blue-600/20'
                 }`}
               >
                 {isEditing ? 'Save Changes' : 'Submit Request'}
@@ -167,7 +184,9 @@ export default function UserCalendarView() {
                 <button 
                   type="button" 
                   onClick={() => { setIsEditing(false); setFormData({title:'', date:'', category:'Personal Task'}); }}
-                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs"
+                  className={`w-full font-bold py-3 rounded-xl text-xs transition-colors ${
+                    isDark ? 'bg-slate-800 hover:bg-slate-700 text-slate-400' : 'bg-slate-200 hover:bg-slate-300 text-slate-600'
+                  }`}
                 >
                   Cancel
                 </button>
@@ -177,30 +196,36 @@ export default function UserCalendarView() {
         </div>
 
         {/* TABLE SECTION */}
-        <div className="flex-1 bg-slate-900/50 rounded-3xl border border-slate-800 overflow-hidden shadow-xl">
+        <div className={`flex-1 rounded-3xl border overflow-hidden shadow-xl transition-colors ${
+          isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200'
+        }`}>
           <table className="w-full text-left">
-            <thead className="bg-slate-950 border-b border-slate-800">
+            <thead className={`border-b transition-colors ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
               <tr>
                 <th className="p-5 text-[10px] font-black uppercase text-slate-500 tracking-widest">Date</th>
                 <th className="p-5 text-[10px] font-black uppercase text-slate-500 tracking-widest">Event</th>
                 <th className="p-5 text-[10px] font-black uppercase text-slate-500 text-center tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50">
+            <tbody className={`divide-y ${isDark ? 'divide-slate-800/50' : 'divide-slate-100'}`}>
               {events.length > 0 ? events.map((event) => (
-                <tr key={event.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="p-5 text-sm text-slate-400 font-medium">
+                <tr key={event.id} className={`transition-colors ${
+                  isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50'
+                }`}>
+                  <td className={`p-5 text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                     {new Date(event.date).toLocaleDateString()}
                   </td>
-                  <td className="p-5 text-sm font-bold text-white">{event.title}</td>
+                  <td className={`p-5 text-sm font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{event.title}</td>
                   <td className="p-5 text-center space-x-3">
-                    <button onClick={() => startEdit(event)} className="text-indigo-400 hover:text-indigo-300 font-black text-[10px] uppercase tracking-tighter">Edit</button>
+                    <button onClick={() => startEdit(event)} className="text-indigo-500 hover:text-indigo-400 font-black text-[10px] uppercase tracking-tighter">Edit</button>
                     <button onClick={() => handleDelete(event.id)} className="text-red-500 hover:text-red-400 font-black text-[10px] uppercase tracking-tighter">Remove</button>
                   </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="3" className="p-20 text-center text-slate-600 italic">No scheduled events yet.</td>
+                  <td colSpan="3" className="p-20 text-center text-slate-400 italic">No scheduled events yet.</td>
                 </tr>
               )}
             </tbody>
@@ -209,10 +234,36 @@ export default function UserCalendarView() {
       </div>
 
       <style>{`
-        .calendar-container { color: #1e293b; }
-        .fc-toolbar-title { font-weight: 900 !important; font-size: 1.1rem !important; text-transform: uppercase; color: #1e293b; }
-        .fc-button-primary { background-color: #4361ee !important; border: none !important; font-weight: bold !important; border-radius: 12px !important; }
-        .fc-daygrid-day-number { color: #1e293b; font-weight: bold; text-decoration: none; }
+        .fc-toolbar-title { 
+          font-weight: 900 !important; 
+          font-size: 1.1rem !important; 
+          text-transform: uppercase; 
+          color: ${isDark ? '#ffffff' : '#1e293b'} !important; 
+        }
+        .fc-button-primary { 
+          background-color: #4361ee !important; 
+          border: none !important; 
+          font-weight: bold !important; 
+          border-radius: 12px !important; 
+        }
+        .fc-daygrid-day-number { 
+          color: ${isDark ? '#94a3b8' : '#1e293b'} !important; 
+          font-weight: bold; 
+          padding: 8px !important;
+        }
+        .fc-col-header-cell-cushion { 
+          color: ${isDark ? '#64748b' : '#1e293b'} !important;
+          text-transform: uppercase;
+          font-size: 0.7rem;
+          font-weight: 800;
+        }
+        /* Grid Lines */
+        .fc td, .fc th { 
+          border-color: ${isDark ? '#1e293b' : '#e2e8f0'} !important; 
+        }
+        .fc-theme-standard .fc-scrollgrid { 
+          border-color: ${isDark ? '#1e293b' : '#e2e8f0'} !important; 
+        }
       `}</style>
     </div>
   );

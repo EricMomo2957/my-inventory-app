@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTheme } from '../../context/ThemeContext'; // Adjust path if necessary
 
 export default function Orders() {
+  const { isDark } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Data based on your sample image
+  // Keep your existing data
   const [orders, setOrders] = useState([
     { id: "#ORD-57", product: "Logos", category: "supplies", qty: 8, unitPrice: 50, total: 400, date: "1/24/2026, 9:39:13 PM", status: "COMPLETED" },
     { id: "#ORD-42", product: "Logos", category: "supplies", qty: 100, unitPrice: 50, total: 5000, date: "1/22/2026, 10:21:17 PM", status: "COMPLETED" },
@@ -22,13 +24,17 @@ export default function Orders() {
   };
 
   return (
-    <div className="p-8 flex flex-col h-screen bg-[#0b1120]">
+    <div className={`p-8 flex flex-col h-screen transition-colors duration-500 ${
+      isDark ? 'bg-[#0b1120]' : 'bg-slate-50'
+    }`}>
       {/* Header Area */}
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🛒</span>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Customer Orders</h1>
+            <h1 className={`text-3xl font-black tracking-tight ${
+              isDark ? 'text-white' : 'text-slate-900'
+            }`}>Customer Orders</h1>
             <p className="text-slate-500 text-sm font-medium mt-1">View and manage all outgoing customer transactions.</p>
           </div>
         </div>
@@ -38,7 +44,11 @@ export default function Orders() {
             <input 
               type="text" 
               placeholder="Search Order ID or Product..." 
-              className="bg-[#1e293b]/50 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white w-64 outline-none focus:border-[#4361ee] transition-all"
+              className={`border rounded-lg px-4 py-2 text-sm outline-none w-64 transition-all ${
+                isDark 
+                ? 'bg-[#1e293b]/50 border-slate-700/50 text-white focus:border-[#4361ee]' 
+                : 'bg-white border-slate-300 text-slate-900 focus:border-[#4361ee] shadow-sm'
+              }`}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
@@ -49,10 +59,16 @@ export default function Orders() {
       </header>
 
       {/* Main Table Card */}
-      <div className="flex-1 bg-[#111827]/50 rounded-3xl border border-slate-800/50 overflow-hidden shadow-2xl flex flex-col">
+      <div className={`flex-1 rounded-3xl border overflow-hidden shadow-2xl flex flex-col transition-all duration-500 ${
+        isDark ? 'bg-[#111827]/50 border-slate-800/50' : 'bg-white border-slate-200'
+      }`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-[#0b1120] text-[11px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-800">
+            <thead className={`text-[11px] font-black uppercase tracking-widest border-b transition-colors ${
+              isDark 
+              ? 'bg-[#0b1120] text-slate-400 border-slate-800' 
+              : 'bg-slate-50 text-slate-500 border-slate-200'
+            }`}>
               <tr>
                 <th className="p-5 px-6">Order ID</th>
                 <th className="p-5 px-6">Product</th>
@@ -65,22 +81,32 @@ export default function Orders() {
                 <th className="p-5 px-6 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/30">
+            <tbody className={`divide-y ${isDark ? 'divide-slate-800/30' : 'divide-slate-100'}`}>
               {orders.filter(o => o.product.toLowerCase().includes(searchTerm.toLowerCase()) || o.id.includes(searchTerm)).map((order, idx) => (
-                <tr key={`${order.id}-${idx}`} className="hover:bg-slate-800/30 transition-colors group">
+                <tr key={`${order.id}-${idx}`} className={`transition-colors group ${
+                  isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50/80'
+                }`}>
                   <td className="p-5 px-6 font-bold text-[#4361ee] text-sm cursor-pointer hover:underline">{order.id}</td>
-                  <td className="p-5 px-6 text-white font-black text-sm">{order.product}</td>
+                  <td className={`p-5 px-6 font-black text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{order.product}</td>
                   <td className="p-5 px-6">
-                    <span className="bg-[#1e293b] text-slate-300 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border border-slate-700/50 shadow-inner">
+                    <span className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase border shadow-inner ${
+                      isDark 
+                      ? 'bg-[#1e293b] text-slate-300 border-slate-700/50' 
+                      : 'bg-slate-100 text-slate-600 border-slate-200'
+                    }`}>
                       {order.category || 'null'}
                     </span>
                   </td>
-                  <td className="p-5 px-6 text-center text-white font-black text-base">{order.qty}</td>
+                  <td className={`p-5 px-6 text-center font-black text-base ${isDark ? 'text-white' : 'text-slate-800'}`}>{order.qty}</td>
                   <td className="p-5 px-6 text-slate-400 font-bold text-xs">₱{order.unitPrice}</td>
-                  <td className="p-5 px-6 text-white font-black text-sm">₱{order.total.toLocaleString()}</td>
+                  <td className={`p-5 px-6 font-black text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>₱{order.total.toLocaleString()}</td>
                   <td className="p-5 px-6 text-slate-500 text-[11px] font-medium leading-tight">{order.date}</td>
                   <td className="p-5 px-6 text-center">
-                    <span className="bg-emerald-500/10 text-[#a7f3d0] border border-emerald-500/20 px-4 py-1 rounded-full text-[9px] font-black tracking-tighter shadow-sm">
+                    <span className={`border px-4 py-1 rounded-full text-[9px] font-black tracking-tighter shadow-sm ${
+                      isDark 
+                      ? 'bg-emerald-500/10 text-[#a7f3d0] border-emerald-500/20' 
+                      : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                    }`}>
                       {order.status}
                     </span>
                   </td>
