@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import CustomerOrder from './pages/CustomerOrder';
 
 // Theme Support
-import { useTheme } from './context/ThemeContext'; // Ensure this path is correct
+import { useTheme } from './context/ThemeContext'; 
 
 // Layout and Security
 import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
@@ -23,7 +23,7 @@ import UserOrders from './pages/user/Orders';
 import Profile from './pages/user/Profile';
 import Settings from './pages/user/Settings';
 import UserCalendar from './pages/user/user_calendar';
-import Favorite from './pages/user/Favorite';
+import Favorite from './pages/user/Favorite'; // <--- ADDED THIS IMPORT
 
 // Private Pages - Clerk Folder
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
@@ -38,7 +38,7 @@ import AdminManagement from './pages/admin/AdminManagement';
 import Calendar from './pages/admin/Calendar';
 
 export default function App() {
-  const { isDark } = useTheme(); // 1. Pull the theme state
+  const { isDark } = useTheme(); 
   const [products, setProducts] = useState([]);
   const [dismissedAlerts, setDismissedAlerts] = useState([]); 
 
@@ -90,7 +90,6 @@ export default function App() {
 
   return (
     <Router>
-      {/* 2. Dynamic background logic for the whole app container */}
       <div className={`flex h-screen w-full font-sans overflow-hidden transition-colors duration-500 ${
         isDark ? 'bg-[#0b1120] text-slate-200' : 'bg-slate-50 text-slate-900'
       }`}>
@@ -143,8 +142,8 @@ export default function App() {
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
+              <Route path="/Favorite" element={<Favorite />} /> {/* <--- ADDED THIS ROUTE */}
               <Route path="/Orders" element={<UserOrders />} />
-              <Route path="/Favorite" element={<Favorite />} />
               <Route path="/Profile" element={<Profile user={user} />} />
               <Route path="/Settings" element={<Settings />} />
 

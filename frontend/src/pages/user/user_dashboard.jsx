@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useTheme } from '../../context/ThemeContext'; // Adjust path as needed
+import { useTheme } from '../../context/ThemeContext';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const { isDark } = useTheme(); // Using the global theme instead of local state
+  const { isDark } = useTheme();
 
   // --- State ---
   const [products, setProducts] = useState([]);
@@ -75,6 +75,7 @@ export default function UserDashboard() {
         id: product.id, 
         name: product.name, 
         price: product.price, 
+        // Ensure image path is saved correctly for the cart
         img: product.image_url, 
         qty: 1 
       }];
@@ -186,9 +187,10 @@ export default function UserDashboard() {
               
               <div className={`aspect-square rounded-2xl overflow-hidden mb-4 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
                 <img 
-                  src={product.image_url || 'https://via.placeholder.com/300?text=No+Image'} 
+                  // FIXED: Added the backend URL prefix so the photos load
+                  src={product.image_url ? `http://localhost:3000${product.image_url}` : 'https://via.placeholder.com/300?text=No+Image'} 
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
 
@@ -205,7 +207,7 @@ export default function UserDashboard() {
                   className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
                     isOut 
                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                    : 'bg-[#4361ee] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20'
+                    : 'bg-[#4361ee] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95'
                   }`}
                 >
                   {isOut ? 'Sold Out' : '+ Cart'}
@@ -259,7 +261,8 @@ export default function UserDashboard() {
                 <div key={item.id} className={`flex items-center gap-4 p-3 rounded-2xl border transition-colors ${
                   isDark ? 'border-slate-800 bg-slate-800/30' : 'border-slate-100 bg-slate-50'
                 }`}>
-                  <img src={item.img || 'https://via.placeholder.com/50'} className="w-14 h-14 rounded-xl object-cover" alt="" />
+                  {/* FIXED: Added backend URL for cart image too */}
+                  <img src={item.img ? `http://localhost:3000${item.img}` : 'https://via.placeholder.com/50'} className="w-14 h-14 rounded-xl object-cover" alt="" />
                   <div className="grow">
                     <h4 className="font-bold text-sm truncate w-24">{item.name}</h4>
                     <p className="text-[#4361ee] font-black text-sm">₱{(item.price * item.qty).toLocaleString()}</p>
