@@ -23,6 +23,7 @@ import UserOrders from './pages/user/Orders';
 import Profile from './pages/user/Profile';
 import Settings from './pages/user/Settings';
 import UserCalendar from './pages/user/user_calendar';
+import Favorite from './pages/user/Favorite';
 
 // Private Pages - Clerk Folder
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
@@ -143,6 +144,7 @@ export default function App() {
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
               <Route path="/Orders" element={<UserOrders />} />
+              <Route path="/Favorite" element={<Favorite />} />
               <Route path="/Profile" element={<Profile user={user} />} />
               <Route path="/Settings" element={<Settings />} />
 
