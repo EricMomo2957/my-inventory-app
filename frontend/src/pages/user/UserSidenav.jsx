@@ -111,6 +111,10 @@ export default function UserSidenav({ onLogout }) {
         )}
         
         <NavItem icon="🏠" label="Dashboard" to="/user_dashboard" isCollapsed={isCollapsed} isDark={isDark} />
+        
+        {/* NEWLY ADDED: Favorites Link */}
+        <NavItem icon="❤️" label="Favorites" to="/Favorite" isCollapsed={isCollapsed} isDark={isDark} />
+        
         <NavItem icon="📅" label="Calendar" to="/user_calendar" isCollapsed={isCollapsed} isDark={isDark} />
         
         {!isCollapsed && (
