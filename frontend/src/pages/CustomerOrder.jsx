@@ -105,22 +105,27 @@ export default function CustomerOrder() {
           {/* Products Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredProducts.map(item => (
-              <div key={item.id} className={`p-4 rounded-3xl border transition-all hover:shadow-xl ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
-                <div className="aspect-square rounded-2xl bg-slate-200 mb-4 overflow-hidden">
-                  <img src={`/codepic/${item.name.toLowerCase().replace(/\s+/g, '-')}.jpg`} className="w-full h-full object-cover" alt={item.name} />
+              <div key={item.id} className={`group p-4 rounded-3xl border transition-all hover:shadow-xl ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                <div className={`aspect-square rounded-2xl mb-4 overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                  <img 
+                    // FIXED: Using the backend URL and the correct database field
+                    src={item.image_url ? `http://localhost:3000${item.image_url}` : 'https://via.placeholder.com/300?text=No+Image'} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    alt={item.name} 
+                  />
                 </div>
                 <h3 className="text-lg font-bold">{item.name}</h3>
-                <p className="text-2xl font-black text-blue-600 mb-4">₱{item.price.toFixed(2)}</p>
+                <p className="text-2xl font-black text-blue-600 mb-4">₱{item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
                 
                 <div className="flex gap-2">
                   <input 
                     type="number" min="1" value={quantities[item.id] ?? ''} placeholder="1"
                     onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                    className="w-16 rounded-xl text-center font-bold bg-slate-100 text-black"
+                    className="w-16 rounded-xl text-center font-bold bg-slate-100 text-black outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button 
                     onClick={() => addToCart(item)}
-                    className="flex-1 bg-slate-900 text-white dark:bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase tracking-widest active:scale-95 transition-transform"
+                    className="flex-1 bg-slate-900 text-white dark:bg-blue-600 py-3 rounded-xl font-black text-xs uppercase tracking-widest active:scale-95 transition-transform hover:bg-blue-700"
                   >
                     Add to Cart
                   </button>
@@ -134,7 +139,7 @@ export default function CustomerOrder() {
         <aside className={`w-full lg:w-96 h-fit sticky top-28 p-8 rounded-4xl border ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
           <h2 className="text-xl font-black mb-6 flex justify-between">
             Your Order
-            <span className="text-blue-600">₱{cartTotal.toFixed(2)}</span>
+            <span className="text-blue-600">₱{cartTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
           </h2>
           
           <div className="space-y-4 mb-8 max-h-60 overflow-y-auto pr-2">
@@ -143,11 +148,15 @@ export default function CustomerOrder() {
             ) : (
               cart.map(item => (
                 <div key={item.id} className="flex justify-between items-center text-sm">
-                  <div>
-                    <p className="font-bold">{item.name}</p>
-                    <p className="opacity-50">x{item.quantity}</p>
+                  <div className="flex items-center gap-3">
+                    {/* Added small thumbnail in cart */}
+                    <img src={`http://localhost:3000${item.image_url}`} className="w-10 h-10 rounded-lg object-cover" alt="" />
+                    <div>
+                      <p className="font-bold">{item.name}</p>
+                      <p className="opacity-50">x{item.quantity}</p>
+                    </div>
                   </div>
-                  <button onClick={() => setCart(cart.filter(c => c.id !== item.id))} className="text-red-500 text-xs font-bold">Remove</button>
+                  <button onClick={() => setCart(cart.filter(c => c.id !== item.id))} className="text-red-500 text-xs font-bold hover:underline">Remove</button>
                 </div>
               ))
             )}
@@ -155,7 +164,7 @@ export default function CustomerOrder() {
 
           <button 
             onClick={() => navigate('/login')}
-            className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-colors"
+            className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95"
           >
             Checkout Now
           </button>
