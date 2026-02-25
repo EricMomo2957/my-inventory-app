@@ -30,19 +30,15 @@ app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- NEW DATA ROUTE FOR FRONTEND ---
-// This ensures data appears even if the productRoutes folder is empty
 app.get('/api/products', async (req, res) => {
     try {
-        // First, try to get real data from your database
         const [rows] = await db.query("SELECT * FROM products");
         if (rows.length > 0) {
             res.json(rows);
         } else {
-            // If database is empty, send the sample item so the dashboard isn't blank
             res.json([{ id: 1, name: "Sample Item", quantity: 10, price: 100, category: "Supplies" }]);
         }
     } catch (err) {
-        // Fallback to sample data if database connection fails
         res.json([{ id: 1, name: "Sample Item", quantity: 10, price: 100, category: "Supplies" }]);
     }
 });
@@ -89,7 +85,7 @@ app.put('/api/users/update', upload.single('profile_pic'), async (req, res) => {
 
 // --- ORDERING ROUTES ---
 
-/** 1. PLACE AN ORDER */
+/** 1. PLACE A REGISTERED ORDER */
 app.post('/api/orders', async (req, res) => {
     const { user_id, product_id, quantity, price } = req.body;
     const total_amount = price * quantity;
@@ -105,6 +101,48 @@ app.post('/api/orders', async (req, res) => {
     } catch (err) {
         console.error("Order Error:", err);
         res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/** 2. PLACE A GUEST ORDER */
+app.post('/api/guest-orders', async (req, res) => {
+    const { customer, items, total } = req.body;
+  
+    try {
+      // 1. Insert into orders table (user_id is NULL for guests)
+      const orderQuery = `
+        INSERT INTO orders (user_id, total_amount, status, guest_name, guest_contact, guest_address) 
+        VALUES (NULL, ?, 'pending', ?, ?, ?)
+      `;
+      
+      const [orderResult] = await db.query(orderQuery, [
+        total, 
+        customer.name, 
+        customer.contact, 
+        customer.address
+      ]);
+  
+      const orderId = orderResult.insertId;
+  
+      // 2. Insert order items and decrease product stock
+      for (const item of items) {
+        // Insert item details into order_items
+        await db.query(
+          'INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES (?, ?, ?, ?)',
+          [orderId, item.id, item.quantity, item.price]
+        );
+  
+        // Update Stock in products table
+        await db.query(
+          'UPDATE products SET quantity = quantity - ? WHERE id = ?',
+          [item.quantity, item.id]
+        );
+      }
+  
+      res.status(201).json({ success: true, message: "Guest order placed successfully!", orderId });
+    } catch (err) {
+      console.error("Guest Order Error:", err);
+      res.status(500).json({ success: false, error: "Failed to process guest order" });
     }
 });
 
@@ -162,70 +200,49 @@ app.delete('/api/orders/:id', async (req, res) => {
 // --- SAFE ORDER HISTORY ROUTE ---
 app.get('/api/orders/:userId', async (req, res) => {
     const userId = req.params.userId;
-    
-    // We use LEFT JOIN to ensure we don't lose orders if a product was deleted
     const sql = `
         SELECT 
-            o.id, 
-            o.total_amount, 
-            o.status, 
-            o.order_date,
-            p.name AS product_name, 
-            p.category, 
-            p.price AS unit_price,
-            p.image_url 
+            o.id, o.total_amount, o.status, o.order_date,
+            p.name AS product_name, p.category, p.price AS unit_price, p.image_url 
         FROM orders o 
         LEFT JOIN products p ON o.product_id = p.id 
         WHERE o.user_id = ? 
         ORDER BY o.order_date DESC
     `;
-
     try {
         const [rows] = await db.query(sql, [userId]);
-        
-        // If the database returns 0 rows, send a sample row so your UI doesn't stay blank
         if (rows.length === 0) {
             return res.json([{
-                id: "Sample",
-                product_name: "No Orders Found",
-                category: "N/A",
-                total_amount: 0,
-                unit_price: 0,
-                status: "pending",
-                order_date: new Date()
+                id: "Sample", product_name: "No Orders Found", category: "N/A",
+                total_amount: 0, unit_price: 0, status: "pending", order_date: new Date()
             }]);
         }
-        
         res.json(rows);
     } catch (err) {
-        console.error("Orders Fetch Error:", err);
-        res.status(500).json({ error: "Database error while fetching orders" });
+        res.status(500).json({ error: "Database error" });
     }
 });
 
 // --- CONTACT REQUEST ROUTES ---
-
 app.get('/api/contact-requests', async (req, res) => {
     try {
         const [rows] = await db.query("SELECT * FROM contact_requests ORDER BY created_at DESC");
         res.json(rows);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch contact requests" });
+        res.status(500).json({ error: "Failed to fetch" });
     }
 });
 
 app.delete('/api/contact-requests/:id', async (req, res) => {
-    const requestId = req.params.id;
     try {
-        await db.query("DELETE FROM contact_requests WHERE id = ?", [requestId]);
-        res.json({ success: true, message: "Request deleted successfully" });
+        await db.query("DELETE FROM contact_requests WHERE id = ?", [req.params.id]);
+        res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false });
     }
 });
 
 // --- REPORT/BI ROUTES ---
-
 app.get('/api/products/report', async (req, res) => {
     try {
         const [rows] = await db.query("SELECT name, quantity, price, category FROM products");
@@ -253,7 +270,6 @@ app.get('/api/reports/sales', async (req, res) => {
 });
 
 // --- PROFILE & UTILITY ROUTES ---
-
 app.get('/api/user/profile', async (req, res) => {
     const userId = req.query.id;
     if (!userId) return res.status(400).json({ error: "User ID is required" });
@@ -290,82 +306,56 @@ app.get('/', (req, res) => {
 
 
 // --- SCHEDULE EDIT & DELETE ROUTES ---
-
-// 1. UPDATE an existing schedule
 app.put('/api/schedules/:id', async (req, res) => {
     const { id } = req.params;
     const { title, date, category } = req.body;
     try {
-        await db.query(
-            "UPDATE schedules SET title = ?, date = ?, category = ? WHERE id = ?",
-            [title, date, category, id]
-        );
-        res.json({ success: true, message: "Schedule updated successfully" });
+        await db.query("UPDATE schedules SET title = ?, date = ?, category = ? WHERE id = ?", [title, date, category, id]);
+        res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false });
     }
 });
 
-// 2. DELETE a schedule
 app.delete('/api/schedules/:id', async (req, res) => {
-    const { id } = req.params;
     try {
-        await db.query("DELETE FROM schedules WHERE id = ?", [id]);
-        res.json({ success: true, message: "Schedule deleted successfully" });
+        await db.query("DELETE FROM schedules WHERE id = ?", [req.params.id]);
+        res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        res.status(500).json({ success: false });
     }
 });
 
 // --- AUTHENTICATION: LOGIN ROUTE ---
-// --- UPDATED LOGIN ROUTE ---
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-
     try {
-        // Matches your database structure: id, username, full_name, role
         const [rows] = await db.query(
             "SELECT id, username, full_name, role FROM users WHERE username = ? AND password = ?", 
             [username, password]
         );
-
         if (rows.length > 0) {
-            const user = rows[0];
-            res.json({
-                success: true,
-                user: {
-                    id: user.id,
-                    username: user.username,
-                    full_name: user.full_name,
-                    role: user.role // Expected values: 'admin', 'manager', 'clerk', etc.
-                }
-            });
+            res.json({ success: true, user: rows[0] });
         } else {
             res.status(401).json({ success: false, message: "Invalid credentials" });
         }
     } catch (err) {
-        console.error("Login Error:", err);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ success: false });
     }
 });
 
 /** RESET PASSWORD UPDATE */
 app.post('/api/users/reset-password', async (req, res) => {
     const { token, password } = req.body;
-    
-    // In a real system, you would verify the token from a 'password_resets' table.
-    // For this demonstration, we will assume the token is valid.
     try {
-        // Here you would normally find the user associated with the token.
-        // For simplicity, let's assume you're updating a specific test user or have the email.
         const sql = "UPDATE users SET password = ? WHERE email = 'eric@example.com'"; 
         await db.query(sql, [password]);
-        
         res.json({ success: true, message: "Password updated successfully." });
     } catch (err) {
-        res.status(500).json({ success: false, message: "Database update failed." });
+        res.status(500).json({ success: false });
     }
 });
+
 
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;
