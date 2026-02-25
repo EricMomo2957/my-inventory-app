@@ -5,7 +5,6 @@ export default function Profile() {
   const { isDark } = useTheme();
 
   // 1. HELPER TO GET INITIAL USER DATA
-  // This avoids the "set-state-in-effect" error by loading data before the first render
   const getSavedUser = () => {
     const saved = localStorage.getItem('user');
     if (saved) {
@@ -16,8 +15,15 @@ export default function Profile() {
       }
     }
     return {
-      id: '', username: '', full_name: '', role: '',
-      email: '', admin_id: '', department: '', profile_image: ''
+      id: '', 
+      user_id_number: '', // The editable ID number
+      username: '', 
+      full_name: '', 
+      role: '',
+      email: '', 
+      admin_id: '', 
+      department: '', 
+      profile_image: ''
     };
   };
 
@@ -26,17 +32,15 @@ export default function Profile() {
   // 2. STATE INITIALIZATION
   const [userData, setUserData] = useState(initialUser);
   const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
-
-  // Modal & File States
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // These pull from initialUser for the Edit Modal
+  // State for the Edit Modal
   const [editData, setEditData] = useState({ 
     full_name: initialUser.full_name || '', 
     email: initialUser.email || '', 
     username: initialUser.username || '', 
     department: initialUser.department || '',
-    id: initialUser.id || '' 
+    user_id_number: initialUser.user_id_number || '' 
   });
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -56,7 +60,8 @@ export default function Profile() {
     e.preventDefault();
     
     const formData = new FormData();
-    formData.append('id', userData.id);
+    formData.append('id', userData.id); // Internal Database ID
+    formData.append('user_id_number', editData.user_id_number); // Editable ID Number
     formData.append('full_name', editData.full_name);
     formData.append('email', editData.email);
     formData.append('username', editData.username);
@@ -75,6 +80,7 @@ export default function Profile() {
 
       const data = await response.json();
       if (data.success) {
+        // Merge the edited data into the local state
         const updatedUser = { 
           ...userData, 
           ...editData,
@@ -93,6 +99,18 @@ export default function Profile() {
       console.error("Update error:", err);
       alert("Failed to update profile.");
     }
+  };
+
+  // Sync editData when modal opens to ensure it has latest userData
+  const openModal = () => {
+    setEditData({
+      full_name: userData.full_name || '',
+      email: userData.email || '',
+      username: userData.username || '',
+      department: userData.department || '',
+      user_id_number: userData.user_id_number || ''
+    });
+    setIsModalOpen(true);
   };
 
   return (
@@ -129,7 +147,7 @@ export default function Profile() {
           <p className="text-slate-500 font-bold text-sm uppercase tracking-widest">{userData.role}</p>
           
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openModal}
             className={`mt-4 px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg border transition-all ${
               isDark 
                 ? 'bg-[#1e293b] hover:bg-[#4361ee] text-white border-slate-700' 
@@ -149,10 +167,11 @@ export default function Profile() {
           <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Profile Details</h3>
           <div className="space-y-4">
             <DetailItem label="Full Name" value={userData.full_name} isDark={isDark} />
+            <DetailItem label="User ID Number" value={userData.user_id_number || 'No ID set'} isDark={isDark} />
             <DetailItem label="Email" value={userData.email || 'not provided'} isDark={isDark} />
             <DetailItem label="Username" value={userData.username} isDark={isDark} />
             <DetailItem label="Department" value={userData.department || 'General'} isDark={isDark} />
-            <DetailItem label="User ID" value={userData.id} isDark={isDark} />
+            <DetailItem label="System UUID" value={userData.id} isDark={isDark} />
           </div>
         </div>
 
@@ -192,7 +211,13 @@ export default function Profile() {
                 </label>
               </div>
 
-              <EditInput label="User ID (Locked)" value={editData.id} disabled={true} isDark={isDark} />
+              {/* Editable User ID Number Field */}
+              <EditInput 
+                label="User ID Number" 
+                value={editData.user_id_number} 
+                isDark={isDark}
+                onChange={(val) => setEditData({...editData, user_id_number: val})} 
+              />
               
               <EditInput 
                 label="Full Name" 
