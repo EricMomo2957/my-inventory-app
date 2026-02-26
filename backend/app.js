@@ -197,6 +197,20 @@ app.delete('/api/orders/:id', async (req, res) => {
     }
 });
 
+
+app.put('/api/orders/:id', async (req, res) => {
+    const { quantity, total_amount } = req.body;
+    const orderId = req.params.id;
+    try {
+        const sql = "UPDATE orders SET quantity = ?, total_amount = ? WHERE id = ?";
+        await db.query(sql, [quantity, total_amount, orderId]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 // --- SAFE ORDER HISTORY ROUTE ---
 app.get('/api/orders/:userId', async (req, res) => {
     const userId = req.params.userId;
