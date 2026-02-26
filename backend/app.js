@@ -211,28 +211,38 @@ app.put('/api/orders/:id', async (req, res) => {
 });
 
 
-// --- SAFE ORDER HISTORY ROUTE ---
 app.get('/api/orders/:userId', async (req, res) => {
     const userId = req.params.userId;
     const sql = `
         SELECT 
-            o.id, o.total_amount, o.status, o.order_date,
-            p.name AS product_name, p.category, p.price AS unit_price, p.image_url 
+            o.id, 
+            o.total_amount, 
+            o.status, 
+            o.order_date,
+            -- o.quantity removed because it doesn't exist in your DB yet
+            p.name AS product_name, 
+            p.category, 
+            p.price AS unit_price, 
+            p.image_url 
         FROM orders o 
         LEFT JOIN products p ON o.product_id = p.id 
         WHERE o.user_id = ? 
         ORDER BY o.order_date DESC
     `;
+
     try {
         const [rows] = await db.query(sql, [userId]);
-        if (rows.length === 0) {
-            return res.json([{
-                id: "Sample", product_name: "No Orders Found", category: "N/A",
-                total_amount: 0, unit_price: 0, status: "pending", order_date: new Date()
-            }]);
-        }
-        res.json(rows);
+        
+        // We can manually add a 'quantity' property to the results 
+        // by dividing total_amount / unit_price if you want a rough estimate
+        const fixedRows = rows.map(row => ({
+            ...row,
+            quantity: row.unit_price > 0 ? Math.round(row.total_amount / row.unit_price) : 1
+        }));
+
+        res.json(fixedRows);
     } catch (err) {
+        console.error("Order Fetch Error:", err);
         res.status(500).json({ error: "Database error" });
     }
 });

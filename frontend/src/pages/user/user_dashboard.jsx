@@ -15,6 +15,9 @@ export default function UserDashboard() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // NEW STATE: Tracks chosen quantity for each product card
+  const [selectedQtys, setSelectedQtys] = useState({});
 
   // --- Initialization ---
   useEffect(() => {
@@ -28,6 +31,11 @@ export default function UserDashboard() {
       try {
         const res = await axios.get('http://localhost:3000/api/products');
         setProducts(res.data);
+        
+        // Initialize default qty of 1 for all products
+        const initialQtys = {};
+        res.data.forEach(p => initialQtys[p.id] = 1);
+        setSelectedQtys(initialQtys);
       } catch (err) {
         console.error("Load failed", err);
       }
@@ -49,6 +57,17 @@ export default function UserDashboard() {
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
   // --- Handlers ---
+  const handleLocalQtyChange = (productId, delta, maxStock) => {
+    setSelectedQtys(prev => {
+      const current = prev[productId] || 1;
+      const next = current + delta;
+      if (next >= 1 && next <= maxStock) {
+        return { ...prev, [productId]: next };
+      }
+      return prev;
+    });
+  };
+
   const toggleFavorite = (id) => {
     const updated = favorites.includes(id) 
       ? favorites.filter(f => f !== id) 
@@ -58,16 +77,18 @@ export default function UserDashboard() {
   };
 
   const addToCart = (product) => {
+    const chosenQty = selectedQtys[product.id] || 1;
     const existing = cart.find(item => item.id === product.id);
     let updatedCart;
 
     if (existing) {
-      if (existing.qty < product.quantity) {
+      const newTotalQty = existing.qty + chosenQty;
+      if (newTotalQty <= product.quantity) {
         updatedCart = cart.map(item => 
-          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+          item.id === product.id ? { ...item, qty: newTotalQty } : item
         );
       } else {
-        alert("Stock limit reached!");
+        alert(`Stock limit reached! You already have ${existing.qty} in cart.`);
         return;
       }
     } else {
@@ -75,13 +96,15 @@ export default function UserDashboard() {
         id: product.id, 
         name: product.name, 
         price: product.price, 
-        // Ensure image path is saved correctly for the cart
         img: product.image_url, 
-        qty: 1 
+        qty: chosenQty 
       }];
     }
     setCart(updatedCart);
     localStorage.setItem('userCart', JSON.stringify(updatedCart));
+    
+    // Reset the card qty back to 1 after adding
+    setSelectedQtys(prev => ({ ...prev, [product.id]: 1 }));
   };
 
   const updateCartQty = (id, delta) => {
@@ -112,14 +135,10 @@ export default function UserDashboard() {
         price: item.price
       });
     }
-    
     setCart([]);
     localStorage.removeItem('userCart');
     setIsCartOpen(false);
-    
-    // REDIRECT to Orders page so they see the result instantly
     navigate('/Orders'); 
-    
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert("Checkout failed.");
@@ -175,6 +194,8 @@ export default function UserDashboard() {
         {filteredProducts.map(product => {
           const isOut = product.quantity <= 0;
           const isFav = favorites.includes(product.id);
+          const currentQty = selectedQtys[product.id] || 1;
+
           return (
             <div key={product.id} className={`group relative p-4 rounded-3xl border transition-all hover:-translate-y-2 ${
               isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-100 shadow-sm hover:shadow-xl text-slate-900'
@@ -190,7 +211,6 @@ export default function UserDashboard() {
               
               <div className={`aspect-square rounded-2xl overflow-hidden mb-4 ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
                 <img 
-                  // FIXED: Added the backend URL prefix so the photos load
                   src={product.image_url ? `http://localhost:3000${product.image_url}` : 'https://via.placeholder.com/300?text=No+Image'} 
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -202,12 +222,37 @@ export default function UserDashboard() {
                 {isOut ? 'OUT OF STOCK' : `STOCK: ${product.quantity}`}
               </p>
 
+              {/* NEW QUANTITY SELECTOR UI */}
+              {!isOut && (
+                <div className={`flex items-center justify-between mb-4 p-2 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
+                   <span className="text-[10px] font-black uppercase opacity-50 ml-2">Qty</span>
+                   <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleLocalQtyChange(product.id, -1, product.quantity)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-white shadow-sm text-[#4361ee] font-black hover:bg-blue-50"
+                      >
+                        -
+                      </button>
+                      <span className="font-bold min-w-5 text-center">{currentQty}</span>
+                      <button 
+                        onClick={() => handleLocalQtyChange(product.id, 1, product.quantity)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#4361ee] text-white font-black hover:bg-blue-600 shadow-md"
+                      >
+                        +
+                      </button>
+                   </div>
+                </div>
+              )}
+
               <div className="flex justify-between items-center">
-                <span className="text-xl font-black text-[#4361ee]">₱{parseFloat(product.price).toLocaleString()}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase font-bold opacity-40">Subtotal</span>
+                  <span className="text-xl font-black text-[#4361ee]">₱{(product.price * currentQty).toLocaleString()}</span>
+                </div>
                 <button 
                   disabled={isOut}
                   onClick={() => addToCart(product)}
-                  className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+                  className={`px-4 py-3 rounded-xl font-bold text-sm transition-all ${
                     isOut 
                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
                     : 'bg-[#4361ee] text-white hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95'
@@ -264,7 +309,6 @@ export default function UserDashboard() {
                 <div key={item.id} className={`flex items-center gap-4 p-3 rounded-2xl border transition-colors ${
                   isDark ? 'border-slate-800 bg-slate-800/30' : 'border-slate-100 bg-slate-50'
                 }`}>
-                  {/* FIXED: Added backend URL for cart image too */}
                   <img src={item.img ? `http://localhost:3000${item.img}` : 'https://via.placeholder.com/50'} className="w-14 h-14 rounded-xl object-cover" alt="" />
                   <div className="grow">
                     <h4 className="font-bold text-sm truncate w-24">{item.name}</h4>
