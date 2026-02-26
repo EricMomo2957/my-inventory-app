@@ -99,27 +99,30 @@ export default function UserDashboard() {
   };
 
   const handleCheckout = async () => {
-    if (cart.length === 0) return;
-    setIsProcessing(true);
-    const userId = localStorage.getItem('userId');
+  if (cart.length === 0) return;
+  setIsProcessing(true);
+  const userId = localStorage.getItem('userId');
 
-    try {
-      for (const item of cart) {
-        await axios.post('http://localhost:3000/api/orders', {
-          user_id: userId,
-          product_id: item.id,
-          quantity: item.qty,
-          price: item.price
-        });
-      }
-      alert("Order Successful!");
-      setCart([]);
-      localStorage.removeItem('userCart');
-      setIsCartOpen(false);
-      const res = await axios.get('http://localhost:3000/api/products');
-      setProducts(res.data);
-    } catch {
-      alert("Checkout failed. Please try again.");
+  try {
+    for (const item of cart) {
+      await axios.post('http://localhost:3000/api/orders', {
+        user_id: userId,
+        product_id: item.id,
+        quantity: item.qty,
+        price: item.price
+      });
+    }
+    
+    setCart([]);
+    localStorage.removeItem('userCart');
+    setIsCartOpen(false);
+    
+    // REDIRECT to Orders page so they see the result instantly
+    navigate('/Orders'); 
+    
+    // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      alert("Checkout failed.");
     } finally {
       setIsProcessing(false);
     }
