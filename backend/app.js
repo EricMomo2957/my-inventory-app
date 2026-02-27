@@ -380,6 +380,43 @@ app.post('/api/users/reset-password', async (req, res) => {
     }
 });
 
+// Add or Remove Favorite (Toggle)
+app.post('/api/favorites', async (req, res) => {
+    const { userId, productId } = req.body;
+    try {
+        // Check if it exists
+        const [exists] = await db.query('SELECT * FROM favorites WHERE user_id = ? AND product_id = ?', [userId, productId]);
+        
+        if (exists.length > 0) {
+            // If exists, remove it (un-favorite)
+            await db.query('DELETE FROM favorites WHERE user_id = ? AND product_id = ?', [userId, productId]);
+            res.json({ message: "Removed from favorites", isFavorite: false });
+        } else {
+            // If not, add it
+            await db.query('INSERT INTO favorites (user_id, product_id) VALUES (?, ?)', [userId, productId]);
+            res.json({ message: "Added to favorites", isFavorite: true });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get favorites for a specific user
+app.get('/api/favorites/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const sql = `
+        SELECT p.* FROM products p
+        JOIN favorites f ON p.id = f.product_id
+        WHERE f.user_id = ?
+    `;
+    try {
+        const [rows] = await db.query(sql, [userId]);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;

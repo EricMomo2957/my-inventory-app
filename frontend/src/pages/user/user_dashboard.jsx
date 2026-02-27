@@ -10,39 +10,48 @@ export default function UserDashboard() {
   // --- State ---
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('userCart')) || []);
-  const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem('userFavorites')) || []);
+  
+  // UPDATED: Favorites now fetch from the DB instead of localStorage
+  const [favorites, setFavorites] = useState([]);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // NEW STATE: Tracks chosen quantity for each product card
   const [selectedQtys, setSelectedQtys] = useState({});
+
+  const userId = localStorage.getItem('userId');
 
   // --- Initialization ---
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
     if (!userId) {
       navigate('/login');
       return;
     }
     
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/products');
-        setProducts(res.data);
+        // 1. Fetch all products
+        const prodRes = await axios.get('http://localhost:3000/api/products');
+        setProducts(prodRes.data);
         
-        // Initialize default qty of 1 for all products
+        // Initialize default qty
         const initialQtys = {};
-        res.data.forEach(p => initialQtys[p.id] = 1);
+        prodRes.data.forEach(p => initialQtys[p.id] = 1);
         setSelectedQtys(initialQtys);
+
+        // 2. Fetch user's favorites from Database
+        const favRes = await axios.get(`http://localhost:3000/api/favorites/${userId}`);
+        const favIds = favRes.data.map(item => item.id);
+        setFavorites(favIds);
+
       } catch (err) {
-        console.error("Load failed", err);
+        console.error("Initialization failed", err);
       }
     };
 
-    fetchProducts();
-  }, [navigate]);
+    fetchData();
+  }, [navigate, userId]);
 
   // --- Logic Helpers ---
   const categories = ['all', ...new Set(products.map(p => p.category).filter(Boolean))];
@@ -57,6 +66,26 @@ export default function UserDashboard() {
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
   // --- Handlers ---
+  
+  // UPDATED: Saves to MySQL via your API
+  const toggleFavorite = async (productId) => {
+    try {
+      const res = await axios.post('http://localhost:3000/api/favorites', { 
+        userId, 
+        productId 
+      });
+
+      if (res.data.isFavorite) {
+        setFavorites(prev => [...prev, productId]);
+      } else {
+        setFavorites(prev => prev.filter(id => id !== productId));
+      }
+    } catch (err) {
+      console.error("Fav toggle failed", err);
+      alert("Could not update favorite.");
+    }
+  };
+
   const handleLocalQtyChange = (productId, delta, maxStock) => {
     setSelectedQtys(prev => {
       const current = prev[productId] || 1;
@@ -66,14 +95,6 @@ export default function UserDashboard() {
       }
       return prev;
     });
-  };
-
-  const toggleFavorite = (id) => {
-    const updated = favorites.includes(id) 
-      ? favorites.filter(f => f !== id) 
-      : [...favorites, id];
-    setFavorites(updated);
-    localStorage.setItem('userFavorites', JSON.stringify(updated));
   };
 
   const addToCart = (product) => {
@@ -102,8 +123,6 @@ export default function UserDashboard() {
     }
     setCart(updatedCart);
     localStorage.setItem('userCart', JSON.stringify(updatedCart));
-    
-    // Reset the card qty back to 1 after adding
     setSelectedQtys(prev => ({ ...prev, [product.id]: 1 }));
   };
 
@@ -122,23 +141,22 @@ export default function UserDashboard() {
   };
 
   const handleCheckout = async () => {
-  if (cart.length === 0) return;
-  setIsProcessing(true);
-  const userId = localStorage.getItem('userId');
+    if (cart.length === 0) return;
+    setIsProcessing(true);
 
-  try {
-    for (const item of cart) {
-      await axios.post('http://localhost:3000/api/orders', {
-        user_id: userId,
-        product_id: item.id,
-        quantity: item.qty,
-        price: item.price
-      });
-    }
-    setCart([]);
-    localStorage.removeItem('userCart');
-    setIsCartOpen(false);
-    navigate('/Orders'); 
+    try {
+      for (const item of cart) {
+        await axios.post('http://localhost:3000/api/orders', {
+          user_id: userId,
+          product_id: item.id,
+          quantity: item.qty,
+          price: item.price
+        });
+      }
+      setCart([]);
+      localStorage.removeItem('userCart');
+      setIsCartOpen(false);
+      navigate('/Orders'); 
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert("Checkout failed.");
@@ -148,14 +166,14 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className={`flex-1 overflow-y-auto p-10 transition-colors duration-500 ${
+    <div className={`flex-1 h-screen overflow-y-auto p-10 transition-colors duration-500 ${
       isDark ? 'bg-[#0b1120]' : 'bg-slate-50'
     }`}>
       <header className="mb-8">
         <h1 className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
           Welcome back! 👋
         </h1>
-        <p className="text-slate-500 font-medium">Discover our latest inventory.</p>
+        <p className="text-slate-500 font-medium tracking-tight">User ID: {userId} | Discovery Mode</p>
       </header>
 
       {/* Toolbar */}
@@ -202,8 +220,8 @@ export default function UserDashboard() {
             }`}>
               <button 
                 onClick={() => toggleFavorite(product.id)}
-                className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90 ${
-                  isFav ? 'bg-red-50 text-red-500' : 'bg-white text-slate-300'
+                className={`absolute top-6 right-6 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 ${
+                  isFav ? 'bg-red-50 text-red-500 scale-110' : 'bg-white text-slate-300 hover:text-red-200'
                 }`}
               >
                 {isFav ? '❤️' : '🤍'}
@@ -217,12 +235,12 @@ export default function UserDashboard() {
                 />
               </div>
 
-              <h3 className="font-bold text-lg mb-1 truncate">{product.name}</h3>
+              <h3 className="font-bold text-lg mb-1 truncate uppercase tracking-tighter">{product.name}</h3>
               <p className={`text-xs font-black mb-4 ${isOut ? 'text-red-500' : 'text-slate-400'}`}>
                 {isOut ? 'OUT OF STOCK' : `STOCK: ${product.quantity}`}
               </p>
 
-              {/* NEW QUANTITY SELECTOR UI */}
+              {/* Quantity Selector UI */}
               {!isOut && (
                 <div className={`flex items-center justify-between mb-4 p-2 rounded-xl ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
                    <span className="text-[10px] font-black uppercase opacity-50 ml-2">Qty</span>
