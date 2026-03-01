@@ -4,15 +4,11 @@ import { useTheme } from '../../context/ThemeContext';
 export default function ClerkSetting() {
   const { isDark, toggleTheme } = useTheme();
 
-  // State for toggles used in the UI
   const [receiptAutoPrint, setReceiptAutoPrint] = useState(true);
   const [scannerBeep, setScannerBeep] = useState(true);
 
-  // FIXED: Initialize ID using a state function. 
-  // This is PURE because it only runs once during the component's initial mount.
   const [employeeId] = useState(() => Math.floor(1000 + Math.random() * 9000));
 
-  // Memoizing the user data safely handles the localStorage side-effect
   const userData = useMemo(() => {
     try {
       const savedUser = localStorage.getItem('user');
@@ -24,7 +20,9 @@ export default function ClerkSetting() {
   }, []);
 
   return (
-    <div className="p-6 min-h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-600 dark:text-slate-300 transition-colors duration-300 flex flex-col items-center">
+    // The "dark" class here ensures this specific component reacts, 
+    // but the global fix must happen in your Context Provider.
+    <div className={`p-6 min-h-screen transition-colors duration-300 flex flex-col items-center ${isDark ? 'dark bg-[#0b1120]' : 'bg-slate-50'}`}>
       <div className="w-full max-w-4xl">
         <header className="mb-8">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white">Clerk Settings</h1>
@@ -54,7 +52,6 @@ export default function ClerkSetting() {
             </div>
             <div className="p-6 space-y-6">
               
-              {/* Receipt Toggle */}
               <div className="flex justify-between items-center">
                 <p className="font-bold text-slate-900 dark:text-white">Auto-Print Receipts</p>
                 <button 
@@ -65,7 +62,6 @@ export default function ClerkSetting() {
                 </button>
               </div>
 
-              {/* Scanner Toggle */}
               <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800/50">
                 <p className="font-bold text-slate-900 dark:text-white">Scanner Beep</p>
                 <button 
@@ -81,12 +77,11 @@ export default function ClerkSetting() {
                 <p className="font-bold text-slate-900 dark:text-white">Dark Mode</p>
                 <button 
                   onClick={toggleTheme}
-                  className={`w-12 h-6 rounded-full transition-all relative ${isDark ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                  className={`w-12 h-6 rounded-full transition-all relative ${isDark ? 'bg-indigo-600' : 'bg-slate-600'}`}
                 >
                   <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isDark ? 'translate-x-7' : 'translate-x-1'}`}></div>
                 </button>
               </div>
-
             </div>
           </section>
         </div>
