@@ -18,17 +18,29 @@ export default function Order() {
   const user = JSON.parse(localStorage.getItem('user')) || null;
   const isLoggedIn = !!user;
 
-  // --- IMAGE LOGIC ---
-  const getLocalImage = (item) => {
-    const fileName = item.name.toLowerCase().replace(/\s+/g, '-');
+  // --- IMAGE LOGIC (FIXED) ---
+  const getProductImage = (item) => {
+    // 1. If your database has an image path (e.g., /uploads/image.jpg), use it
+    if (item.image_url) {
+      return `http://localhost:3000${item.image_url}`;
+    }
+
+    // 2. Fallback: Use the product name to find a file in /public/codepic/
+    // This converts "Soap Item" to "soap-item.jpg"
+    const fileName = item.name?.toLowerCase().trim().replace(/\s+/g, '-') || 'default';
     return `/codepic/${fileName}.jpg`; 
   };
 
   const handleImgError = (e, category) => {
-    e.target.src = `/codepic/${category.toLowerCase()}.jpg`;
-    e.target.onerror = () => {
+    // Try to use a category-based fallback image first (e.g., vegetables.jpg)
+    const categoryImg = `/codepic/${category?.toLowerCase() || 'default'}.jpg`;
+    
+    // Prevent infinite loops if the category image is also missing
+    if (e.target.src.includes(categoryImg)) {
       e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
-    };
+    } else {
+      e.target.src = categoryImg;
+    }
   };
 
   // --- DATA FETCHING ---
@@ -52,21 +64,16 @@ export default function Order() {
 
   // --- HANDLERS ---
   const handleQuantityChange = (id, val) => {
-    // Allows empty string so user can delete and type new numbers
     const value = val === '' ? '' : parseInt(val, 10);
     setQuantities(prev => ({ ...prev, [id]: value }));
   };
 
   const addToCart = (product) => {
-    // Ensure qty is at least 1 and is a valid number
     const qty = parseInt(quantities[product.id]) || 1;
-    
     if (qty <= 0) return;
 
     setCart(prev => {
-      // Use String conversion to avoid type-mismatch bugs (1 vs "1")
       const existing = prev.find(item => String(item.id) === String(product.id));
-      
       if (existing) {
         return prev.map(item => 
           String(item.id) === String(product.id) 
@@ -77,7 +84,6 @@ export default function Order() {
       return [...prev, { ...product, quantity: qty }];
     });
 
-    // Reset local quantity input for that specific product back to 1
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
 
@@ -120,10 +126,9 @@ export default function Order() {
     <div className={`w-full transition-colors duration-300 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
       <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-700">
         
-        {/* --- MODERN HEADER --- */}
+        {/* --- HEADER --- */}
         <div className="bg-linear-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-4xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
-          
           <div className="space-y-3 z-10 text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter">Point of Sale</h1>
             <p className="text-blue-100/80 font-medium">Process orders and manage instant stock deductions</p>
@@ -134,7 +139,7 @@ export default function Order() {
           </div>
         </div>
 
-        {/* --- STICKY GLASS ACTION BAR --- */}
+        {/* --- ACTION BAR --- */}
         <header className="sticky top-4 z-40 backdrop-blur-xl bg-[#111827]/60 border border-slate-800 p-4 rounded-2xl shadow-2xl flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="relative w-full md:w-96">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 opacity-40">🔍</span>
@@ -172,13 +177,13 @@ export default function Order() {
           </div>
         </header>
 
-        {/* --- PRODUCT GRID --- */}
+        {/* --- PRODUCT GRID (UPDATED) --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map(item => (
             <div key={item.id} className="bg-[#111827]/40 backdrop-blur-md border border-slate-800 p-5 rounded-3xl group hover:border-[#4361ee]/50 transition-all duration-500 flex flex-col hover:shadow-2xl hover:shadow-blue-500/5">
               <div className="relative mb-5 overflow-hidden rounded-2xl aspect-square">
                 <img 
-                  src={getLocalImage(item)} 
+                  src={getProductImage(item)} 
                   onError={(e) => handleImgError(e, item.category)}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 bg-slate-900" 
                   alt={item.name} 
