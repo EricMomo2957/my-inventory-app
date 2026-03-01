@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
-
-// REMOVED: ClerkSidenav import (Handled by App.jsx)
+import React, { useMemo } from 'react';
+import { useTheme } from '../../context/ThemeContext'; // Import your global theme hook
 
 export default function ClerkProfile() {
-  const [isDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
+  // Use context instead of local state for instant updates
+  const { isDark } = useTheme();
 
   const userData = useMemo(() => ({
-    full_name: localStorage.getItem('userName') || 'System Administrators',
+    full_name: localStorage.getItem('userName') || 'System Administrator',
     email: localStorage.getItem('userEmail') || 'admin@inventory.com',
     role: localStorage.getItem('userRole') || 'admin',
     userId: localStorage.getItem('userId') || '11',
@@ -14,24 +14,24 @@ export default function ClerkProfile() {
   }), []);
 
   return (
-    // REMOVED: flex and min-h-screen classes to prevent layout breaking
-    <div className={`w-full transition-colors duration-300 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
+    <div className={`w-full min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* Main Content Area - Padding adjusted for global layout */}
       <main className="p-6 lg:p-10 max-w-7xl mx-auto">
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           {/* Header Section */}
           <header className="mb-10">
-            <h1 className="text-3xl font-black tracking-tight text-white">Clerk Profile</h1>
+            <h1 className={`text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Clerk Profile
+            </h1>
             <p className="text-slate-500 font-medium">Manage your personal information and security credentials</p>
           </header>
 
-          {/* Top Profile Card - Glassmorphism Style */}
+          {/* Top Profile Card */}
           <div className={`relative p-10 rounded-3xl flex flex-col items-center justify-center text-center backdrop-blur-md transition-all ${
-            isDarkMode 
+            isDark 
               ? 'bg-[#111827]/40 border border-slate-800 shadow-2xl' 
-              : 'bg-white/80 border border-slate-200 shadow-xl'
+              : 'bg-white border border-slate-200 shadow-xl'
           }`}>
             <div className="relative group mb-6">
               <div className="w-32 h-32 rounded-full border-4 border-[#4361ee]/20 p-1 flex items-center justify-center">
@@ -44,10 +44,16 @@ export default function ClerkProfile() {
               </div>
             </div>
 
-            <h2 className="text-3xl font-black tracking-tight text-white mb-1">{userData.full_name}</h2>
+            <h2 className={`text-3xl font-black tracking-tight mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {userData.full_name}
+            </h2>
             <p className="text-[#4361ee] font-black text-xs uppercase tracking-[0.2em] mb-8">{userData.role}</p>
             
-            <button className="px-8 py-3 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-[10px] font-black tracking-widest uppercase transition-all active:scale-95">
+            <button className={`px-8 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all active:scale-95 border ${
+              isDark 
+                ? 'bg-slate-800/50 hover:bg-slate-700 border-slate-700 text-white' 
+                : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+            }`}>
               Edit Profile Settings
             </button>
           </div>
@@ -56,25 +62,25 @@ export default function ClerkProfile() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Left: Profile Details */}
-            <div className={`p-8 rounded-3xl border backdrop-blur-md ${isDarkMode ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200 shadow-lg'}`}>
+            <div className={`p-8 rounded-3xl border backdrop-blur-md ${isDark ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200 shadow-lg'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <span className="text-xl">📋</span>
-                <h3 className="text-lg font-black text-white">Account Details</h3>
+                <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Account Details</h3>
               </div>
               
               <div className="space-y-6">
-                <DetailRow label="Full Name" value={userData.full_name} />
-                <DetailRow label="Email Address" value={userData.email} />
-                <DetailRow label="System ID" value={`#${userData.userId}`} />
-                <DetailRow label="Assigned Dept" value={userData.department} />
+                <DetailRow label="Full Name" value={userData.full_name} isDark={isDark} />
+                <DetailRow label="Email Address" value={userData.email} isDark={isDark} />
+                <DetailRow label="System ID" value={`#${userData.userId}`} isDark={isDark} />
+                <DetailRow label="Assigned Dept" value={userData.department} isDark={isDark} />
               </div>
             </div>
 
             {/* Right: Security Settings */}
-            <div className={`p-8 rounded-3xl border backdrop-blur-md ${isDarkMode ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200 shadow-lg'}`}>
+            <div className={`p-8 rounded-3xl border backdrop-blur-md ${isDark ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200 shadow-lg'}`}>
               <div className="flex items-center gap-3 mb-8">
                 <span className="text-xl">🔒</span>
-                <h3 className="text-lg font-black text-white">Security & Access</h3>
+                <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Security & Access</h3>
               </div>
               
               <div className="space-y-5">
@@ -84,9 +90,9 @@ export default function ClerkProfile() {
                     type="password" 
                     placeholder="••••••••"
                     className={`w-full px-5 py-4 rounded-xl border outline-none focus:ring-4 transition-all ${
-                      isDarkMode 
+                      isDark 
                         ? 'bg-[#0b1120] border-slate-800 focus:border-[#4361ee] focus:ring-[#4361ee]/10 text-white' 
-                        : 'bg-slate-50 border-slate-200'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#4361ee] focus:ring-[#4361ee]/5'
                     }`}
                   />
                 </div>
@@ -97,9 +103,9 @@ export default function ClerkProfile() {
                     type="password" 
                     placeholder="••••••••"
                     className={`w-full px-5 py-4 rounded-xl border outline-none focus:ring-4 transition-all ${
-                      isDarkMode 
+                      isDark 
                         ? 'bg-[#0b1120] border-slate-800 focus:border-[#4361ee] focus:ring-[#4361ee]/10 text-white' 
-                        : 'bg-slate-50 border-slate-200'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#4361ee] focus:ring-[#4361ee]/5'
                     }`}
                   />
                 </div>
@@ -117,11 +123,12 @@ export default function ClerkProfile() {
   );
 }
 
-function DetailRow({ label, value }) {
+// Pass isDark down to the DetailRow for text color adjustment
+function DetailRow({ label, value, isDark }) {
   return (
-    <div className="group border-b border-slate-800/50 pb-4 last:border-0">
+    <div className={`group border-b pb-4 last:border-0 ${isDark ? 'border-slate-800/50' : 'border-slate-100'}`}>
       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-[#4361ee] transition-colors">{label}</p>
-      <p className="text-sm font-bold text-slate-200">{value}</p>
+      <p className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{value}</p>
     </div>
   );
 }
