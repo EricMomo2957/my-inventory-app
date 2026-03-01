@@ -14,9 +14,42 @@ export default function ClerkDashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [adjustment, setAdjustment] = useState('');
 
-  // Fixed: Standard state initialization for constants
-  const [isDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
-  const [lowStockThreshold] = useState(() => parseInt(localStorage.getItem('lowStockThreshold') || '10', 10));
+  // LIVE THEME STATE: Changed from static useState to dynamic
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
+  const [lowStockThreshold, setLowStockThreshold] = useState(() => parseInt(localStorage.getItem('lowStockThreshold') || '10', 10));
+
+  // --- Theme Sync Logic ---
+  useEffect(() => {
+    // 1. Function to sync state with localStorage
+    const syncSettings = () => {
+      const currentTheme = localStorage.getItem('landingTheme') === 'dark';
+      const currentThreshold = parseInt(localStorage.getItem('lowStockThreshold') || '10', 10);
+      
+      setIsDarkMode(currentTheme);
+      setLowStockThreshold(currentThreshold);
+
+      // Apply class to HTML tag for CSS Tailwind dark: variants
+      if (currentTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    // 2. Listen for 'storage' events (triggered when other tabs/components change localStorage)
+    window.addEventListener('storage', syncSettings);
+    
+    // 3. Optional: Polling interval (useful if settings change within the same window without a storage event)
+    const interval = setInterval(syncSettings, 1000);
+
+    // Initial sync
+    syncSettings();
+
+    return () => {
+      window.removeEventListener('storage', syncSettings);
+      clearInterval(interval);
+    };
+  }, []);
 
   // useMemo for pure data derived from localStorage
   const userData = useMemo(() => ({
@@ -26,7 +59,6 @@ export default function ClerkDashboard() {
     username: localStorage.getItem('userName')?.toLowerCase().replace(/\s/g, '_') || 'clerk_01'
   }), []);
 
-  // Fixed: Memoize the date to prevent impure render errors
   const todayDate = useMemo(() => new Date().toLocaleDateString(), []);
 
   // --- Functions ---
@@ -49,21 +81,10 @@ export default function ClerkDashboard() {
     }
   }, [navigate]);
 
-  // Initial Data Load
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
-
-  // Theme handling
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   // --- Handlers ---
   const downloadCSV = () => {
@@ -119,7 +140,7 @@ export default function ClerkDashboard() {
   const totalValue = products.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-300 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen font-sans transition-colors duration-500 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       <main className="p-8 lg:p-12">
         {activeView === 'stock-view' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -149,7 +170,7 @@ export default function ClerkDashboard() {
               <input
                 type="text"
                 placeholder="Filter by product name..."
-                className={`w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800 focus:border-blue-500' : 'bg-white border-slate-200 focus:border-blue-500 shadow-sm'}`}
+                className={`w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800 focus:border-blue-500 text-white' : 'bg-white border-slate-200 focus:border-blue-500 text-slate-900 shadow-sm'}`}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
@@ -165,7 +186,7 @@ export default function ClerkDashboard() {
                       <th className="p-5 text-[11px] uppercase font-black text-slate-400 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/10">
+                  <tbody className={`divide-y ${isDarkMode ? 'divide-slate-800' : 'divide-slate-100'}`}>
                     {filteredProducts.map(p => (
                       <tr key={p.id} className="hover:bg-blue-500/5 transition-colors group">
                         <td className="p-5">
@@ -200,7 +221,7 @@ export default function ClerkDashboard() {
             >
               <span>←</span> Back to Dashboard
             </button>
-            <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <div className={`rounded-3xl overflow-hidden border shadow-2xl ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
                 <ClerkSetting />
             </div>
           </div>
@@ -209,13 +230,13 @@ export default function ClerkDashboard() {
 
       {isModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
-           <div className={`w-full max-w-md p-10 rounded-3xl shadow-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-white'}`}>
+           <div className={`w-full max-w-md p-10 rounded-3xl shadow-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-white text-slate-900'}`}>
              <h2 className="text-2xl font-black mb-1">Update Inventory</h2>
              <p className="text-sm text-slate-400 mb-8">{selectedProduct.name}</p>
              <input
                 type="number"
                 autoFocus
-                className={`w-full px-6 py-5 rounded-2xl border outline-none text-2xl font-black mb-6 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
+                className={`w-full px-6 py-5 rounded-2xl border outline-none text-2xl font-black mb-6 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
                 value={adjustment}
                 onChange={(e) => setAdjustment(e.target.value)}
               />

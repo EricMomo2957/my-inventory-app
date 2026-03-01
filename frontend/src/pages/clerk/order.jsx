@@ -17,9 +17,6 @@ export default function Order() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const user = JSON.parse(localStorage.getItem('user')) || null;
-  const isLoggedIn = !!user;
-
   // --- DATA FETCHING ---
   useEffect(() => {
     const fetchProducts = async () => {
@@ -61,25 +58,36 @@ export default function Order() {
   };
 
   const handleCheckout = async () => {
-    if (!isLoggedIn) return navigate('/login');
+    // 1. Get the most recent user data from storage
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+
+    // 2. Validate that the user exists AND has an ID from the database
+    if (!storedUser || !storedUser.id) {
+      console.warn("Checkout blocked: No valid User ID found in session.");
+      alert("Session expired or invalid. Please log in again.");
+      return navigate('/login');
+    }
+
     try {
+      // 3. Process the orders using the validated storedUser.id
       for (const item of cart) {
         await axios.post('http://localhost:3000/api/orders', {
-          user_id: user.id,
+          user_id: storedUser.id,
           product_id: item.id,
           quantity: item.quantity,
           price: item.price
         });
       }
+
       setReceiptData({
         date: new Date().toLocaleString(),
         trx: Math.floor(100000 + Math.random() * 900000)
       });
       setIsCartOpen(false);
       setShowReceipt(true);
-    // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      alert("Checkout failed");
+      console.error("Checkout API Error:", err);
+      alert("Checkout failed. Please check your connection.");
     }
   };
 
@@ -93,7 +101,7 @@ export default function Order() {
     <div className={`w-full min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-700">
         
-        {/* --- HEADER (Vibrant Gradient remains constant for brand identity) --- */}
+        {/* --- HEADER --- */}
         <div className="bg-linear-to-br from-[#4361ee] to-[#3a0ca3] text-white p-10 rounded-[2.5rem] shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
           <div className="space-y-3 z-10 text-center md:text-left">
@@ -206,7 +214,7 @@ export default function Order() {
 
       {/* --- CART MODAL --- */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-1100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
           <div className={`border rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden ${
             isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
           }`}>
