@@ -1,17 +1,44 @@
-import React, { useMemo } from 'react';
-import { useTheme } from '../../context/ThemeContext'; // Import your global theme hook
+import React, { useState, useMemo, useCallback } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ClerkProfile() {
-  // Use context instead of local state for instant updates
   const { isDark } = useTheme();
 
-  const userData = useMemo(() => ({
+  // --- State Management ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Local state for the form, initialized from localStorage
+  const [formData, setFormData] = useState({
     full_name: localStorage.getItem('userName') || 'System Administrator',
     email: localStorage.getItem('userEmail') || 'admin@inventory.com',
-    role: localStorage.getItem('userRole') || 'admin',
-    userId: localStorage.getItem('userId') || '11',
-    department: localStorage.getItem('userDept') || 'IT Department'
-  }), []);
+    department: localStorage.getItem('userDept') || 'IT Department',
+    userId: localStorage.getItem('userId') || '11'
+  });
+
+  // Memoize data for the display cards
+  const displayData = useMemo(() => ({
+    ...formData,
+    role: localStorage.getItem('userRole') || 'clerk'
+  }), [formData]);
+
+  // --- Handlers ---
+  const handleSave = useCallback(() => {
+    // Update LocalStorage
+    localStorage.setItem('userName', formData.full_name);
+    localStorage.setItem('userEmail', formData.email);
+    localStorage.setItem('userDept', formData.department);
+    
+    // Close modal
+    setIsModalOpen(false);
+    
+    // Optional: Add a toast notification here
+    console.log("Profile Updated locally");
+  }, [formData]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div className={`w-full min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
@@ -36,20 +63,19 @@ export default function ClerkProfile() {
             <div className="relative group mb-6">
               <div className="w-32 h-32 rounded-full border-4 border-[#4361ee]/20 p-1 flex items-center justify-center">
                 <div className="w-full h-full rounded-full bg-linear-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white text-4xl font-black relative overflow-hidden shadow-2xl">
-                  {userData.full_name.charAt(0).toUpperCase()}
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-sm">
-                    <span className="text-[10px] font-black tracking-tighter">UPDATE PHOTO</span>
-                  </div>
+                  {displayData.full_name.charAt(0).toUpperCase()}
                 </div>
               </div>
             </div>
 
             <h2 className={`text-3xl font-black tracking-tight mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              {userData.full_name}
+              {displayData.full_name}
             </h2>
-            <p className="text-[#4361ee] font-black text-xs uppercase tracking-[0.2em] mb-8">{userData.role}</p>
+            <p className="text-[#4361ee] font-black text-xs uppercase tracking-[0.2em] mb-8">{displayData.role}</p>
             
-            <button className={`px-8 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all active:scale-95 border ${
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className={`px-8 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all active:scale-95 border ${
               isDark 
                 ? 'bg-slate-800/50 hover:bg-slate-700 border-slate-700 text-white' 
                 : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
@@ -69,10 +95,10 @@ export default function ClerkProfile() {
               </div>
               
               <div className="space-y-6">
-                <DetailRow label="Full Name" value={userData.full_name} isDark={isDark} />
-                <DetailRow label="Email Address" value={userData.email} isDark={isDark} />
-                <DetailRow label="System ID" value={`#${userData.userId}`} isDark={isDark} />
-                <DetailRow label="Assigned Dept" value={userData.department} isDark={isDark} />
+                <DetailRow label="Full Name" value={displayData.full_name} isDark={isDark} />
+                <DetailRow label="Email Address" value={displayData.email} isDark={isDark} />
+                <DetailRow label="System ID" value={`#${displayData.userId}`} isDark={isDark} />
+                <DetailRow label="Assigned Dept" value={displayData.department} isDark={isDark} />
               </div>
             </div>
 
@@ -96,34 +122,90 @@ export default function ClerkProfile() {
                     }`}
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Verify Password</label>
-                  <input 
-                    type="password" 
-                    placeholder="••••••••"
-                    className={`w-full px-5 py-4 rounded-xl border outline-none focus:ring-4 transition-all ${
-                      isDark 
-                        ? 'bg-[#0b1120] border-slate-800 focus:border-[#4361ee] focus:ring-[#4361ee]/10 text-white' 
-                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#4361ee] focus:ring-[#4361ee]/5'
-                    }`}
-                  />
-                </div>
-
                 <button className="w-full mt-6 py-4 bg-[#4361ee] hover:bg-[#3651d4] text-white rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-xl shadow-[#4361ee]/20 active:scale-95">
                   Save Security Changes
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </main>
+
+      {/* --- EDIT PROFILE MODAL --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className={`w-full max-w-lg p-8 rounded-3xl shadow-2xl border transition-all transform animate-in zoom-in-95 duration-300 ${
+            isDark ? 'bg-[#111827] border-slate-800 text-white' : 'bg-white border-white text-slate-900'
+          }`}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black italic uppercase tracking-tight">Edit Profile</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-red-500 transition-colors text-2xl">×</button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Full Name</label>
+                <input 
+                  name="full_name"
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  className={`w-full px-5 py-3 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0b1120] border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Email Address</label>
+                <input 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full px-5 py-3 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0b1120] border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Assigned Department</label>
+                <select 
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  className={`w-full px-5 py-3 rounded-xl border outline-none appearance-none ${
+                    isDark ? 'bg-[#0b1120] border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <option value="IT Department">IT Department</option>
+                  <option value="Inventory Control">Inventory Control</option>
+                  <option value="Sales Operations">Sales Operations</option>
+                  <option value="Logistics">Logistics</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 py-4 font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSave}
+                className="flex-1 py-4 bg-[#4361ee] text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Pass isDark down to the DetailRow for text color adjustment
 function DetailRow({ label, value, isDark }) {
   return (
     <div className={`group border-b pb-4 last:border-0 ${isDark ? 'border-slate-800/50' : 'border-slate-100'}`}>
