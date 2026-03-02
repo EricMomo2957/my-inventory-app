@@ -2,9 +2,13 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ClerkSetting from './clerkSetting'; 
+import { useTheme } from '../../context/ThemeContext'; // 1. Import Theme Context
 
 export default function ClerkDashboard() {
   const navigate = useNavigate();
+  
+  // 2. Consume central theme state
+  const { isDark } = useTheme();
 
   // --- State Management ---
   const [activeView, setActiveView] = useState('stock-view');
@@ -14,52 +18,8 @@ export default function ClerkDashboard() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [adjustment, setAdjustment] = useState('');
 
-  // LIVE THEME STATE: Changed from static useState to dynamic
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
-  const [lowStockThreshold, setLowStockThreshold] = useState(() => parseInt(localStorage.getItem('lowStockThreshold') || '10', 10));
-
-  // --- Theme Sync Logic ---
-  useEffect(() => {
-    // 1. Function to sync state with localStorage
-    const syncSettings = () => {
-      const currentTheme = localStorage.getItem('landingTheme') === 'dark';
-      const currentThreshold = parseInt(localStorage.getItem('lowStockThreshold') || '10', 10);
-      
-      setIsDarkMode(currentTheme);
-      setLowStockThreshold(currentThreshold);
-
-      // Apply class to HTML tag for CSS Tailwind dark: variants
-      if (currentTheme) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-
-    // 2. Listen for 'storage' events (triggered when other tabs/components change localStorage)
-    window.addEventListener('storage', syncSettings);
-    
-    // 3. Optional: Polling interval (useful if settings change within the same window without a storage event)
-    const interval = setInterval(syncSettings, 1000);
-
-    // Initial sync
-    syncSettings();
-
-    return () => {
-      window.removeEventListener('storage', syncSettings);
-      clearInterval(interval);
-    };
-  }, []);
-
-  // useMemo for pure data derived from localStorage
-  const userData = useMemo(() => ({
-    id: localStorage.getItem('userId'),
-    full_name: localStorage.getItem('userName') || 'Clerk User',
-    role: localStorage.getItem('userRole') || 'clerk',
-    username: localStorage.getItem('userName')?.toLowerCase().replace(/\s/g, '_') || 'clerk_01'
-  }), []);
-
-  const todayDate = useMemo(() => new Date().toLocaleDateString(), []);
+  // Threshold can stay as local state or move to context later
+  const [lowStockThreshold] = useState(() => parseInt(localStorage.getItem('lowStockThreshold') || '10', 10));
 
   // --- Functions ---
   const fetchData = useCallback(async () => {
@@ -76,7 +36,7 @@ export default function ClerkDashboard() {
   // Auth Check
   useEffect(() => {
     const role = localStorage.getItem('userRole');
-    if (role !== 'clerk' && role !== 'admin') {
+    if (role !== 'clerk' && role !== 'admin' && role !== 'Administrator') {
       navigate('/login');
     }
   }, [navigate]);
@@ -85,6 +45,13 @@ export default function ClerkDashboard() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, [fetchData]);
+
+  // Derived Data
+  const userData = useMemo(() => ({
+    full_name: localStorage.getItem('userName') || 'Clerk User',
+  }), []);
+
+  const todayDate = useMemo(() => new Date().toLocaleDateString(), []);
 
   // --- Handlers ---
   const downloadCSV = () => {
@@ -140,7 +107,7 @@ export default function ClerkDashboard() {
   const totalValue = products.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
   return (
-    <div className={`min-h-screen font-sans transition-colors duration-500 ${isDarkMode ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen font-sans transition-colors duration-500 ${isDark ? 'bg-[#0f172a] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       <main className="p-8 lg:p-12">
         {activeView === 'stock-view' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -150,7 +117,7 @@ export default function ClerkDashboard() {
                 <p className="text-slate-500 font-medium mt-1">Live database control: {todayDate}</p>
               </div>
               <div className="flex gap-3">
-                <button onClick={downloadCSV} className={`px-5 py-2.5 rounded-xl border font-bold flex items-center gap-2 transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'}`}>
+                <button onClick={downloadCSV} className={`px-5 py-2.5 rounded-xl border font-bold flex items-center gap-2 transition-all ${isDark ? 'bg-slate-800 border-slate-700 hover:bg-slate-700' : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'}`}>
                   📥 Export CSV
                 </button>
                 <button onClick={() => setActiveView('settings-view')} className="px-5 py-2.5 rounded-xl border border-blue-500/20 bg-blue-500 text-white font-bold flex items-center gap-2 transition-all hover:bg-blue-600 active:scale-95 shadow-lg shadow-blue-500/20">
@@ -160,9 +127,9 @@ export default function ClerkDashboard() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <StatCard label="Total Products" value={products.length} color="text-blue-500" isDarkMode={isDarkMode} />
-              <StatCard label="Low Stock Alerts" value={lowStockCount} color="text-red-500" isDarkMode={isDarkMode} />
-              <StatCard label="Inventory Value" value={`₱${totalValue.toLocaleString()}`} color="text-emerald-500" isDarkMode={isDarkMode} />
+              <StatCard label="Total Products" value={products.length} color="text-blue-500" isDark={isDark} />
+              <StatCard label="Low Stock Alerts" value={lowStockCount} color="text-red-500" isDark={isDark} />
+              <StatCard label="Inventory Value" value={`₱${totalValue.toLocaleString()}`} color="text-emerald-500" isDark={isDark} />
             </div>
 
             <div className="relative mb-8">
@@ -170,14 +137,14 @@ export default function ClerkDashboard() {
               <input
                 type="text"
                 placeholder="Filter by product name..."
-                className={`w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800 focus:border-blue-500 text-white' : 'bg-white border-slate-200 focus:border-blue-500 text-slate-900 shadow-sm'}`}
+                className={`w-full pl-14 pr-6 py-4 rounded-2xl border outline-none transition-all ${isDark ? 'bg-slate-900 border-slate-800 focus:border-blue-500 text-white' : 'bg-white border-slate-200 focus:border-blue-500 text-slate-900 shadow-sm'}`}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            <div className={`rounded-3xl border overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-md'}`}>
+            <div className={`rounded-3xl border overflow-hidden ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-md'}`}>
                <table className="w-full text-left border-collapse">
-                  <thead className={isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50/80'}>
+                  <thead className={isDark ? 'bg-slate-800/50' : 'bg-slate-50/80'}>
                     <tr>
                       <th className="p-5 text-[11px] uppercase font-black text-slate-400">Product Details</th>
                       <th className="p-5 text-[11px] uppercase font-black text-slate-400">Price</th>
@@ -186,7 +153,7 @@ export default function ClerkDashboard() {
                       <th className="p-5 text-[11px] uppercase font-black text-slate-400 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className={`divide-y ${isDarkMode ? 'divide-slate-800' : 'divide-slate-100'}`}>
+                  <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-100'}`}>
                     {filteredProducts.map(p => (
                       <tr key={p.id} className="hover:bg-blue-500/5 transition-colors group">
                         <td className="p-5">
@@ -221,22 +188,23 @@ export default function ClerkDashboard() {
             >
               <span>←</span> Back to Dashboard
             </button>
-            <div className={`rounded-3xl overflow-hidden border shadow-2xl ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+            <div className={`rounded-3xl overflow-hidden border shadow-2xl ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
                 <ClerkSetting />
             </div>
           </div>
         )}
       </main>
 
+      {/* MODAL */}
       {isModalOpen && selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md">
-           <div className={`w-full max-w-md p-10 rounded-3xl shadow-2xl border ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-white text-slate-900'}`}>
+           <div className={`w-full max-w-md p-10 rounded-3xl shadow-2xl border ${isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-white text-slate-900'}`}>
              <h2 className="text-2xl font-black mb-1">Update Inventory</h2>
              <p className="text-sm text-slate-400 mb-8">{selectedProduct.name}</p>
              <input
                 type="number"
                 autoFocus
-                className={`w-full px-6 py-5 rounded-2xl border outline-none text-2xl font-black mb-6 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                className={`w-full px-6 py-5 rounded-2xl border outline-none text-2xl font-black mb-6 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
                 value={adjustment}
                 onChange={(e) => setAdjustment(e.target.value)}
               />
@@ -251,9 +219,9 @@ export default function ClerkDashboard() {
   );
 }
 
-function StatCard({ label, value, color, isDarkMode }) {
+function StatCard({ label, value, color, isDark }) {
   return (
-    <div className={`p-8 rounded-3xl border transition-all ${isDarkMode ? 'bg-slate-900 border-slate-800 shadow-xl' : 'bg-white border-slate-100 shadow-sm'}`}>
+    <div className={`p-8 rounded-3xl border transition-all ${isDark ? 'bg-slate-900 border-slate-800 shadow-xl' : 'bg-white border-slate-100 shadow-sm'}`}>
       <h4 className="text-[11px] uppercase tracking-widest font-black text-slate-400 mb-2">{label}</h4>
       <p className={`text-3xl font-black ${color}`}>{value}</p>
     </div>
