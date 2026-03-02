@@ -94,7 +94,7 @@ export default function App() {
         isDark ? 'bg-[#0b1120] text-slate-200' : 'bg-slate-50 text-slate-900'
       }`}>
         
-        {/* GLOBAL SIDENAV LOGIC */}
+        {/* GLOBAL SIDENAV LOGIC - This stays here! */}
         {isLoggedIn && (
           <>
             {(user.role === 'admin' || user.role === 'clerk' || user.role === 'Administrator') && (
