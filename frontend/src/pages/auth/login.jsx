@@ -22,7 +22,7 @@ export default function Login({ setIsLoggedIn }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError(''); 
 
     try {
       const response = await axios.post('http://localhost:3000/api/login', { 
@@ -34,10 +34,16 @@ export default function Login({ setIsLoggedIn }) {
         const { user } = response.data;
         
         // --- Storage for Auth & Protected Routes ---
-        localStorage.setItem('userToken', 'dummy-token'); // Triggers isLoggedIn check in App.js
+        localStorage.setItem('userToken', 'dummy-token'); 
         localStorage.setItem('userRole', user.role);
         localStorage.setItem('userName', user.full_name);
+        localStorage.setItem('userEmail', user.email);       // Added for Profile sync
+        localStorage.setItem('userDept', user.department);   // Added for Profile sync
         localStorage.setItem('userId', user.id);
+        
+        // --- ADDED: Store Profile Image from Database ---
+        // 'profile_image' is Column 9 in your DB
+        localStorage.setItem('userPhoto', user.profile_image || '');
 
         setIsLoggedIn(true);
 
@@ -53,7 +59,6 @@ export default function Login({ setIsLoggedIn }) {
         }
       }
     } catch (err) {
-      // Display backend error message or default fallback
       setError(err.response?.data?.message || "Login failed. Please check your credentials.");
     }
   };
@@ -80,12 +85,11 @@ export default function Login({ setIsLoggedIn }) {
           <h1 className={`text-4xl font-black mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             Inventory<span className="text-blue-600">Pro</span>
           </h1>
-          <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-50' } text-sm font-medium`}>
+          <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500' } text-sm font-medium`}>
             Enter your credentials to manage stock
           </p>
         </header>
 
-        {/* Error Feedback */}
         {error && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold text-center animate-pulse">
             {error}
@@ -153,12 +157,11 @@ export default function Login({ setIsLoggedIn }) {
         </div>
         <div className="space-y-4 text-center">
           <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Do you can go in Landing page? <Link to="/LandingPage" className="text-blue-500 font-bold hover:underline">Landing Page</Link>
+            Do you want to go to the Landing page? <Link to="/LandingPage" className="text-blue-500 font-bold hover:underline">Landing Page</Link>
           </p>
         </div>
       </div>
       
-      {/* Theme Toggle Button */}
       <button 
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="fixed bottom-6 right-6 p-3 rounded-full bg-slate-800 text-white shadow-lg hover:scale-110 transition-transform"
