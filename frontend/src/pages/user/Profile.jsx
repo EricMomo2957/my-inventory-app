@@ -62,7 +62,7 @@ export default function UserProfile() {
           }`}>
             <div className="relative group mb-6">
               <div className="w-32 h-32 rounded-full border-4 border-[#4361ee]/20 p-1 flex items-center justify-center">
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white text-4xl font-black relative overflow-hidden shadow-2xl">
+                <div className="w-full h-full rounded-full bg-linear-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white text-4xl font-black relative overflow-hidden shadow-2xl">
                   {displayData.full_name.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function UserProfile() {
 
       {/* --- EDIT PROFILE MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className={`w-full max-w-lg p-8 rounded-3xl shadow-2xl border transition-all transform animate-in zoom-in-95 duration-300 ${
             isDark ? 'bg-[#111827] border-slate-800 text-white' : 'bg-white border-white text-slate-900'
           }`}>
