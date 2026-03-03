@@ -1,274 +1,199 @@
-import React, { useState } from 'react';
-import { useTheme } from '../../context/ThemeContext'; // Ensure this path is correct
+import React, { useState, useMemo, useCallback } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
-export default function Profile() {
+export default function UserProfile() {
   const { isDark } = useTheme();
 
-  // 1. HELPER TO GET INITIAL USER DATA
-  const getSavedUser = () => {
-    const saved = localStorage.getItem('user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (err) {
-        console.error("Error parsing user data", err);
-      }
-    }
-    return {
-      id: '', 
-      user_id_number: '', // The editable ID number
-      username: '', 
-      full_name: '', 
-      role: '',
-      email: '', 
-      admin_id: '', 
-      department: '', 
-      profile_image: ''
-    };
-  };
-
-  const initialUser = getSavedUser();
-
-  // 2. STATE INITIALIZATION
-  const [userData, setUserData] = useState(initialUser);
-  const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+  // --- State Management ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // State for the Edit Modal
-  const [editData, setEditData] = useState({ 
-    full_name: initialUser.full_name || '', 
-    email: initialUser.email || '', 
-    username: initialUser.username || '', 
-    department: initialUser.department || '',
-    user_id_number: initialUser.user_id_number || '' 
+  // Local state for the form, initialized from localStorage
+  // Ensure these keys ('userName', 'userEmail', etc.) match your login logic
+  const [formData, setFormData] = useState({
+    full_name: localStorage.getItem('userName') || 'User Member',
+    email: localStorage.getItem('userEmail') || 'user@example.com',
+    department: localStorage.getItem('userDept') || 'General Department',
+    userId: localStorage.getItem('userId') || '00'
   });
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  // Memoize data for the display cards
+  const displayData = useMemo(() => ({
+    ...formData,
+    role: localStorage.getItem('userRole') || 'User'
+  }), [formData]);
 
-  // 3. IMAGE PREVIEW HANDLER
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
-
-  // 4. PROFILE UPDATE HANDLER
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
+  // --- Handlers ---
+  const handleSave = useCallback(() => {
+    // Update LocalStorage to persist changes locally
+    localStorage.setItem('userName', formData.full_name);
+    localStorage.setItem('userEmail', formData.email);
+    localStorage.setItem('userDept', formData.department);
     
-    const formData = new FormData();
-    formData.append('id', userData.id); // Internal Database ID
-    formData.append('user_id_number', editData.user_id_number); // Editable ID Number
-    formData.append('full_name', editData.full_name);
-    formData.append('email', editData.email);
-    formData.append('username', editData.username);
-    formData.append('department', editData.department);
-    formData.append('password', passwordData.newPassword); 
+    // Close modal
+    setIsModalOpen(false);
     
-    if (selectedFile) {
-      formData.append('profile_pic', selectedFile);
-    }
+    console.log("User Profile Updated locally");
+  }, [formData]);
 
-    try {
-      const response = await fetch('http://localhost:3000/api/users/update', {
-        method: 'PUT',
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        // Merge the edited data into the local state
-        const updatedUser = { 
-          ...userData, 
-          ...editData,
-          profile_image: data.profile_image || userData.profile_image 
-        };
-        
-        setUserData(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setIsModalOpen(false);
-        alert("Profile updated successfully!");
-        setPreviewUrl(null);
-        setSelectedFile(null);
-        setPasswordData({ newPassword: '', confirmPassword: '' });
-      }
-    } catch (err) {
-      console.error("Update error:", err);
-      alert("Failed to update profile.");
-    }
-  };
-
-  // Sync editData when modal opens to ensure it has latest userData
-  const openModal = () => {
-    setEditData({
-      full_name: userData.full_name || '',
-      email: userData.email || '',
-      username: userData.username || '',
-      department: userData.department || '',
-      user_id_number: userData.user_id_number || ''
-    });
-    setIsModalOpen(true);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className={`p-6 h-screen transition-colors duration-500 overflow-y-auto ${
-      isDark ? 'bg-[#0b1120] text-slate-300' : 'bg-slate-50 text-slate-600'
-    }`}>
+    <div className={`w-full min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* HEADER CARD */}
-      <div className={`rounded-xl border p-8 mb-6 shadow-2xl relative overflow-hidden transition-colors duration-500 ${
-        isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
-      }`}>
-        <div className="flex flex-col items-center">
-          <div className="relative group">
-            <div className={`w-32 h-32 rounded-full border-4 border-[#4361ee] overflow-hidden shadow-2xl flex items-center justify-center ${
-              isDark ? 'bg-slate-800' : 'bg-slate-100'
+      <main className="p-6 lg:p-10 max-w-7xl mx-auto">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          
+          {/* Header Section */}
+          <header className="mb-10">
+            <h1 className={`text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              My Profile
+            </h1>
+            <p className="text-slate-500 font-medium">View and manage your account information</p>
+          </header>
+
+          {/* Top Profile Card */}
+          <div className={`relative p-10 rounded-3xl flex flex-col items-center justify-center text-center backdrop-blur-md transition-all ${
+            isDark 
+              ? 'bg-[#111827]/40 border border-slate-800 shadow-2xl' 
+              : 'bg-white border border-slate-200 shadow-xl'
+          }`}>
+            <div className="relative group mb-6">
+              <div className="w-32 h-32 rounded-full border-4 border-[#4361ee]/20 p-1 flex items-center justify-center">
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-[#4361ee] to-purple-600 flex items-center justify-center text-white text-4xl font-black relative overflow-hidden shadow-2xl">
+                  {displayData.full_name.charAt(0).toUpperCase()}
+                </div>
+              </div>
+            </div>
+
+            <h2 className={`text-3xl font-black tracking-tight mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {displayData.full_name}
+            </h2>
+            <p className="text-[#4361ee] font-black text-xs uppercase tracking-[0.2em] mb-8">{displayData.role}</p>
+            
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className={`px-8 py-3 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all active:scale-95 border ${
+              isDark 
+                ? 'bg-slate-800/50 hover:bg-slate-700 border-slate-700 text-white' 
+                : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
             }`}>
-              {userData.profile_image ? (
-                <img 
-                  src={`http://localhost:3000${userData.profile_image}`} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-4xl font-black text-[#4361ee]">
-                  {userData.full_name?.charAt(0).toUpperCase() || '?'}
-                </span>
-              )}
+              Edit Profile Settings
+            </button>
+          </div>
+
+          {/* Bottom Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            {/* Left: Profile Details */}
+            <div className={`p-8 rounded-3xl border backdrop-blur-md ${isDark ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200 shadow-lg'}`}>
+              <div className="flex items-center gap-3 mb-8">
+                <span className="text-xl">📋</span>
+                <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Account Details</h3>
+              </div>
+              
+              <div className="space-y-6">
+                <DetailRow label="Full Name" value={displayData.full_name} isDark={isDark} />
+                <DetailRow label="Email Address" value={displayData.email} isDark={isDark} />
+                <DetailRow label="User ID" value={`#${displayData.userId}`} isDark={isDark} />
+                <DetailRow label="Department" value={displayData.department} isDark={isDark} />
+              </div>
+            </div>
+
+            {/* Right: Security Settings */}
+            <div className={`p-8 rounded-3xl border backdrop-blur-md ${isDark ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200 shadow-lg'}`}>
+              <div className="flex items-center gap-3 mb-8">
+                <span className="text-xl">🔒</span>
+                <h3 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Security & Access</h3>
+              </div>
+              
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">New Password</label>
+                  <input 
+                    type="password" 
+                    placeholder="••••••••"
+                    className={`w-full px-5 py-4 rounded-xl border outline-none focus:ring-4 transition-all ${
+                      isDark 
+                        ? 'bg-[#0b1120] border-slate-800 focus:border-[#4361ee] focus:ring-[#4361ee]/10 text-white' 
+                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#4361ee] focus:ring-[#4361ee]/5'
+                    }`}
+                  />
+                </div>
+                <button className="w-full mt-6 py-4 bg-[#4361ee] hover:bg-[#3651d4] text-white rounded-xl text-xs font-black tracking-widest uppercase transition-all shadow-xl shadow-[#4361ee]/20 active:scale-95">
+                  Update Password
+                </button>
+              </div>
             </div>
           </div>
-          
-          <h2 className={`text-2xl font-black mt-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {userData.full_name || 'User'}
-          </h2>
-          <p className="text-slate-500 font-bold text-sm uppercase tracking-widest">{userData.role}</p>
-          
-          <button 
-            onClick={openModal}
-            className={`mt-4 px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg border transition-all ${
-              isDark 
-                ? 'bg-[#1e293b] hover:bg-[#4361ee] text-white border-slate-700' 
-                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-sm'
-            }`}
-          >
-            Edit Profile & Photo
-          </button>
         </div>
-      </div>
+      </main>
 
-      {/* DETAILS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
-        <div className={`rounded-xl border p-8 shadow-xl ${
-          isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
-        }`}>
-          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Profile Details</h3>
-          <div className="space-y-4">
-            <DetailItem label="Full Name" value={userData.full_name} isDark={isDark} />
-            <DetailItem label="User ID Number" value={userData.user_id_number || 'No ID set'} isDark={isDark} />
-            <DetailItem label="Email" value={userData.email || 'not provided'} isDark={isDark} />
-            <DetailItem label="Username" value={userData.username} isDark={isDark} />
-            <DetailItem label="Department" value={userData.department || 'General'} isDark={isDark} />
-            <DetailItem label="System UUID" value={userData.id} isDark={isDark} />
-          </div>
-        </div>
-
-        {/* SECURITY SECTION */}
-        <div className={`rounded-xl border p-8 shadow-xl flex flex-col ${
-          isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
-        }`}>
-          <h3 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Security Status</h3>
-          <div className={`flex-1 p-4 border rounded-lg ${
-            isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-100'
-          }`}>
-            <p className="text-sm text-slate-500 mb-4">Your account information is managed by the {userData.department || 'system'} department.</p>
-            <p className="text-xs text-blue-500 font-bold uppercase">Account Protection</p>
-            <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Verified Account</p>
-          </div>
-        </div>
-      </div>
-
-      {/* EDIT MODAL */}
+      {/* --- EDIT PROFILE MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className={`border w-full max-w-md rounded-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto ${
-            isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className={`w-full max-w-lg p-8 rounded-3xl shadow-2xl border transition-all transform animate-in zoom-in-95 duration-300 ${
+            isDark ? 'bg-[#111827] border-slate-800 text-white' : 'bg-white border-white text-slate-900'
           }`}>
-            <h3 className={`text-2xl font-black mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Edit Profile</h3>
-            
-            <form onSubmit={handleProfileUpdate} className="space-y-4">
-              {/* Photo Preview */}
-              <div className="flex flex-col items-center mb-4">
-                <label className="relative cursor-pointer">
-                  <div className={`w-24 h-24 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden ${
-                    isDark ? 'border-slate-700 bg-[#0b1120]' : 'border-slate-300 bg-slate-50'
-                  }`}>
-                    {previewUrl ? <img src={previewUrl} className="w-full h-full object-cover" alt="preview" /> : <span className="text-[10px] text-slate-500 font-black uppercase">Change Photo</span>}
-                  </div>
-                  <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
-                </label>
-              </div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black italic uppercase tracking-tight">Edit Profile</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-red-500 transition-colors text-2xl">×</button>
+            </div>
 
-              {/* Editable User ID Number Field */}
-              <EditInput 
-                label="User ID Number" 
-                value={editData.user_id_number} 
-                isDark={isDark}
-                onChange={(val) => setEditData({...editData, user_id_number: val})} 
-              />
-              
-              <EditInput 
-                label="Full Name" 
-                value={editData.full_name} 
-                isDark={isDark}
-                onChange={(val) => setEditData({...editData, full_name: val})} 
-              />
-              
-              <EditInput 
-                label="Username" 
-                value={editData.username} 
-                isDark={isDark}
-                onChange={(val) => setEditData({...editData, username: val})} 
-              />
-              
-              <EditInput 
-                label="Email Address" 
-                value={editData.email} 
-                isDark={isDark}
-                onChange={(val) => setEditData({...editData, email: val})} 
-              />
-              
-              <EditInput 
-                label="Department" 
-                value={editData.department} 
-                isDark={isDark}
-                onChange={(val) => setEditData({...editData, department: val})} 
-              />
-
-              <div className={`pt-2 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                <label className="block text-[10px] font-black text-blue-500 uppercase mb-1">New Password (Optional)</label>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Full Name</label>
                 <input 
-                  type="password" 
-                  placeholder="Leave blank to keep current"
-                  className={`w-full border rounded-lg px-4 py-2 outline-none transition-all ${
-                    isDark 
-                    ? 'bg-[#0b1120] border-slate-800 text-white focus:border-blue-500' 
-                    : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
-                  }`} 
-                  value={passwordData.newPassword} 
-                  onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} 
+                  name="full_name"
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  className={`w-full px-5 py-3 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0b1120] border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
                 />
               </div>
 
-              <div className="flex gap-4 mt-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className={`flex-1 py-3 rounded-lg font-bold text-xs uppercase ${
-                  isDark ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-700'
-                }`}>Cancel</button>
-                <button type="submit" className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold text-xs uppercase shadow-lg shadow-blue-600/20">Save Changes</button>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Email Address</label>
+                <input 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`w-full px-5 py-3 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0b1120] border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                />
               </div>
-            </form>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Department</label>
+                <input 
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  className={`w-full px-5 py-3 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0b1120] border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 py-4 font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSave}
+                className="flex-1 py-4 bg-[#4361ee] text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -276,31 +201,11 @@ export default function Profile() {
   );
 }
 
-// Reusable Components
-function DetailItem({ label, value, isDark }) {
+function DetailRow({ label, value, isDark }) {
   return (
-    <div className={`border-b pb-3 ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</p>
-      <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{value || 'N/A'}</p>
-    </div>
-  );
-}
-
-function EditInput({ label, value, onChange, disabled = false, isDark }) {
-  return (
-    <div>
-      <label className="block text-[10px] font-black text-slate-500 uppercase mb-1">{label}</label>
-      <input 
-        type="text" 
-        disabled={disabled}
-        className={`w-full border rounded-lg px-4 py-2 outline-none transition-all ${
-          disabled 
-            ? (isDark ? 'bg-[#1e293b] border-slate-800 text-slate-500 cursor-not-allowed' : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed')
-            : (isDark ? 'bg-[#0b1120] border-slate-800 text-white focus:border-blue-500' : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500 shadow-sm')
-        }`}
-        value={value} 
-        onChange={(e) => onChange && onChange(e.target.value)} 
-      />
+    <div className={`group border-b pb-4 last:border-0 ${isDark ? 'border-slate-800/50' : 'border-slate-100'}`}>
+      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-[#4361ee] transition-colors">{label}</p>
+      <p className={`text-sm font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{value}</p>
     </div>
   );
 }
