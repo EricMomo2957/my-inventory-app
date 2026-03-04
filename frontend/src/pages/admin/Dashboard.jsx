@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminSideNav from './admin_sidenav'; // Ensure the path is correct
 
 /** * UI COMPONENTS 
  */
@@ -106,10 +105,7 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b1120] transition-colors duration-500">
-      {/* Integrated Sidebar */}
-      <AdminSideNav />
-
+    <> 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex justify-between items-center p-8 border-b border-slate-200 dark:border-slate-800/50">
@@ -286,6 +282,6 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

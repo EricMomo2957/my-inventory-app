@@ -6,6 +6,7 @@ import CustomerOrder from './pages/CustomerOrder';
 import { useTheme } from './context/ThemeContext'; 
 
 // Layout and Security
+import AdminSideNav from './pages/admin/admin_sidenav'; // <--- ADDED THIS
 import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
 import UserSidenav from './pages/user/UserSidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
@@ -23,7 +24,7 @@ import UserOrders from './pages/user/Orders';
 import Profile from './pages/user/Profile';
 import Settings from './pages/user/Settings';
 import UserCalendar from './pages/user/user_calendar';
-import Favorite from './pages/user/Favorite'; // <--- ADDED THIS IMPORT
+import Favorite from './pages/user/Favorite';
 
 // Private Pages - Clerk Folder
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
@@ -94,13 +95,20 @@ export default function App() {
         isDark ? 'bg-[#0b1120] text-slate-200' : 'bg-slate-50 text-slate-900'
       }`}>
         
-        {/* GLOBAL SIDENAV LOGIC - This stays here! */}
+        {/* GLOBAL SIDENAV LOGIC */}
         {isLoggedIn && (
           <>
-            {(user.role === 'admin' || user.role === 'clerk' || user.role === 'Administrator') && (
+            {/* ADMIN SIDENAV */}
+            {(user.role === 'admin' || user.role === 'Administrator') && (
+              <AdminSideNav user={user} onLogout={handleLogout} />
+            )}
+
+            {/* CLERK SIDENAV */}
+            {user.role === 'clerk' && (
               <ClerkSidenav user={user} onLogout={handleLogout} />
             )}
             
+            {/* USER SIDENAV */}
             {(user.role === 'User' || user.role === 'user' || user.role === 'Member') && (
               <UserSidenav user={user} onLogout={handleLogout} />
             )}
@@ -142,7 +150,7 @@ export default function App() {
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
-              <Route path="/Favorite" element={<Favorite />} /> {/* <--- ADDED THIS ROUTE */}
+              <Route path="/Favorite" element={<Favorite />} />
               <Route path="/Orders" element={<UserOrders />} />
               <Route path="/Profile" element={<Profile user={user} />} />
               <Route path="/Settings" element={<Settings />} />
@@ -163,7 +171,8 @@ export default function App() {
             <Route path="*" element={
               <Navigate to={
                 isLoggedIn 
-                  ? (user.role === 'user' || user.role === 'User' ? "/user_dashboard" : "/clerk/ClerkDashboard") 
+                  ? (user.role === 'user' || user.role === 'User' ? "/user_dashboard" : 
+                     (user.role === 'admin' || user.role === 'Administrator' ? "/dashboard" : "/clerk/ClerkDashboard")) 
                   : "/"
               } replace />
             } />
