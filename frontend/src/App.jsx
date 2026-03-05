@@ -6,7 +6,7 @@ import CustomerOrder from './pages/CustomerOrder';
 import { useTheme } from './context/ThemeContext'; 
 
 // Layout and Security
-import AdminSideNav from './pages/admin/admin_sidenav'; // <--- ADDED THIS
+import AdminSideNav from './pages/admin/admin_sidenav';
 import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
 import UserSidenav from './pages/user/UserSidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
@@ -37,6 +37,7 @@ import ClerkProfile from './pages/clerk/clerkProfile';
 import Dashboard from './pages/admin/Dashboard'; 
 import AdminManagement from './pages/admin/AdminManagement';
 import Calendar from './pages/admin/Calendar';
+import AdminSetting from './pages/admin/adminSetting'; // <--- ADDED THIS
 
 export default function App() {
   const { isDark } = useTheme(); 
@@ -140,6 +141,7 @@ export default function App() {
           )}
 
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
@@ -147,7 +149,10 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />  
             <Route path="/shop" element={<CustomerOrder />} />
 
+            {/* Protected Routes */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
+              
+              {/* User Routes */}
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
               <Route path="/Favorite" element={<Favorite />} />
@@ -155,19 +160,23 @@ export default function App() {
               <Route path="/Profile" element={<Profile user={user} />} />
               <Route path="/Settings" element={<Settings />} />
 
+              {/* Clerk Routes */}
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
               <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
               <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
               
+              {/* Admin Routes */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
+              <Route path="/admin/profile" element={<AdminSetting />} /> {/* <--- ADDED THIS */}
               <Route path="/admin" element={
                 (user.role === "Administrator" || user.role === "admin") ? <AdminManagement /> : <Navigate to="/dashboard" replace />
               } />
             </Route>
 
+            {/* Redirects */}
             <Route path="*" element={
               <Navigate to={
                 isLoggedIn 
