@@ -38,6 +38,7 @@ import Dashboard from './pages/admin/Dashboard';
 import AdminManagement from './pages/admin/AdminManagement';
 import Calendar from './pages/admin/Calendar';
 import AdminSetting from './pages/admin/adminSetting'; // <--- ADDED THIS
+import AdminProfile from './pages/admin/AdminProfile';
 
 export default function App() {
   const { isDark } = useTheme(); 
@@ -171,6 +172,7 @@ export default function App() {
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/admin/profile" element={<AdminSetting />} /> {/* <--- ADDED THIS */}
+              <Route path="/admin/view-profile" element={<AdminProfile />} />
               <Route path="/admin" element={
                 (user.role === "Administrator" || user.role === "admin") ? <AdminManagement /> : <Navigate to="/dashboard" replace />
               } />
