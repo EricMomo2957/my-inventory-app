@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext'; // Ensure this path is correct
 
 /**
  * UI COMPONENTS: Profile Stats Card
@@ -20,8 +21,8 @@ function ProfileStat({ label, value, icon, color }) {
 
 export default function AdminProfile() {
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme(); // Integrated Theme Hook
 
-  // Local data (This would typically come from your Auth Context)
   const adminData = {
     name: localStorage.getItem('userName') || "Administrator",
     role: "System Superuser",
@@ -61,13 +62,18 @@ export default function AdminProfile() {
             
             <div className="flex flex-wrap justify-center md:justify-start gap-3">
               <button 
-                onClick={() => navigate('/admin/profile')} // Redirects to settings
+                onClick={() => navigate('/admin/profile')} 
                 className="px-6 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl font-bold text-sm hover:scale-105 transition-transform"
               >
                 Edit Profile
               </button>
-              <button className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">
-                View Logs
+              
+              {/* Theme Toggle Button */}
+              <button 
+                onClick={toggleTheme}
+                className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
               </button>
             </div>
           </div>
@@ -75,8 +81,6 @@ export default function AdminProfile() {
 
         {/* Stats and Activity Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Quick Stats */}
           <div className="lg:col-span-1 space-y-6">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest ml-2">Quick Stats</h3>
             <div className="grid grid-cols-1 gap-4">
@@ -86,7 +90,6 @@ export default function AdminProfile() {
             </div>
           </div>
 
-          {/* About / Bio Section */}
           <div className="lg:col-span-2 space-y-6">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest ml-2">Administrative Bio</h3>
             <div className="bg-white dark:bg-[#111827] rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
@@ -94,24 +97,8 @@ export default function AdminProfile() {
                 Senior Administrator responsible for system-wide inventory management, user auditing, and operational oversight. 
                 Currently overseeing the Q1 Harvest inventory cycle and managing cross-departmental permissions for clerks and users.
               </p>
-              
-              <div className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-8 border-t border-slate-100 dark:border-slate-800 pt-8">
-                <div>
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase mb-1">Last Login</h4>
-                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">2 mins ago</p>
-                </div>
-                <div>
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase mb-1">IP Address</h4>
-                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">192.168.1.1</p>
-                </div>
-                <div>
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase mb-1">Location</h4>
-                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Cebu, PH</p>
-                </div>
-              </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
