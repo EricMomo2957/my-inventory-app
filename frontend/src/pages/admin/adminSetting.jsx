@@ -18,7 +18,6 @@ export default function AdminSetting() {
 
   const handleProfileUpdate = (e) => {
     e.preventDefault();
-    // Logic to save to DB would go here
     localStorage.setItem('fullName', profile.fullName);
     localStorage.setItem('department', profile.department);
     alert('Profile updated successfully!');
@@ -32,6 +31,13 @@ export default function AdminSetting() {
     }
     alert('Password updated successfully!');
     setPasswords({ current: '', new: '', confirm: '' });
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      localStorage.clear();
+      window.location.href = '/login';
+    }
   };
 
   return (
@@ -96,22 +102,13 @@ export default function AdminSetting() {
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 ml-2">Department</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white focus:border-[#4361ee] outline-none"
-                    value={profile.department}
-                    onChange={(e) => setProfile({...profile, department: e.target.value})}
-                  />
-                </div>
                 <button type="submit" className="px-8 py-4 bg-[#4361ee] text-white rounded-2xl font-bold shadow-lg hover:bg-blue-500 transition-colors active:scale-95">
                   Save Changes
                 </button>
               </form>
             </section>
 
-            {/* Security */}
+            {/* Security Section */}
             <section className="bg-white dark:bg-[#111827] rounded-[2.5rem] p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
               <h3 className="text-lg font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <span>🔒</span> Security & Password
@@ -119,40 +116,36 @@ export default function AdminSetting() {
               <form onSubmit={handlePasswordUpdate} className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-500 ml-2">Current Password</label>
-                  <input 
-                    type="password" 
-                    placeholder="••••••••"
-                    className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white focus:border-[#4361ee] outline-none"
-                    value={passwords.current}
-                    onChange={(e) => setPasswords({...passwords, current: e.target.value})}
-                  />
+                  <input type="password" placeholder="••••••••" className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white outline-none" value={passwords.current} onChange={(e) => setPasswords({...passwords, current: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-500 ml-2">New Password</label>
-                    <input 
-                      type="password" 
-                      placeholder="Enter new password"
-                      className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white focus:border-[#4361ee] outline-none"
-                      value={passwords.new}
-                      onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                    />
+                    <input type="password" placeholder="Enter new password" className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white outline-none" value={passwords.new} onChange={(e) => setPasswords({...passwords, new: e.target.value})} />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-500 ml-2">Confirm New Password</label>
-                    <input 
-                      type="password" 
-                      placeholder="Repeat new password"
-                      className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white focus:border-[#4361ee] outline-none"
-                      value={passwords.confirm}
-                      onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                    />
+                    <input type="password" placeholder="Repeat new password" className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-900 dark:text-white outline-none" value={passwords.confirm} onChange={(e) => setPasswords({...passwords, confirm: e.target.value})} />
                   </div>
                 </div>
-                <button type="submit" className="px-8 py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors active:scale-95">
+                <button type="submit" className="px-8 py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors">
                   Update Password
                 </button>
               </form>
+            </section>
+
+            {/* Danger Zone: Delete Account */}
+            <section className="bg-red-500/5 rounded-[2.5rem] p-8 border border-red-500/20">
+              <h3 className="text-lg font-black text-red-600 mb-2 flex items-center gap-2">
+                <span>⚠️</span> Danger Zone
+              </h3>
+              <p className="text-sm text-slate-500 mb-6">Deleting your account will permanently remove all your administrative access and data.</p>
+              <button 
+                onClick={handleDeleteAccount}
+                className="px-8 py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-colors"
+              >
+                Delete Account
+              </button>
             </section>
 
           </div>

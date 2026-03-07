@@ -22,6 +22,7 @@ export default function AdminSideNav() {
     { name: 'User Management', path: '/admin', icon: '👥' },
     { name: 'Calendar', path: '/calendar', icon: '📅' },
     { name: 'Profile', path: '/Profile', icon: '👤' },
+    { name: 'Settings', path: '/admin/profile', icon: '⚙️' }, // Added Settings
   ];
 
   return (
@@ -51,6 +52,8 @@ export default function AdminSideNav() {
           <NavLink
             key={item.name}
             to={item.path}
+            // 'end' prevents 'User Management' from staying active on sub-routes
+            end={item.path === '/admin'} 
             className={({ isActive }) => `
               flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all
               ${isActive 
@@ -65,7 +68,7 @@ export default function AdminSideNav() {
         ))}
       </nav>
 
-      {/* Bottom Profile Section - Connected to DB Fields */}
+      {/* Bottom Profile Section */}
       <div className="p-4 mt-auto">
         <div className={`p-4 rounded-3xl border ${
           isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'
@@ -89,7 +92,6 @@ export default function AdminSideNav() {
               </div>
             </div>
             
-            {/* Department Info from DB */}
             <div className={`px-3 py-1.5 rounded-xl text-[9px] font-bold text-center uppercase border ${
               isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-600'
             }`}>
