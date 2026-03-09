@@ -19,10 +19,12 @@ export default function AdminSideNav() {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { name: 'User Management', path: '/admin', icon: '👥' },
+    { name: 'User Management', path: '/admin/users', icon: '👥' },
+    { name: 'Stock History', path: '/admin/history', icon: '📜' }, // New: Link to AdminStockHistory.jsx
+    { name: 'Analytics', path: '/admin/reports', icon: '📈' },     // New: Link to AdminReports.jsx
     { name: 'Calendar', path: '/calendar', icon: '📅' },
     { name: 'Profile', path: '/Profile', icon: '👤' },
-    { name: 'Settings', path: '/admin/profile', icon: '⚙️' }, // Added Settings
+    { name: 'Settings', path: '/admin/settings', icon: '⚙️' }, 
   ];
 
   return (
@@ -43,7 +45,7 @@ export default function AdminSideNav() {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-4 space-y-2">
+      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
         <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">
           Admin Menu
         </p>
@@ -52,7 +54,7 @@ export default function AdminSideNav() {
           <NavLink
             key={item.name}
             to={item.path}
-            // 'end' prevents 'User Management' from staying active on sub-routes
+            // Prevents parent routes from staying active incorrectly
             end={item.path === '/admin'} 
             className={({ isActive }) => `
               flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all
