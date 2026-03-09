@@ -6,11 +6,10 @@ export default function AdminSideNav() {
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
-  // Retrieving data matching the database structure fields
   const adminName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Administrator';
-  const adminId = localStorage.getItem('adminId'); // Matches admin_id in DB
-  const department = localStorage.getItem('department'); // Matches department in DB
-  const profileImage = localStorage.getItem('profileImage'); // Matches profile_image in DB
+  const adminId = localStorage.getItem('adminId');
+  const department = localStorage.getItem('department');
+  const profileImage = localStorage.getItem('profileImage');
 
   const handleLogout = () => {
     localStorage.clear();
@@ -20,8 +19,9 @@ export default function AdminSideNav() {
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: '📊' },
     { name: 'User Management', path: '/admin/users', icon: '👥' },
-    { name: 'Stock History', path: '/admin/history', icon: '📜' }, // New: Link to AdminStockHistory.jsx
-    { name: 'Analytics', path: '/admin/reports', icon: '📈' },     // New: Link to AdminReports.jsx
+    { name: 'Stock History', path: '/admin/history', icon: '📜' },
+    { name: 'Analytics', path: '/admin/reports', icon: '📈' },
+    { name: 'Inquiries', path: '/admin/inquiries', icon: '📩' }, // <--- NEW: Contact Request Link
     { name: 'Calendar', path: '/calendar', icon: '📅' },
     { name: 'Profile', path: '/Profile', icon: '👤' },
     { name: 'Settings', path: '/admin/settings', icon: '⚙️' }, 
@@ -54,8 +54,6 @@ export default function AdminSideNav() {
           <NavLink
             key={item.name}
             to={item.path}
-            // Prevents parent routes from staying active incorrectly
-            end={item.path === '/admin'} 
             className={({ isActive }) => `
               flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all
               ${isActive 

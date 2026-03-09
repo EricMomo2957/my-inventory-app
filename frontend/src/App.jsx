@@ -39,8 +39,9 @@ import AdminManagement from './pages/admin/AdminManagement';
 import Calendar from './pages/admin/Calendar';
 import AdminSetting from './pages/admin/adminSetting';
 import AdminProfile from './pages/admin/AdminProfile';
-import AdminStockHistory from './pages/admin/AdminStockHistory'; // <--- NEW
-import AdminReports from './pages/admin/AdminReports';           // <--- NEW
+import AdminStockHistory from './pages/admin/AdminStockHistory';
+import AdminReports from './pages/admin/AdminReports';
+import AdminContactRequest from './pages/admin/AdminContactRequest'; // <--- NEW IMPORT
 
 export default function App() {
   const { isDark } = useTheme(); 
@@ -121,7 +122,7 @@ export default function App() {
             <div className="fixed top-6 right-6 z-100 flex flex-col gap-3 pointer-events-none">
               {activeAlerts.map(item => (
                 <div key={item.id} className={`pointer-events-auto p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-right-full w-80 border border-l-4 border-l-red-500 ${
-                  isDark ? 'bg-[#1e293b] border-slate-800' : 'bg-white border-slate-200'
+                  isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
                 }`}>
                   <div className="text-xl">⚠️</div>
                   <div className="flex-1">
@@ -138,7 +139,6 @@ export default function App() {
           )}
 
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register />} />
@@ -146,10 +146,7 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />  
             <Route path="/shop" element={<CustomerOrder />} />
 
-            {/* Protected Routes */}
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              
-              {/* User Routes */}
               <Route path="/user_dashboard" element={<UserDashboard />} />
               <Route path="/user_calendar" element={<UserCalendar />} />
               <Route path="/Favorite" element={<Favorite />} />
@@ -157,29 +154,25 @@ export default function App() {
               <Route path="/Profile" element={<Profile user={user} />} />
               <Route path="/Settings" element={<Settings />} />
 
-              {/* Clerk Routes */}
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
               <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
               <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
               
-              {/* Admin Routes */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/admin/settings" element={<AdminSetting />} /> 
               <Route path="/admin/view-profile" element={<AdminProfile />} />
               
-              {/* New Admin Sub-Routes */}
               <Route path="/admin/users" element={<AdminManagement />} />
               <Route path="/admin/history" element={<AdminStockHistory />} />
               <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/inquiries" element={<AdminContactRequest />} /> {/* <--- NEW ROUTE */}
               
-              {/* Fallback for the old /admin path */}
               <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
             </Route>
 
-            {/* Redirects */}
             <Route path="*" element={
               <Navigate to={
                 isLoggedIn 
