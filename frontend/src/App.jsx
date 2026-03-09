@@ -37,8 +37,10 @@ import ClerkProfile from './pages/clerk/clerkProfile';
 import Dashboard from './pages/admin/Dashboard'; 
 import AdminManagement from './pages/admin/AdminManagement';
 import Calendar from './pages/admin/Calendar';
-import AdminSetting from './pages/admin/adminSetting'; // <--- ADDED THIS
+import AdminSetting from './pages/admin/adminSetting';
 import AdminProfile from './pages/admin/AdminProfile';
+import AdminStockHistory from './pages/admin/AdminStockHistory'; // <--- NEW
+import AdminReports from './pages/admin/AdminReports';           // <--- NEW
 
 export default function App() {
   const { isDark } = useTheme(); 
@@ -97,30 +99,24 @@ export default function App() {
         isDark ? 'bg-[#0b1120] text-slate-200' : 'bg-slate-50 text-slate-900'
       }`}>
         
-        {/* GLOBAL SIDENAV LOGIC */}
         {isLoggedIn && (
           <>
-            {/* ADMIN SIDENAV */}
             {(user.role === 'admin' || user.role === 'Administrator') && (
               <AdminSideNav user={user} onLogout={handleLogout} />
             )}
 
-            {/* CLERK SIDENAV */}
             {user.role === 'clerk' && (
               <ClerkSidenav user={user} onLogout={handleLogout} />
             )}
             
-            {/* USER SIDENAV */}
             {(user.role === 'User' || user.role === 'user' || user.role === 'Member') && (
               <UserSidenav user={user} onLogout={handleLogout} />
             )}
           </>
         )}
 
-        {/* MAIN CONTENT AREA */}
         <main className="flex-1 flex flex-col h-full overflow-y-auto relative scrollbar-hide">
           
-          {/* Global Low Stock Notifications */}
           {isLoggedIn && activeAlerts.length > 0 && (
             <div className="fixed top-6 right-6 z-100 flex flex-col gap-3 pointer-events-none">
               {activeAlerts.map(item => (
@@ -171,11 +167,16 @@ export default function App() {
               {/* Admin Routes */}
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/calendar" element={<Calendar />} />
-              <Route path="/admin/profile" element={<AdminSetting />} /> {/* <--- ADDED THIS */}
+              <Route path="/admin/settings" element={<AdminSetting />} /> 
               <Route path="/admin/view-profile" element={<AdminProfile />} />
-              <Route path="/admin" element={
-                (user.role === "Administrator" || user.role === "admin") ? <AdminManagement /> : <Navigate to="/dashboard" replace />
-              } />
+              
+              {/* New Admin Sub-Routes */}
+              <Route path="/admin/users" element={<AdminManagement />} />
+              <Route path="/admin/history" element={<AdminStockHistory />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
+              
+              {/* Fallback for the old /admin path */}
+              <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
             </Route>
 
             {/* Redirects */}
