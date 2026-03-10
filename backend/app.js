@@ -21,6 +21,23 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+
+
+// Add Product Route
+app.post('/api/products', upload.single('image'), (req, res) => {
+    const { name, category, quantity, price } = req.body;
+    
+    // If a file was uploaded, construct the URL (Assuming you serve 'uploads' as static)
+    const imageUrl = req.file ? `http://localhost:3000/uploads/${req.file.filename}` : null;
+
+    const sql = "INSERT INTO products (name, category, quantity, price, image_url) VALUES (?, ?, ?, ?, ?)";
+    db.query(sql, [name, category, quantity, price, imageUrl], (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Product added successfully", id: result.insertId });
+    });
+});
+
+
 // --- MIDDLEWARE ---
 app.use(cors()); 
 app.use(express.json({ limit: '10mb' }));
