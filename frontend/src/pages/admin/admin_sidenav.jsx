@@ -1,19 +1,24 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function AdminSideNav() {
   const { isDark } = useTheme();
-  const navigate = useNavigate();
 
+  // 1. Robust Auth Check: Look for any available ID key
+  const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || localStorage.getItem('id');
   const adminName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Administrator';
-  const adminId = localStorage.getItem('adminId');
   const department = localStorage.getItem('department');
   const profileImage = localStorage.getItem('profileImage');
 
+  // 2. Modified Auth Guard: 
+  // If no ID is found, we can still render the nav but show "Guest" 
+  // to prevent the "vanishing" effect if a key name changes.
+  const isAuthenticated = !!adminId;
+
   const handleLogout = () => {
     localStorage.clear();
-    navigate('/login');
+    window.location.href = '/login'; 
   };
 
   const menuItems = [
@@ -21,7 +26,7 @@ export default function AdminSideNav() {
     { name: 'User Management', path: '/admin/users', icon: '👥' },
     { name: 'Stock History', path: '/admin/history', icon: '📜' },
     { name: 'Analytics', path: '/admin/reports', icon: '📈' },
-    { name: 'Inquiries', path: '/admin/inquiries', icon: '📩' }, // <--- NEW: Contact Request Link
+    { name: 'Inquiries', path: '/admin/inquiries', icon: '📩' },
     { name: 'Calendar', path: '/calendar', icon: '📅' },
     { name: 'Profile', path: '/Profile', icon: '👤' },
     { name: 'Settings', path: '/admin/settings', icon: '⚙️' }, 
@@ -84,7 +89,7 @@ export default function AdminSideNav() {
               </div>
               <div className="overflow-hidden">
                 <p className={`text-xs font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {adminName}
+                  {isAuthenticated ? adminName : "Guest Admin"}
                 </p>
                 <p className="text-[10px] text-blue-500 font-bold uppercase tracking-tighter">
                   ID: {adminId || 'N/A'}
@@ -101,7 +106,7 @@ export default function AdminSideNav() {
           
           <button 
             onClick={handleLogout}
-            className="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 flex items-center justify-center gap-2"
           >
             <span>🚪</span> Logout
           </button>
