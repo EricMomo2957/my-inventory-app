@@ -103,8 +103,8 @@ export default function Register() {
             >
               <option value="" disabled>Select Role</option>
               <option value="admin">Administrator</option>
-              <option value="manager">Manager</option>
-              <option value="staff">Staff</option>
+              <option value="manager">Clerk</option>
+              <option value="staff">User</option>
             </select>
           </div>
 
