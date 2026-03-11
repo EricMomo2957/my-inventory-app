@@ -78,15 +78,24 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
     const formData = new FormData();
     formData.append("name", selectedProduct.name);
     formData.append("category", selectedProduct.category);
-    formData.append("quantity", selectedProduct.quantity);
-    formData.append("price", selectedProduct.price);
+    formData.append("quantity", Number(selectedProduct.quantity));
+    formData.append("price", Number(selectedProduct.price));
+    
     if (selectedProduct.imageFile) formData.append("image", selectedProduct.imageFile);
 
     try {
-      await fetch(`http://localhost:3000/api/products/${selectedProduct.id}`, { method: 'POST', body: formData });
-      setIsEditModalOpen(false);
-      fetchProducts();
-    } catch (error) { console.error("Update failed:", error); }
+      const response = await fetch(`http://localhost:3000/api/products/${selectedProduct.id}`, { 
+        method: 'PUT', 
+        body: formData 
+      });
+      
+      if (response.ok) {
+        setIsEditModalOpen(false);
+        fetchProducts();
+      }
+    } catch (error) { 
+      console.error("Update failed:", error); 
+    }
   };
 
   const handleDeleteProduct = async () => {
@@ -237,12 +246,34 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
           }`}>
             <h2 className={`text-xl font-black mb-6 text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>Edit Product</h2>
             <div className="space-y-4">
-              <input type="text" value={selectedProduct.name} className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} onChange={(e) => setSelectedProduct({...selectedProduct, name: e.target.value})} />
+              <input 
+                type="text" 
+                value={selectedProduct.name || ''} 
+                className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} 
+                onChange={(e) => setSelectedProduct({...selectedProduct, name: e.target.value})} 
+              />
               <div className="grid grid-cols-2 gap-4">
-                <input type="number" value={selectedProduct.price} className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} onChange={(e) => setSelectedProduct({...selectedProduct, price: e.target.value})} />
-                <input type="number" value={selectedProduct.quantity} className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} onChange={(e) => setSelectedProduct({...selectedProduct, quantity: e.target.value})} />
+                <input 
+                  type="number" 
+                  placeholder="Price"
+                  value={selectedProduct.price ?? ''} 
+                  className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} 
+                  onChange={(e) => setSelectedProduct({...selectedProduct, price: e.target.value})} 
+                />
+                <input 
+                  type="number" 
+                  placeholder="Qty"
+                  value={selectedProduct.quantity ?? ''} 
+                  className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} 
+                  onChange={(e) => setSelectedProduct({...selectedProduct, quantity: e.target.value})} 
+                />
               </div>
-              <button onClick={handleUpdateProduct} className="w-full py-4 bg-emerald-500 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all">Save Changes</button>
+              <button 
+                onClick={handleUpdateProduct} 
+                className="w-full py-4 bg-emerald-500 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all"
+              >
+                Save Changes
+              </button>
               <button onClick={() => setIsEditModalOpen(false)} className="w-full py-2 font-bold text-sm text-slate-500">Cancel</button>
             </div>
           </div>
