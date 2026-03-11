@@ -9,6 +9,13 @@ const LandingPage = () => {
   const [faqs, setFaqs] = useState([]);
   const canvasRef = useRef(null);
 
+  // 1. New Form State for Contact Request
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+
   // --- 1. THEME LOGIC ---
   useEffect(() => {
     const root = document.documentElement;
@@ -21,7 +28,7 @@ const LandingPage = () => {
     }
   }, [isDarkMode]);
 
-  // --- 2. WAVE ENGINE (Optimized for Scroll) ---
+  // --- 2. WAVE ENGINE ---
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -96,6 +103,21 @@ const LandingPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // 2. Submit handler to talk to your API
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // POST request to your backend contact endpoint
+      await axios.post('http://localhost:3000/api/contact', formData);
+      setFormSubmitted(true);
+      // Clear form after success
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("Failed to send message. Please try again later.");
+    }
+  };
+
   const handleMagnetic = (e) => {
     const btn = e.currentTarget;
     const bounding = btn.getBoundingClientRect();
@@ -105,10 +127,8 @@ const LandingPage = () => {
   };
 
   return (
-    // FIX 1: Explicitly set overflow-y: auto and ensure no height restriction
     <div className={`transition-colors duration-500 min-h-screen relative w-full overflow-y-auto ${isDarkMode ? 'bg-[#0f172a] text-slate-200' : 'bg-white text-slate-800'}`}>
       
-      {/* Global CSS Inject to override any problematic body styles */}
       <style>{`
         html, body {
           margin: 0;
@@ -119,14 +139,12 @@ const LandingPage = () => {
         }
       `}</style>
 
-      {/* FIX 2: Canvas Background - pointer-events-none is vital */}
       <canvas 
         ref={canvasRef} 
         className="fixed inset-0 z-0 pointer-events-none" 
         style={{ height: '100vh', width: '100vw' }}
       />
 
-      {/* Main Content Wrapper */}
       <div className="relative z-10 w-full flex flex-col">
         
         {/* Navigation */}
@@ -162,7 +180,6 @@ const LandingPage = () => {
             <div className={`p-12 rounded-[40px] border backdrop-blur-md ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white/80 border-black/5'}`}>
               <h2 className="text-4xl font-bold mb-6">Our Mission</h2>
               <p className="text-xl text-slate-500 leading-relaxed">We empower businesses with enterprise-grade tools to eliminate manual stock counting and maximize operational efficiency.</p>
-      
             </div>
           </div>
         </section>
@@ -193,7 +210,7 @@ const LandingPage = () => {
           </div>
         </section>
 
-        {/* Contact Section */}
+        {/* 3. Updated Contact Section with Full Logic */}
         <section id="contact" className="px-[8%] py-32">
           <div className={`p-12 md:p-20 rounded-[50px] border shadow-2xl ${isDarkMode ? 'bg-slate-900 border-white/5' : 'bg-white border-black/5'}`}>
             <div className="grid md:grid-cols-2 gap-12">
@@ -202,16 +219,44 @@ const LandingPage = () => {
                 <p className="text-xl text-slate-500 mb-4">📍 T.Padilla, Cebu City, PH</p>
                 <p className="text-xl text-slate-500">📧 support@inventorypro.com</p>
               </div>
+              
               {!formSubmitted ? (
-                <form onSubmit={(e) => { e.preventDefault(); setFormSubmitted(true); }} className="space-y-4">
-                  <input placeholder="Name" required className="w-full p-4 rounded-xl border bg-transparent" />
-                  <input type="email" placeholder="Email" required className="w-full p-4 rounded-xl border bg-transparent" />
-                  <textarea placeholder="Message" rows="4" className="w-full p-4 rounded-xl border bg-transparent" />
-                  <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-bold text-lg">Send Message</button>
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <input 
+                    placeholder="Name" 
+                    required 
+                    className="w-full p-4 rounded-xl border bg-transparent" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    required 
+                    className="w-full p-4 rounded-xl border bg-transparent" 
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
+                  <textarea 
+                    placeholder="Message" 
+                    rows="4" 
+                    className="w-full p-4 rounded-xl border bg-transparent" 
+                    value={formData.message}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
+                  />
+                  <button type="submit" className="w-full bg-[#4361ee] text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-colors">
+                    Send Message
+                  </button>
                 </form>
               ) : (
                 <div className="bg-green-500/10 p-8 rounded-2xl text-center border border-green-500/20">
                   <h3 className="text-2xl font-bold text-green-500">Message Sent Successfully!</h3>
+                  <button 
+                    onClick={() => setFormSubmitted(false)} 
+                    className="mt-4 text-sm text-[#4361ee] underline hover:text-blue-400"
+                  >
+                    Send another message
+                  </button>
                 </div>
               )}
             </div>
