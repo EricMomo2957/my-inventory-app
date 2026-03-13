@@ -175,7 +175,7 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
               isDark ? 'bg-slate-900/80 text-slate-500 border-slate-800' : 'bg-slate-50 text-slate-400 border-slate-100'
             }`}>
               <tr>
-                <th className="p-6">Name</th>
+                <th className="p-6">Product Information</th>
                 <th className="p-6">Category</th>
                 <th className="p-6 text-center">Qty</th>
                 <th className="p-6">Price</th>
@@ -185,26 +185,38 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
             <tbody className={`divide-y transition-colors ${isDark ? 'divide-slate-800' : 'divide-slate-50'}`}>
               {filteredProducts.map(item => (
                 <tr key={item.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/50'}`}>
-                  <td className="p-6 flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-lg border flex items-center justify-center overflow-hidden shrink-0 ${
-                      isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'
+                  <td className="p-4 flex items-center gap-4">
+                    {/* ENHANCED IMAGE BOX */}
+                    <div className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center overflow-hidden shrink-0 shadow-sm ${
+                      isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-white'
                     }`}>
-                      {item.image_url ? <img src={item.image_url} className="w-full h-full object-cover" alt="" /> : "📦"}
+                      {item.image_url ? (
+                        <img 
+                          src={`http://localhost:3000${item.image_url}`} 
+                          className="w-full h-full object-cover" 
+                          alt={item.name} 
+                        />
+                      ) : (
+                        <span className="text-2xl">📦</span>
+                      )}
                     </div>
-                    <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{item.name}</span>
+                    <div className="flex flex-col">
+                        <span className={`font-bold text-base ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</span>
+                        <span className="text-[10px] text-slate-500 font-mono uppercase">ID: {item.id}</span>
+                    </div>
                   </td>
                   <td className="p-6">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
                       isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'
                     }`}>
                       {item.category}
                     </span>
                   </td>
-                  <td className={`p-6 text-center font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{item.quantity}</td>
-                  <td className={`p-6 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>₱{Number(item.price).toFixed(2)}</td>
+                  <td className={`p-6 text-center font-black ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{item.quantity}</td>
+                  <td className={`p-6 font-bold ${isDark ? 'text-indigo-400' : 'text-[#4361ee]'}`}>₱{Number(item.price).toLocaleString()}</td>
                   <td className="p-6 text-right space-x-2">
-                    <button onClick={() => { setSelectedProduct(item); setIsEditModalOpen(true); }} className={`p-2 rounded-lg transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:bg-indigo-900/30 hover:text-indigo-400' : 'bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600'}`}>✏️</button>
-                    <button onClick={() => { setProductToDelete(item); setIsDeleteModalOpen(true); }} className={`p-2 rounded-lg transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:bg-red-900/30 hover:text-red-400' : 'bg-slate-50 hover:bg-red-50 hover:text-red-600'}`}>🗑️</button>
+                    <button onClick={() => { setSelectedProduct(item); setIsEditModalOpen(true); }} className={`p-2.5 rounded-xl transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:bg-indigo-900/30 hover:text-indigo-400' : 'bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600'}`}>✏️</button>
+                    <button onClick={() => { setProductToDelete(item); setIsDeleteModalOpen(true); }} className={`p-2.5 rounded-xl transition-all ${isDark ? 'bg-slate-800 text-slate-400 hover:bg-red-900/30 hover:text-red-400' : 'bg-slate-50 hover:bg-red-50 hover:text-red-600'}`}>🗑️</button>
                   </td>
                 </tr>
               ))}
@@ -213,16 +225,16 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
         </div>
       </div>
 
-      {/* --- MODALS --- */}
-
       {/* ADD MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-6 bg-slate-900/40 dark:bg-black/60">
-          <div className={`w-full max-w-md rounded-3xl p-8 shadow-2xl border transition-colors ${
-            isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
-          }`}>
-            <h2 className={`text-xl font-black mb-6 text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>New Product</h2>
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-6 bg-slate-900/40">
+          <div className={`w-full max-w-md rounded-3xl p-8 shadow-2xl border ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
+            <h2 className={`text-xl font-black mb-6 text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>Add New Product</h2>
             <div className="space-y-4">
+              <div className="space-y-1">
+                 <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Photo</label>
+                 <input type="file" className={`w-full text-xs rounded-xl p-3 border ${isDark ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200'}`} onChange={(e) => setNewProduct({...newProduct, imageFile: e.target.files[0]})} />
+              </div>
               <input type="text" placeholder="Product Name" className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} />
               <select className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newProduct.category} onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}>
                 {categoriesList.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -240,12 +252,19 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
 
       {/* EDIT MODAL */}
       {isEditModalOpen && selectedProduct && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-6 bg-slate-900/40 dark:bg-black/60">
-          <div className={`w-full max-w-md rounded-3xl p-8 shadow-2xl border transition-colors ${
-            isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
-          }`}>
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-6 bg-slate-900/40">
+          <div className={`w-full max-w-md rounded-3xl p-8 shadow-2xl border ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
             <h2 className={`text-xl font-black mb-6 text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>Edit Product</h2>
             <div className="space-y-4">
+              <div className="flex justify-center mb-4">
+                 <div className="w-24 h-24 rounded-2xl border-2 border-indigo-500 overflow-hidden bg-slate-100 shadow-inner">
+                    <img src={`http://localhost:3000${selectedProduct.image_url}`} className="w-full h-full object-cover" alt="" />
+                 </div>
+              </div>
+              <div className="space-y-1">
+                 <label className="text-[10px] font-bold text-slate-500 uppercase ml-1">Change Photo</label>
+                 <input type="file" className={`w-full text-xs rounded-xl p-3 border ${isDark ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-slate-50 border-slate-200'}`} onChange={(e) => setSelectedProduct({...selectedProduct, imageFile: e.target.files[0]})} />
+              </div>
               <input 
                 type="text" 
                 value={selectedProduct.name || ''} 
@@ -253,48 +272,27 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                 onChange={(e) => setSelectedProduct({...selectedProduct, name: e.target.value})} 
               />
               <div className="grid grid-cols-2 gap-4">
-                <input 
-                  type="number" 
-                  placeholder="Price"
-                  value={selectedProduct.price ?? ''} 
-                  className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} 
-                  onChange={(e) => setSelectedProduct({...selectedProduct, price: e.target.value})} 
-                />
-                <input 
-                  type="number" 
-                  placeholder="Qty"
-                  value={selectedProduct.quantity ?? ''} 
-                  className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} 
-                  onChange={(e) => setSelectedProduct({...selectedProduct, quantity: e.target.value})} 
-                />
+                <input type="number" value={selectedProduct.price ?? ''} className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} onChange={(e) => setSelectedProduct({...selectedProduct, price: e.target.value})} />
+                <input type="number" value={selectedProduct.quantity ?? ''} className={`w-full border rounded-xl p-4 outline-none ${isDark ? 'bg-[#0b1120] border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} onChange={(e) => setSelectedProduct({...selectedProduct, quantity: e.target.value})} />
               </div>
-              <button 
-                onClick={handleUpdateProduct} 
-                className="w-full py-4 bg-emerald-500 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all"
-              >
-                Save Changes
-              </button>
+              <button onClick={handleUpdateProduct} className="w-full py-4 bg-emerald-500 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all">Save Changes</button>
               <button onClick={() => setIsEditModalOpen(false)} className="w-full py-2 font-bold text-sm text-slate-500">Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* DELETE MODAL */}
+      {/* DELETE MODAL (Keep as is) */}
       {isDeleteModalOpen && productToDelete && (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-6 bg-slate-900/40 dark:bg-black/60">
-          <div className={`w-full max-sm rounded-3xl p-8 shadow-2xl border text-center transition-colors ${
-            isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'
-          }`}>
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-6 bg-slate-900/40">
+          <div className={`w-full max-w-sm rounded-3xl p-8 shadow-2xl border text-center ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
             <h2 className={`text-xl font-black mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Delete Product?</h2>
             <p className={`text-sm mb-6 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Are you sure you want to delete <span className="font-bold text-indigo-500">{productToDelete.name}</span>?
+              Delete <span className="font-bold text-indigo-500">{productToDelete.name}</span>?
             </p>
             <div className="flex gap-3">
               <button onClick={handleDeleteProduct} className="flex-1 py-3 bg-red-500 rounded-xl font-bold text-white hover:bg-red-600 transition-colors">Delete</button>
-              <button onClick={() => setIsDeleteModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold transition-colors ${
-                isDark ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-              }`}>Keep</button>
+              <button onClick={() => setIsDeleteModalOpen(false)} className={`flex-1 py-3 rounded-xl font-bold ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>Keep</button>
             </div>
           </div>
         </div>
