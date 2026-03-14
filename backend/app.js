@@ -434,6 +434,28 @@ app.get('/api/favorites/:userId', async (req, res) => {
     }
 });
 
+// 3. User Management (Integrated from your AdminManagement.jsx call)
+// Ensure this matches what your frontend is calling
+app.get('/api/users', async (req, res) => {
+    try {
+        const [rows] = await db.query("SELECT id, username, full_name, role, email, admin_id, department, profile_image FROM users");
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to fetch users" });
+    }
+});
+
+app.post('/api/users', async (req, res) => {
+    const { username, password, full_name, role, email, admin_id, department } = req.body;
+    try {
+        const sql = "INSERT INTO users (username, password, full_name, role, email, admin_id, department) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        const [result] = await db.query(sql, [username, password, full_name, role, email, admin_id, department]);
+        res.status(201).json({ success: true, id: result.insertId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Username or Email might already exist." });
+    }
+});
 
 // --- START SERVER ---
 const PORT = process.env.PORT || 3000;

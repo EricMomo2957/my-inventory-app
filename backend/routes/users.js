@@ -144,6 +144,26 @@ router.post('/update-profile', async (req, res) => {
     }
 });
 
+
+// Add this to routes/users.js
+router.put('/:id', async (req, res) => {
+    const { full_name, role, department } = req.body;
+    const userId = req.params.id;
+
+    try {
+        const sql = `UPDATE users SET full_name = ?, role = ?, department = ? WHERE id = ?`;
+        const [result] = await db.execute(sql, [full_name, role, department, userId]);
+        
+        if (result.affectedRows > 0) {
+            res.json({ success: true, message: "User updated successfully" });
+        } else {
+            res.status(404).json({ success: false, message: "User not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Update Password Route
 router.post('/update-password', async (req, res) => {
     const { userId, newPassword } = req.body;
