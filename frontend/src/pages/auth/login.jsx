@@ -49,11 +49,11 @@ export default function Login({ setIsLoggedIn }) {
 
         // --- Role-Based Redirection ---
         if (user.role === 'clerk' || user.role === 'manager') {
-          navigate('/clerk-dashboard');
-        } else if (user.role === 'user') {
-          navigate('/user-dashboard');
+          navigate('/clerk/ClerkDashboard');
+        } else if (user.role === 'user' || user.role === 'User' || user.role === 'staff' || user.role === 'Member') {
+          navigate('/user_dashboard');
         } else if (user.role === 'admin' || user.role === 'Administrator') {
-          navigate('/admin');
+          navigate('/dashboard');
         } else {
           navigate('/dashboard');
         }
@@ -157,7 +157,7 @@ export default function Login({ setIsLoggedIn }) {
         </div>
         <div className="space-y-4 text-center">
           <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-            Do you want to go to the Landing page? <Link to="/LandingPage" className="text-blue-500 font-bold hover:underline">Landing Page</Link>
+            Do you want to go to the Landing page? <Link to="/" className="text-blue-500 font-bold hover:underline">Landing Page</Link>
           </p>
         </div>
       </div>

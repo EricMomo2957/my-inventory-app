@@ -14,10 +14,37 @@ export default function AdminReports() {
   });
 
   useEffect(() => {
-    // In a real app, you would fetch this from your API
-    // This mockup matches your database structure
     const fetchData = async () => {
-      // Example data based on your "Dashboard" and "Users" images
+      try {
+        const res = await fetch('http://localhost:3000/api/reports/analytics');
+        if (res.ok) {
+          const apiData = await res.json();
+          setData({
+            categoryData: apiData.categoryData?.length ? apiData.categoryData : [
+              { name: 'Vegetables', value: 4 },
+              { name: 'Fruits', value: 4 },
+              { name: 'Supplies', value: 10 },
+              { name: 'Canned Goods', value: 15 },
+            ],
+            userRoleData: apiData.userRoleData?.length ? apiData.userRoleData : [
+              { name: 'Admins', value: 2 },
+              { name: 'Clerks', value: 5 },
+              { name: 'Managers', value: 1 },
+            ],
+            stockMovements: apiData.stockMovements?.length ? apiData.stockMovements : [
+              { day: 'Mon', restock: 20, sale: 15 },
+              { day: 'Tue', restock: 40, sale: 10 },
+              { day: 'Wed', restock: 10, sale: 25 },
+              { day: 'Thu', restock: 30, sale: 5 },
+            ]
+          });
+          return;
+        }
+      } catch (err) {
+        console.warn("Analytics fetch fallback:", err);
+      }
+
+      // Default fallback if server is unreachable
       setData({
         categoryData: [
           { name: 'Vegetables', value: 4 },

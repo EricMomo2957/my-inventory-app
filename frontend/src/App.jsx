@@ -171,7 +171,11 @@ export default function App() {
               <Route path="/admin/inquiries" element={<AdminContactRequest />} /> {/* <--- NEW ROUTE */}
               
               <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+              <Route path="/clerk-dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
+              <Route path="/user-dashboard" element={<Navigate to="/user_dashboard" replace />} />
             </Route>
+
+            <Route path="/LandingPage" element={<Navigate to="/" replace />} />
 
             <Route path="*" element={
               <Navigate to={
