@@ -8,7 +8,6 @@ import { useTheme } from './context/ThemeContext';
 // Layout and Security
 import AdminSideNav from './pages/admin/admin_sidenav';
 import ClerkSidenav from './pages/clerk/ClerkSidenav'; 
-import UserSidenav from './pages/user/UserSidenav'; 
 import ProtectedRoute from './context/ProtectedRoute';
 
 // Public & Auth Pages
@@ -17,14 +16,6 @@ import Login from './pages/auth/login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
-
-// Private Pages - User Folder
-import UserDashboard from './pages/user/user_dashboard';
-import UserOrders from './pages/user/Orders'; 
-import Profile from './pages/user/Profile';
-import Settings from './pages/user/Settings';
-import UserCalendar from './pages/user/user_calendar';
-import Favorite from './pages/user/Favorite';
 
 // Private Pages - Clerk Folder
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
@@ -41,7 +32,7 @@ import AdminSetting from './pages/admin/adminSetting';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminStockHistory from './pages/admin/AdminStockHistory';
 import AdminReports from './pages/admin/AdminReports';
-import AdminContactRequest from './pages/admin/AdminContactRequest'; // <--- NEW IMPORT
+import AdminContactRequest from './pages/admin/AdminContactRequest';
 
 export default function App() {
   const { isDark } = useTheme(); 
@@ -53,17 +44,17 @@ export default function App() {
   });
 
   const [user, setUser] = useState({ 
-    name: localStorage.getItem('userName') || "Guest", 
-    role: localStorage.getItem('userRole') || "User",
-    avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'User'}&background=4361ee&color=fff` 
+    name: localStorage.getItem('userName') || "Staff Member", 
+    role: localStorage.getItem('userRole') || "clerk",
+    avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'Staff'}&background=00684a&color=fff` 
   });
 
   useEffect(() => {
     if (isLoggedIn) {
       setUser({
-        name: localStorage.getItem('userName') || "User",
-        role: localStorage.getItem('userRole') || "User",
-        avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'User'}&background=4361ee&color=fff`
+        name: localStorage.getItem('userName') || "Staff Member",
+        role: localStorage.getItem('userRole') || "clerk",
+        avatar: `https://ui-avatars.com/api/?name=${localStorage.getItem('userName') || 'Staff'}&background=00684a&color=fff`
       });
     }
   }, [isLoggedIn]);
@@ -102,16 +93,10 @@ export default function App() {
         
         {isLoggedIn && (
           <>
-            {(user.role === 'admin' || user.role === 'Administrator') && (
+            {(user.role === 'admin' || user.role === 'Administrator') ? (
               <AdminSideNav user={user} onLogout={handleLogout} />
-            )}
-
-            {user.role === 'clerk' && (
+            ) : (
               <ClerkSidenav user={user} onLogout={handleLogout} />
-            )}
-            
-            {(user.role === 'User' || user.role === 'user' || user.role === 'Member') && (
-              <UserSidenav user={user} onLogout={handleLogout} />
             )}
           </>
         )}
@@ -144,16 +129,9 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />  
-            <Route path="/shop" element={<CustomerOrder />} />
+            <Route path="/shop" element={<Navigate to="/clerk/order" replace />} />
 
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              <Route path="/user_dashboard" element={<UserDashboard />} />
-              <Route path="/user_calendar" element={<UserCalendar />} />
-              <Route path="/Favorite" element={<Favorite />} />
-              <Route path="/Orders" element={<UserOrders />} />
-              <Route path="/Profile" element={<Profile user={user} />} />
-              <Route path="/Settings" element={<Settings />} />
-
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
@@ -168,11 +146,12 @@ export default function App() {
               <Route path="/admin/users" element={<AdminManagement />} />
               <Route path="/admin/history" element={<AdminStockHistory />} />
               <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/inquiries" element={<AdminContactRequest />} /> {/* <--- NEW ROUTE */}
+              <Route path="/admin/inquiries" element={<AdminContactRequest />} />
               
-              <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+              {/* Backward compatibility / Staff aliases */}
+              <Route path="/user_dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
+              <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
               <Route path="/clerk-dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
-              <Route path="/user-dashboard" element={<Navigate to="/user_dashboard" replace />} />
             </Route>
 
             <Route path="/LandingPage" element={<Navigate to="/" replace />} />
@@ -180,8 +159,7 @@ export default function App() {
             <Route path="*" element={
               <Navigate to={
                 isLoggedIn 
-                  ? (user.role === 'user' || user.role === 'User' ? "/user_dashboard" : 
-                     (user.role === 'admin' || user.role === 'Administrator' ? "/dashboard" : "/clerk/ClerkDashboard")) 
+                  ? (user.role === 'admin' || user.role === 'Administrator' ? "/dashboard" : "/clerk/ClerkDashboard") 
                   : "/"
               } replace />
             } />

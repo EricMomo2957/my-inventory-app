@@ -260,11 +260,8 @@ export default function AdminManagement() {
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Role</label>
                   <select className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})}>
-                    <option value="admin">Administrator</option>
-                    <option value="manager">Manager</option>
-                    <option value="clerk">Clerk</option>
-                    <option value="auditor">Auditor</option>
-                    <option value="user">User / Member</option>
+                    <option value="admin">👑 Administrator (Manager)</option>
+                    <option value="clerk">👷 Warehouse Clerk (Operations)</option>
                   </select>
                 </div>
               </div>
@@ -273,8 +270,8 @@ export default function AdminManagement() {
                 <input type="password" placeholder="••••••••" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} />
               </div>
               <div className="flex gap-2.5 pt-3">
-                <button onClick={handleCreateUser} className="flex-1 py-3 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all">Create Account</button>
-                <button onClick={() => setIsAddModalOpen(false)} className={`px-5 py-3 rounded-xl text-xs font-bold border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
+                <button onClick={handleCreateUser} className="flex-1 py-3 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all cursor-pointer">Create Staff Account</button>
+                <button onClick={() => setIsAddModalOpen(false)} className={`px-5 py-3 rounded-xl text-xs font-bold border cursor-pointer ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
               </div>
             </div>
           </div>
@@ -287,7 +284,7 @@ export default function AdminManagement() {
           <div className={`w-full max-w-md rounded-3xl p-7 border shadow-xl ${
             isDark ? 'bg-[#0f172a] border-slate-800 text-white' : 'bg-white border-slate-100 text-slate-900'
           }`}>
-            <h2 className="text-lg font-extrabold mb-5">Edit User Permissions</h2>
+            <h2 className="text-lg font-extrabold mb-5">Edit Staff Permissions</h2>
             <div className="space-y-3.5">
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Full Name</label>
@@ -296,11 +293,8 @@ export default function AdminManagement() {
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Role</label>
                 <select className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={selectedUser.role} onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value})}>
-                  <option value="admin">Administrator</option>
-                  <option value="manager">Manager</option>
-                  <option value="clerk">Clerk</option>
-                  <option value="auditor">Auditor</option>
-                  <option value="user">User / Member</option>
+                  <option value="admin">👑 Administrator (Manager)</option>
+                  <option value="clerk">👷 Warehouse Clerk (Operations)</option>
                 </select>
               </div>
               <div>
@@ -308,8 +302,8 @@ export default function AdminManagement() {
                 <input type="text" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={selectedUser.department || ''} onChange={(e) => setSelectedUser({...selectedUser, department: e.target.value})} />
               </div>
               <div className="flex gap-2.5 pt-3">
-                <button onClick={handleUpdateUser} className="flex-1 py-3 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all">Save Changes</button>
-                <button onClick={() => setIsEditModalOpen(false)} className={`px-5 py-3 rounded-xl text-xs font-bold border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
+                <button onClick={handleUpdateUser} className="flex-1 py-3 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all cursor-pointer">Save Changes</button>
+                <button onClick={() => setIsEditModalOpen(false)} className={`px-5 py-3 rounded-xl text-xs font-bold border cursor-pointer ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
               </div>
             </div>
           </div>
