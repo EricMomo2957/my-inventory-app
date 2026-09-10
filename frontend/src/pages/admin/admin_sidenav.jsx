@@ -1,20 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { 
+  LayoutDashboard, 
+  CalendarDays, 
+  Users, 
+  History, 
+  BarChart3, 
+  MessageSquare, 
+  Settings, 
+  LogOut, 
+  ChevronLeft, 
+  ChevronRight,
+  PackageCheck
+} from 'lucide-react';
 
 export default function AdminSideNav() {
   const { isDark } = useTheme();
+  const [collapsed, setCollapsed] = useState(false);
 
-  // 1. Robust Auth Check: Look for any available ID key
-  const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || localStorage.getItem('id');
-  const adminName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Administrator';
-  const department = localStorage.getItem('department');
-  const profileImage = localStorage.getItem('profileImage');
-
-  // 2. Modified Auth Guard: 
-  // If no ID is found, we can still render the nav but show "Guest" 
-  // to prevent the "vanishing" effect if a key name changes.
-  const isAuthenticated = !!adminId;
+  const adminName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Admin';
+  const role = localStorage.getItem('userRole') || 'ADMIN';
+  const profileImage = localStorage.getItem('userPhoto') || localStorage.getItem('profileImage');
 
   const handleLogout = () => {
     localStorage.clear();
@@ -22,95 +29,130 @@ export default function AdminSideNav() {
   };
 
   const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { name: 'User Management', path: '/admin/users', icon: '👥' },
-    { name: 'Stock History', path: '/admin/history', icon: '📜' },
-    { name: 'Analytics', path: '/admin/reports', icon: '📈' },
-    { name: 'Inquiries', path: '/admin/inquiries', icon: '📩' },
-    { name: 'Calendar', path: '/calendar', icon: '📅' },
-    { name: 'Profile', path: '/Profile', icon: '👤' },
-    { name: 'Settings', path: '/admin/settings', icon: '⚙️' }, 
+    { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Calendar', path: '/calendar', icon: CalendarDays },
+    { name: 'Staff & Users', path: '/admin/users', icon: Users },
+    { name: 'Stock Movement', path: '/admin/history', icon: History },
+    { name: 'Reports', path: '/admin/reports', icon: BarChart3 },
+    { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
+    { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
   return (
-    <aside className={`w-64 min-h-screen flex flex-col transition-colors duration-300 border-r ${
-      isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-white border-slate-200'
+    <aside className={`${collapsed ? 'w-20' : 'w-64'} min-h-screen flex flex-col transition-all duration-300 border-r shrink-0 select-none ${
+      isDark ? 'bg-[#0f172a] border-slate-800 text-slate-200' : 'bg-white border-slate-100 text-slate-700'
     }`}>
       
       {/* Brand Header */}
-      <div className="p-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20">
-            📦
+      <div className="p-5 flex items-center justify-between">
+        {!collapsed && (
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#00684a] text-white flex items-center justify-center shadow-md shadow-[#00684a]/20">
+              <PackageCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className={`text-base font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Inventory <span className="text-[#00684a]">Sync</span>
+              </h1>
+            </div>
           </div>
-          <h1 className={`text-xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Admin<span className="text-blue-600">Pro</span>
-          </h1>
-        </div>
+        )}
+        {collapsed && (
+          <div className="mx-auto w-9 h-9 rounded-xl bg-[#00684a] text-white flex items-center justify-center shadow-md shadow-[#00684a]/20">
+            <PackageCheck className="w-5 h-5" />
+          </div>
+        )}
+        <button 
+          onClick={() => setCollapsed(!collapsed)}
+          className={`p-1.5 rounded-lg border text-slate-400 hover:text-slate-600 transition-colors ${
+            isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-100 hover:bg-slate-50'
+          }`}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* User Card Chip */}
+      <div className="px-4 mb-4">
+        {!collapsed ? (
+          <div className={`p-3 rounded-2xl flex items-center gap-3 border transition-colors ${
+            isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-[#e6f4ea]/70 border-[#ccebd7]'
+          }`}>
+            <div className="w-10 h-10 rounded-full bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0 border border-[#00684a]/20">
+              {profileImage ? (
+                <img src={profileImage.startsWith('http') ? profileImage : `http://localhost:3000${profileImage}`} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                adminName.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs font-bold truncate leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                {adminName}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="text-[10px] font-bold text-[#00684a] dark:text-emerald-400 tracking-wider uppercase">
+                  {role}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="w-10 h-10 rounded-full bg-[#00684a]/10 text-[#00684a] flex items-center justify-center font-bold text-sm">
+              {adminName.charAt(0).toUpperCase()}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
-        <p className="px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4">
-          Admin Menu
-        </p>
-        
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            className={({ isActive }) => `
-              flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all
-              ${isActive 
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
-                : `${isDark ? 'text-slate-400 hover:bg-slate-800/50' : 'text-slate-600 hover:bg-slate-100'}`
-              }
-            `}
-          >
-            <span className="text-lg">{item.icon}</span>
-            {item.name}
-          </NavLink>
-        ))}
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              title={collapsed ? item.name : undefined}
+              className={({ isActive }) => `
+                flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200
+                ${isActive 
+                  ? 'bg-[#00684a] text-white shadow-sm shadow-[#00684a]/30' 
+                  : `${isDark ? 'text-slate-400 hover:bg-slate-800/70 hover:text-white' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'}`
+                }
+                ${collapsed ? 'justify-center px-0' : ''}
+              `}
+            >
+              <Icon className={`w-5 h-5 shrink-0 ${collapsed ? 'w-5 h-5' : ''}`} />
+              {!collapsed && <span>{item.name}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
-      {/* Bottom Profile Section */}
-      <div className="p-4 mt-auto">
-        <div className={`p-4 rounded-3xl border ${
-          isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'
-        }`}>
-          <div className="flex flex-col gap-3 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full border-2 border-blue-500/20 overflow-hidden flex items-center justify-center bg-blue-600 text-white font-black shrink-0">
-                {profileImage ? (
-                  <img src={profileImage} alt="Admin" className="w-full h-full object-cover" />
-                ) : (
-                  adminName.charAt(0).toUpperCase()
-                )}
-              </div>
-              <div className="overflow-hidden">
-                <p className={`text-xs font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {isAuthenticated ? adminName : "Guest Admin"}
-                </p>
-                <p className="text-[10px] text-blue-500 font-bold uppercase tracking-tighter">
-                  ID: {adminId || 'N/A'}
-                </p>
-              </div>
-            </div>
-            
-            <div className={`px-3 py-1.5 rounded-xl text-[9px] font-bold text-center uppercase border ${
-              isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-600'
-            }`}>
-              Dept: {department || 'Management'}
-            </div>
+      {/* Bottom Section: Log Out & Brand Tag */}
+      <div className="p-3 border-t mt-auto border-slate-100 dark:border-slate-800/80">
+        <button 
+          onClick={handleLogout}
+          title={collapsed ? "Log Out" : undefined}
+          className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all ${
+            collapsed ? 'justify-center px-0' : ''
+          }`}
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && <span>Log Out</span>}
+        </button>
+
+        {!collapsed && (
+          <div className="mt-3 pt-3 px-2 flex items-center justify-between text-[11px] text-slate-400">
+            <span className="flex items-center gap-1">
+              <span className="text-xs">📦</span> By Inventory Pro
+            </span>
+            <span className="text-[10px] font-mono">v1.2</span>
           </div>
-          
-          <button 
-            onClick={handleLogout}
-            className="w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20 flex items-center justify-center gap-2"
-          >
-            <span>🚪</span> Logout
-          </button>
-        </div>
+        )}
       </div>
     </aside>
   );

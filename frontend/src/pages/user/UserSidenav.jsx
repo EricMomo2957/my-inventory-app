@@ -1,141 +1,141 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { useTheme } from '../../context/ThemeContext'; // Path from your Profile.jsx
-
-function NavItem({ icon, label, to, isCollapsed, isDark, onClick }) {
-  return (
-    <NavLink 
-      to={to}
-      onClick={onClick}
-      className={({ isActive }) => `
-        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-black transition-all duration-200 
-        ${isActive 
-          ? 'bg-[#4361ee]/10 text-[#4361ee]' 
-          : isDark 
-            ? 'text-slate-400 hover:bg-slate-800/50 hover:text-white' 
-            : 'text-slate-500 hover:bg-slate-100 hover:text-[#4361ee]'
-        }
-        ${isCollapsed ? 'justify-center px-0' : ''}
-      `}
-    >
-      <span className={`text-lg transition-transform ${isCollapsed ? 'scale-110' : 'w-6 flex justify-center'}`}>
-        {icon}
-      </span>
-      {!isCollapsed && <span className="truncate">{label}</span>}
-    </NavLink>
-  );
-}
+import { useTheme } from '../../context/ThemeContext';
+import { 
+  LayoutDashboard, 
+  Heart, 
+  CalendarDays, 
+  Package, 
+  User, 
+  Settings, 
+  LogOut, 
+  ChevronLeft, 
+  ChevronRight,
+  PackageCheck
+} from 'lucide-react';
 
 export default function UserSidenav({ onLogout }) {
   const { isDark } = useTheme();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  // SYNC WITH LOCALSTORAGE (Matches Profile.jsx logic)
-  const [userData, setUserData] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : { full_name: 'User', role: 'Member', profile_image: '' };
-  });
+  const userName = localStorage.getItem('userName') || 'Member';
+  const role = localStorage.getItem('userRole') || 'MEMBER';
+  const profileImage = localStorage.getItem('userPhoto') || localStorage.getItem('profileImage');
 
-  // Listen for storage changes to update image/name instantly if changed in Profile
-  useEffect(() => {
-    const handleSync = () => {
-      const saved = localStorage.getItem('user');
-      if (saved) setUserData(JSON.parse(saved));
-    };
-    window.addEventListener('storage', handleSync);
-    return () => window.removeEventListener('storage', handleSync);
-  }, []);
-
-  const initials = userData.full_name 
-    ? userData.full_name.split(' ').map(n => n[0]).join('').toUpperCase() 
-    : "U";
+  const menuItems = [
+    { name: 'Dashboard', path: '/user_dashboard', icon: LayoutDashboard },
+    { name: 'Favorites', path: '/Favorite', icon: Heart },
+    { name: 'Calendar', path: '/user_calendar', icon: CalendarDays },
+    { name: 'My Orders', path: '/Orders', icon: Package },
+    { name: 'Profile', path: '/Profile', icon: User },
+    { name: 'Settings', path: '/Settings', icon: Settings },
+  ];
 
   return (
-    <aside className={`flex flex-col shrink-0 h-screen transition-all duration-300 ease-in-out sticky top-0 z-50 border-r ${
-      isCollapsed ? 'w-20' : 'w-64'
-    } ${
-      isDark ? 'bg-[#0b1120] border-slate-800/50' : 'bg-white border-slate-200'
+    <aside className={`${collapsed ? 'w-20' : 'w-64'} min-h-screen flex flex-col transition-all duration-300 border-r shrink-0 select-none ${
+      isDark ? 'bg-[#0f172a] border-slate-800 text-slate-200' : 'bg-white border-slate-100 text-slate-700'
     }`}>
       
       {/* Brand Header */}
-      <div className={`p-7 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-2`}>
-        {!isCollapsed && (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#4361ee] rounded-xl flex items-center justify-center shadow-lg text-xl shadow-blue-500/20">📦</div>
-            <h2 className={`text-lg font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Inventory</h2>
+      <div className="p-5 flex items-center justify-between">
+        {!collapsed && (
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#00684a] text-white flex items-center justify-center shadow-md shadow-[#00684a]/20">
+              <PackageCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className={`text-base font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Member <span className="text-[#00684a]">Portal</span>
+              </h1>
+            </div>
+          </div>
+        )}
+        {collapsed && (
+          <div className="mx-auto w-9 h-9 rounded-xl bg-[#00684a] text-white flex items-center justify-center shadow-md shadow-[#00684a]/20">
+            <PackageCheck className="w-5 h-5" />
           </div>
         )}
         <button 
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-slate-800 text-slate-500' : 'hover:bg-slate-100 text-slate-400'}`}
+          onClick={() => setCollapsed(!collapsed)}
+          className={`p-1.5 rounded-lg border text-slate-400 hover:text-slate-600 transition-colors ${
+            isDark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-100 hover:bg-slate-50'
+          }`}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? '➡️' : '⬅️'}
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>
-      
-      {/* User Info Card - Displays Real Profile Image */}
-      <div className={`${isCollapsed ? 'flex justify-center' : 'mx-4'} mb-6`}>
-        <div className={`p-3 border rounded-[1.25rem] flex items-center gap-3 overflow-hidden transition-all ${
-          isCollapsed ? 'w-12 h-12 p-0 justify-center' : ''
-        } ${
-          isDark ? 'bg-[#1e293b]/50 border-slate-800/50' : 'bg-slate-50 border-slate-200'
-        }`}>
-          <div className="w-10 h-10 bg-[#4361ee] shrink-0 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-inner overflow-hidden border-2 border-white/10">
-            {userData.profile_image ? (
-              <img 
-                src={`http://localhost:3000${userData.profile_image}`} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              initials
-            )}
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className={`text-sm font-black truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {userData.full_name}
-              </span>
-              <small className="text-[10px] text-slate-500 uppercase tracking-widest font-black truncate">
-                {userData.role}
-              </small>
+
+      {/* User Card Chip */}
+      <div className="px-4 mb-4">
+        {!collapsed ? (
+          <div className={`p-3 rounded-2xl flex items-center gap-3 border transition-colors ${
+            isDark ? 'bg-slate-800/60 border-slate-700/60' : 'bg-[#e6f4ea]/70 border-[#ccebd7]'
+          }`}>
+            <div className="w-10 h-10 rounded-full bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0 border border-[#00684a]/20">
+              {profileImage ? (
+                <img src={profileImage.startsWith('http') ? profileImage : `http://localhost:3000${profileImage}`} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                userName.charAt(0).toUpperCase()
+              )}
             </div>
-          )}
-        </div>
+            <div className="min-w-0 flex-1">
+              <p className={`text-xs font-bold truncate leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                {userName}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="text-[10px] font-bold text-[#00684a] dark:text-emerald-400 tracking-wider uppercase">
+                  {role}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="w-10 h-10 rounded-full bg-[#00684a]/10 text-[#00684a] flex items-center justify-center font-bold text-sm">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-        {!isCollapsed && (
-          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 mt-4">Main Menu</p>
-        )}
-        
-        <NavItem icon="🏠" label="Dashboard" to="/user_dashboard" isCollapsed={isCollapsed} isDark={isDark} />
-        
-        {/* NEWLY ADDED: Favorites Link */}
-        <NavItem icon="❤️" label="Favorites" to="/Favorite" isCollapsed={isCollapsed} isDark={isDark} />
-        
-        <NavItem icon="📅" label="Calendar" to="/user_calendar" isCollapsed={isCollapsed} isDark={isDark} />
-        
-        {!isCollapsed && (
-          <p className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 mt-8">Account</p>
-        )}
-        
-        <NavItem icon="📜" label="My Orders" to="/Orders" isCollapsed={isCollapsed} isDark={isDark} />
-        <NavItem icon="👤" label="Profile" to="/Profile" isCollapsed={isCollapsed} isDark={isDark} />
-        <NavItem icon="⚙️" label="Settings" to="/Settings" isCollapsed={isCollapsed} isDark={isDark} />
+      {/* Navigation Links */}
+      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.name}
+              to={item.path}
+              title={collapsed ? item.name : undefined}
+              className={({ isActive }) => `
+                flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200
+                ${isActive 
+                  ? 'bg-[#00684a] text-white shadow-sm shadow-[#00684a]/30' 
+                  : `${isDark ? 'text-slate-400 hover:bg-slate-800/70 hover:text-white' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'}`
+                }
+                ${collapsed ? 'justify-center px-0' : ''}
+              `}
+            >
+              <Icon className="w-5 h-5 shrink-0" />
+              {!collapsed && <span>{item.name}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
-      {/* Logout Button */}
-      <div className={`p-4 border-t mt-auto ${isDark ? 'border-slate-800/50' : 'border-slate-100'}`}>
+      {/* Bottom Section */}
+      <div className="p-3 border-t mt-auto border-slate-100 dark:border-slate-800/80">
         <button 
-          onClick={onLogout} 
-          className={`w-full flex items-center gap-2 py-3 text-sm font-black transition-all duration-200 
-            bg-red-500/5 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white 
-            ${isCollapsed ? 'justify-center' : 'px-4'}`}
+          onClick={onLogout}
+          title={collapsed ? "Log Out" : undefined}
+          className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all ${
+            collapsed ? 'justify-center px-0' : ''
+          }`}
         >
-          <span>🚪</span>
-          {!isCollapsed && <span>Logout</span>}
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && <span>Log Out</span>}
         </button>
       </div>
     </aside>

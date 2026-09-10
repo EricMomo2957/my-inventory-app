@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { Users, UserPlus, Edit3, Trash2, Shield, Mail, Building, RefreshCw } from 'lucide-react';
 
 export default function AdminManagement() {
   const { isDark } = useTheme();
@@ -13,7 +14,7 @@ export default function AdminManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
 
   const [newUser, setNewUser] = useState({
-    username: '', password: '', full_name: '', role: 'clerk', email: '', admin_id: '', department: 'Management'
+    username: '', password: '', full_name: '', role: 'clerk', email: '', department: 'General'
   });
 
   const fetchUsers = async () => {
@@ -22,9 +23,10 @@ export default function AdminManagement() {
       const response = await fetch('http://localhost:3000/api/users');
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-      setUsers(data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching users:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -33,6 +35,7 @@ export default function AdminManagement() {
   useEffect(() => { fetchUsers(); }, []);
 
   const handleCreateUser = async () => {
+    if (!newUser.username || !newUser.password || !newUser.full_name) return;
     try {
       const response = await fetch('http://localhost:3000/api/users', {
         method: 'POST',
@@ -41,13 +44,14 @@ export default function AdminManagement() {
       });
       if (response.ok) {
         setIsAddModalOpen(false);
-        setNewUser({ username: '', password: '', full_name: '', role: 'clerk', email: '', admin_id: '', department: 'Management' });
+        setNewUser({ username: '', password: '', full_name: '', role: 'clerk', email: '', department: 'General' });
         fetchUsers();
       }
     } catch (error) { console.error(error); }
   };
 
   const handleUpdateUser = async () => {
+    if (!selectedUser) return;
     try {
       await fetch(`http://localhost:3000/api/users/${selectedUser.id}`, {
         method: 'PUT',
@@ -60,6 +64,7 @@ export default function AdminManagement() {
   };
 
   const handleDeleteUser = async () => {
+    if (!selectedUser) return;
     try {
       await fetch(`http://localhost:3000/api/users/${selectedUser.id}`, { method: 'DELETE' });
       setIsDeleteModalOpen(false);
@@ -68,102 +73,223 @@ export default function AdminManagement() {
   };
 
   return (
-    <div className={`p-8 space-y-8 min-h-screen transition-colors duration-500 ${isDark ? 'bg-[#0b1120]' : 'bg-slate-50'}`}>
-      <header className="flex justify-between items-end">
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 p-8 space-y-7 ${
+      isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
+    }`}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Admin Management</h1>
-          <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>System User Directory</p>
+          <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Staff & Member Directory
+          </h1>
+          <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Manage organizational access, staff roles, and administrative permissions
+          </p>
         </div>
-        <button onClick={() => setIsAddModalOpen(true)} className="bg-orange-500 hover:bg-orange-400 text-white px-6 py-2.5 rounded-xl font-bold shadow-xl shadow-orange-600/20 active:scale-95 transition-all">
-          + New User
-        </button>
-      </header>
 
-      {/* Table Section */}
-      <div className={`rounded-3xl border p-6 shadow-sm transition-colors duration-500 ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
-        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
-          <table className="w-full text-left text-sm">
-            <thead className={`${isDark ? 'bg-slate-900/50 text-slate-400' : 'bg-slate-50 text-slate-500'} font-black uppercase tracking-widest text-[10px]`}>
-              <tr>
-                <th className="p-4 px-6">User</th>
-                <th className="p-4 px-6">Role</th>
-                <th className="p-4 px-6 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-100'}`}>
-              {loading ? (
-                <tr>
-                  <td colSpan="3" className="p-10 text-center text-slate-500 font-bold animate-pulse">
-                    Synchronizing Database...
-                  </td>
-                </tr>
-              ) : (
-                users.map((u) => (
-                  <tr key={u.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/50 text-slate-300' : 'hover:bg-slate-50 text-slate-600'}`}>
-                    <td className="p-4 px-6 font-bold">{u.full_name || u.username}</td>
-                    <td className="p-4 px-6">
-                      <span className="px-2 py-1 rounded bg-orange-500/10 text-orange-500 text-[10px] font-black uppercase tracking-tighter">
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="p-4 px-6 text-right space-x-2">
-                      <button onClick={() => { setSelectedUser(u); setIsEditModalOpen(true); }} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">✏️</button>
-                      <button onClick={() => { setSelectedUser(u); setIsDeleteModalOpen(true); }} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">🗑️</button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={fetchUsers}
+            className={`p-2.5 rounded-xl border transition-colors ${
+              isDark ? 'border-slate-800 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+            }`}
+            title="Refresh Users"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Add Member</span>
+          </button>
         </div>
       </div>
 
-      {/* --- ADD MODAL --- */}
+      {/* Table Section */}
+      <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${
+        isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+      }`}>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className={`text-[11px] font-bold uppercase tracking-wider border-b ${
+              isDark ? 'bg-slate-900/60 text-slate-400 border-slate-800' : 'bg-[#fcfdfd] text-slate-500 border-slate-100'
+            }`}>
+              <th className="py-4 px-6">User / Member</th>
+              <th className="py-4 px-6">Access Role</th>
+              <th className="py-4 px-6">Department</th>
+              <th className="py-4 px-6 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className={`divide-y text-xs font-medium ${
+            isDark ? 'divide-slate-800/80' : 'divide-slate-100'
+          }`}>
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="py-16 text-center text-slate-400 font-bold uppercase tracking-wider text-xs">
+                  Loading User Directory...
+                </td>
+              </tr>
+            ) : users.length > 0 ? (
+              users.map((u) => (
+                <tr key={u.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-10 h-10 rounded-full bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center font-extrabold text-sm overflow-hidden shrink-0 border border-[#00684a]/20">
+                        {u.profile_image ? (
+                          <img src={u.profile_image.startsWith('http') ? u.profile_image : `http://localhost:3000${u.profile_image}`} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          (u.full_name || u.username || 'U').charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div>
+                        <p className={`font-bold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          {u.full_name || u.username}
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-mono">
+                          @{u.username} • {u.email || `${u.username}@inventorypro.com`}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                      u.role === 'admin' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' :
+                      u.role === 'manager' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800' :
+                      u.role === 'clerk' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800' :
+                      'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                    }`}>
+                      {u.role}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-slate-400">
+                    {u.department || 'General'}
+                  </td>
+                  <td className="py-4 px-6 text-right space-x-1.5">
+                    <button 
+                      onClick={() => { setSelectedUser(u); setIsEditModalOpen(true); }} 
+                      className={`p-2 rounded-lg border transition-colors ${
+                        isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
+                      }`}
+                      title="Edit User"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      onClick={() => { setSelectedUser(u); setIsDeleteModalOpen(true); }} 
+                      className="p-2 rounded-lg border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 transition-colors"
+                      title="Delete User"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4" className="py-16 text-center text-slate-400 text-xs">
+                  No users found in database.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ADD USER MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-xl font-black mb-6 text-slate-900 dark:text-white text-center">Register New User</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input type="text" placeholder="Full Name *" className="col-span-2 bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-orange-500/50" value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} />
-              <input type="text" placeholder="Username *" className="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-slate-900 dark:text-white" value={newUser.username} onChange={(e) => setNewUser({...newUser, username: e.target.value})} />
-              <input type="password" placeholder="Password *" className="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-slate-900 dark:text-white" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} />
-              <button onClick={handleCreateUser} className="col-span-2 py-4 bg-orange-500 hover:bg-orange-400 rounded-xl font-bold text-white shadow-lg transition-all">Create Account</button>
-              <button onClick={() => setIsAddModalOpen(false)} className="col-span-2 py-2 text-slate-400 font-bold text-sm">Cancel</button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-md rounded-3xl p-7 border shadow-xl ${
+            isDark ? 'bg-[#0f172a] border-slate-800 text-white' : 'bg-white border-slate-100 text-slate-900'
+          }`}>
+            <h2 className="text-lg font-extrabold mb-5">Register New User</h2>
+            <div className="space-y-3.5">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Full Name *</label>
+                <input type="text" placeholder="e.g. John Doe" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newUser.full_name} onChange={(e) => setNewUser({...newUser, full_name: e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Username *</label>
+                  <input type="text" placeholder="johndoe" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newUser.username} onChange={(e) => setNewUser({...newUser, username: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Role</label>
+                  <select className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})}>
+                    <option value="admin">Administrator</option>
+                    <option value="manager">Manager</option>
+                    <option value="clerk">Clerk</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="user">User / Member</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Password *</label>
+                <input type="password" placeholder="••••••••" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} />
+              </div>
+              <div className="flex gap-2.5 pt-3">
+                <button onClick={handleCreateUser} className="flex-1 py-3 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all">Create Account</button>
+                <button onClick={() => setIsAddModalOpen(false)} className={`px-5 py-3 rounded-xl text-xs font-bold border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- EDIT MODAL --- */}
+      {/* EDIT USER MODAL */}
       {isEditModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-3xl p-8 shadow-2xl">
-            <h2 className="text-xl font-black mb-6 text-slate-900 dark:text-white text-center">Edit Permissions</h2>
-            <div className="space-y-4">
-              <input type="text" placeholder="Full Name" className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-slate-900 dark:text-white" value={selectedUser.full_name || ''} onChange={(e) => setSelectedUser({...selectedUser, full_name: e.target.value})} />
-              <select className="w-full bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-slate-900 dark:text-white outline-none" value={selectedUser.role} onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value})}>
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="clerk">Clerk</option>
-                <option value="auditor">Auditor</option>
-                <option value="user">User</option>
-              </select>
-              <button onClick={handleUpdateUser} className="w-full py-4 bg-orange-500 hover:bg-orange-400 rounded-xl font-bold text-white shadow-lg transition-all">Save Changes</button>
-              <button onClick={() => setIsEditModalOpen(false)} className="w-full py-2 text-slate-400 font-bold text-sm hover:text-slate-300 transition-colors">Cancel</button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-md rounded-3xl p-7 border shadow-xl ${
+            isDark ? 'bg-[#0f172a] border-slate-800 text-white' : 'bg-white border-slate-100 text-slate-900'
+          }`}>
+            <h2 className="text-lg font-extrabold mb-5">Edit User Permissions</h2>
+            <div className="space-y-3.5">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Full Name</label>
+                <input type="text" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={selectedUser.full_name || ''} onChange={(e) => setSelectedUser({...selectedUser, full_name: e.target.value})} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Role</label>
+                <select className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={selectedUser.role} onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value})}>
+                  <option value="admin">Administrator</option>
+                  <option value="manager">Manager</option>
+                  <option value="clerk">Clerk</option>
+                  <option value="auditor">Auditor</option>
+                  <option value="user">User / Member</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Department</label>
+                <input type="text" className={`w-full px-4 py-2.5 rounded-xl border text-xs font-medium outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`} value={selectedUser.department || ''} onChange={(e) => setSelectedUser({...selectedUser, department: e.target.value})} />
+              </div>
+              <div className="flex gap-2.5 pt-3">
+                <button onClick={handleUpdateUser} className="flex-1 py-3 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all">Save Changes</button>
+                <button onClick={() => setIsEditModalOpen(false)} className={`px-5 py-3 rounded-xl text-xs font-bold border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* --- DELETE MODAL --- */}
+      {/* DELETE MODAL */}
       {isDeleteModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center">
-            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">Delete User?</h2>
-            <p className="text-slate-500 text-sm mb-6">Remove <span className="font-bold text-orange-500">{selectedUser.username}</span> from the system?</p>
-            <div className="flex gap-3">
-              <button onClick={handleDeleteUser} className="flex-1 py-3 bg-red-500 hover:bg-red-400 rounded-xl font-bold text-white transition-all">Delete</button>
-              <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl font-bold text-slate-500">Cancel</button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-sm rounded-3xl p-6 border shadow-xl text-center ${
+            isDark ? 'bg-[#0f172a] border-slate-800 text-white' : 'bg-white border-slate-100 text-slate-900'
+          }`}>
+            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-extrabold mb-1">Delete User?</h3>
+            <p className="text-xs text-slate-400 mb-6">
+              Remove <span className="font-bold text-slate-800 dark:text-white">"{selectedUser.username}"</span> from the system?
+            </p>
+            <div className="flex gap-2.5">
+              <button onClick={handleDeleteUser} className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all">Delete</button>
+              <button onClick={() => setIsDeleteModalOpen(false)} className={`flex-1 py-2.5 rounded-xl text-xs font-bold border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>Cancel</button>
             </div>
           </div>
         </div>
