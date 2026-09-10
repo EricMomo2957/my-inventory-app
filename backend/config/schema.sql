@@ -163,3 +163,21 @@ CREATE TABLE IF NOT EXISTS `contact_messages` (
 
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ==========================================================
+-- DEFAULT SEED ACCOUNTS & SAMPLE DATA
+-- Password for admin: admin123
+-- Password for clerk: clerk123
+-- Password for user: user123
+-- ==========================================================
+
+INSERT INTO `users` (`id`, `username`, `password`, `full_name`, `role`, `email`, `department`) VALUES
+(1, 'admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'admin', 'admin@inventorypro.com', 'Executive'),
+(2, 'clerk', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Inventory Clerk', 'clerk', 'clerk@inventorypro.com', 'Warehouse'),
+(3, 'user', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Member Customer', 'user', 'user@inventorypro.com', 'General')
+ON DUPLICATE KEY UPDATE 
+`full_name` = VALUES(`full_name`),
+`role` = VALUES(`role`),
+`email` = VALUES(`email`),
+`department` = VALUES(`department`);
+
