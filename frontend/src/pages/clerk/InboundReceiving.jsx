@@ -14,7 +14,10 @@ import {
   FileCheck, 
   ArrowDownRight,
   Receipt,
-  Plus
+  Plus,
+  Clock,
+  DollarSign,
+  Tag
 } from 'lucide-react';
 
 export default function InboundReceiving() {
@@ -34,6 +37,8 @@ export default function InboundReceiving() {
   const [inboundDetails, setInboundDetails] = useState({
     supplier: 'Fresh Farms Logistics',
     referenceNo: `DR-${Math.floor(10000 + Math.random() * 90000)}`,
+    defaultBatch: `LOT-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(10 + Math.random() * 90)}`,
+    defaultExpiry: '',
     notes: '',
     deliveryDate: new Date().toISOString().split('T')[0]
   });
@@ -43,7 +48,7 @@ export default function InboundReceiving() {
   const [grnData, setGrnData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const clerkName = localStorage.getItem('userName') || 'Warehouse Clerk';
+  const clerkName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Warehouse Clerk';
 
   // --- 1. FETCH PRODUCTS ---
   const fetchProducts = async () => {
@@ -52,6 +57,9 @@ export default function InboundReceiving() {
       const formatted = res.data.map(p => ({
         ...p,
         price: parseFloat(p.price) || 0,
+        cost_price: p.cost_price !== undefined && p.cost_price !== null 
+          ? parseFloat(p.cost_price) 
+          : Math.round((parseFloat(p.price) || 0) * 0.65 * 100) / 100,
         quantity: parseInt(p.quantity, 10) || 0
       }));
       setProducts(formatted);
@@ -65,7 +73,8 @@ export default function InboundReceiving() {
   }, []);
 
   const totalIncomingUnits = receivingCart.reduce((acc, item) => acc + item.quantity, 0);
-  const totalIncomingValue = receivingCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalIncomingCost = receivingCart.reduce((acc, item) => acc + (item.cost_price * item.quantity), 0);
+  const totalIncomingSellingVal = receivingCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   // --- 2. HANDLERS ---
   const handleQuantityChange = (id, val) => {
@@ -77,6 +86,10 @@ export default function InboundReceiving() {
     const qty = parseInt(quantities[product.id], 10) || 10;
     if (qty <= 0) return;
 
+    const defaultExp = product.expiry_date 
+      ? String(product.expiry_date).split('T')[0] 
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     setReceivingCart(prev => {
       const existing = prev.find(item => String(item.id) === String(product.id));
       if (existing) {
@@ -84,9 +97,24 @@ export default function InboundReceiving() {
           String(item.id) === String(product.id) ? { ...item, quantity: item.quantity + qty } : item
         );
       }
-      return [...prev, { ...product, quantity: qty }];
+      return [...prev, { 
+        ...product, 
+        quantity: qty,
+        batch_number: product.batch_number || inboundDetails.defaultBatch,
+        expiry_date: defaultExp,
+        cost_price: product.cost_price
+      }];
     });
     setQuantities(prev => ({ ...prev, [product.id]: 10 }));
+  };
+
+  const updateCartItemField = (id, field, value) => {
+    setReceivingCart(prev => prev.map(item => {
+      if (String(item.id) === String(id)) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    }));
   };
 
   const handleConfirmReceiving = async () => {
@@ -99,7 +127,13 @@ export default function InboundReceiving() {
     setIsSubmitting(true);
     try {
       const payload = {
-        items: receivingCart.map(item => ({ id: item.id, quantity: item.quantity })),
+        items: receivingCart.map(item => ({ 
+          id: item.id, 
+          quantity: item.quantity,
+          batch_number: item.batch_number || inboundDetails.defaultBatch,
+          expiry_date: item.expiry_date || null,
+          cost_price: item.cost_price || null
+        })),
         supplier: inboundDetails.supplier,
         reference_no: inboundDetails.referenceNo,
         clerk_name: clerkName,
@@ -117,7 +151,8 @@ export default function InboundReceiving() {
           notes: inboundDetails.notes,
           items: [...receivingCart],
           totalUnits: totalIncomingUnits,
-          totalValue: totalIncomingValue
+          totalCost: totalIncomingCost,
+          totalValue: totalIncomingSellingVal
         };
 
         setGrnData(generatedGRN);
@@ -135,8 +170,11 @@ export default function InboundReceiving() {
   };
 
   const filteredProducts = products.filter(item => {
-    const matchesSearch = item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.category?.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = item.name?.toLowerCase().includes(q) ||
+                          item.category?.toLowerCase().includes(q) ||
+                          (item.sku && item.sku.toLowerCase().includes(q)) ||
+                          (item.batch_number && item.batch_number.toLowerCase().includes(q));
     const matchesCategory = activeCategory === 'All' || item.category?.toLowerCase() === activeCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
@@ -161,11 +199,11 @@ export default function InboundReceiving() {
           
           <div className="space-y-2 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-emerald-200 text-xs font-bold uppercase tracking-widest border border-white/10">
-              <PackagePlus className="w-3.5 h-3.5" /> Inbound Logistics & Receiving
+              <PackagePlus className="w-3.5 h-3.5" /> Inbound Logistics & FIFO Receiving
             </div>
             <h1 className="text-3xl md:text-4xl font-black tracking-tight">Stock In Receiving Desk</h1>
             <p className="text-emerald-100/80 text-sm max-w-xl font-medium">
-              Receive supplier shipments, register Delivery Receipts (DR), and restock warehouse items in bulk.
+              Receive supplier deliveries, capture unit landed cost, register batch/lot codes, and assign FIFO expiration dates.
             </p>
           </div>
 
@@ -192,7 +230,7 @@ export default function InboundReceiving() {
             <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search product to receive..." 
+              placeholder="Search product, SKU, batch..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full border rounded-xl pl-11 pr-4 py-3 outline-none text-sm font-medium transition-all ${
@@ -204,7 +242,7 @@ export default function InboundReceiving() {
           </div>
           
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            {['All', 'Vegetables', 'Fruits', 'Supplies', 'Raw Materials'].map((cat) => (
+            {['All', 'Vegetables', 'Fruits', 'Supplies', 'Canned Goods', 'Raw Materials'].map((cat) => (
               <button 
                 key={cat} 
                 onClick={() => setActiveCategory(cat)}
@@ -227,6 +265,7 @@ export default function InboundReceiving() {
           {displayedProducts.map(item => {
             const stagedItem = receivingCart.find(c => String(c.id) === String(item.id));
             const stagedQty = stagedItem ? stagedItem.quantity : 0;
+            const marginPct = item.price > 0 ? (((item.price - item.cost_price) / item.price) * 100) : 0;
 
             return (
               <div key={item.id} className={`p-5 rounded-2xl border transition-all duration-300 flex flex-col hover:shadow-xl group relative ${
@@ -256,8 +295,13 @@ export default function InboundReceiving() {
                   <h3 className={`text-base font-extrabold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                     {item.name}
                   </h3>
+
+                  <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
+                    <span>{item.sku || `SKU-#${item.id}`}</span>
+                    <span>{item.batch_number || 'LOT-DEFAULT'}</span>
+                  </div>
                   
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-xs pt-1">
                     <span className="text-slate-400 font-semibold">Current Stock:</span>
                     <span className="font-extrabold text-[#00684a] dark:text-emerald-400">
                       {item.quantity} Units
@@ -265,9 +309,9 @@ export default function InboundReceiving() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-slate-400 font-medium">Unit Valuation:</span>
+                    <span className="text-slate-400 font-medium">Cost / Selling:</span>
                     <span className={`font-extrabold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                      ₱{item.price.toFixed(2)}
+                      ₱{item.cost_price.toFixed(2)} / ₱{item.price.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -309,10 +353,10 @@ export default function InboundReceiving() {
         )}
       </div>
 
-      {/* --- INBOUND GOODS RECEIPT REVIEW MODAL --- */}
+      {/* --- INBOUND GOODS RECEIPT REVIEW MODAL WITH FIFO BATCHES & COST --- */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
-          <div className={`border rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${
+          <div className={`border rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] ${
             isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'
           }`}>
             <header className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-[#00684a] text-white">
@@ -320,7 +364,7 @@ export default function InboundReceiving() {
                 <PackagePlus className="w-5 h-5 text-emerald-200" />
                 <div>
                   <h2 className="text-lg font-black tracking-tight">Inbound Goods Receiving Log</h2>
-                  <p className="text-xs text-emerald-100">Verify supplier delivery details and update warehouse quantities</p>
+                  <p className="text-xs text-emerald-100">Verify supplier shipment, FIFO batch lots, and acquisition cost</p>
                 </div>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="text-white/80 hover:text-white text-lg font-bold cursor-pointer">✕</button>
@@ -361,11 +405,11 @@ export default function InboundReceiving() {
 
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    Receiving Notes / Batch Details
+                    Receiving Notes / Quality Verification
                   </label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Verified by morning receiving team, pallet condition good"
+                    placeholder="e.g. Verified by morning receiving team, pallet quality optimal"
                     value={inboundDetails.notes}
                     onChange={(e) => setInboundDetails({ ...inboundDetails, notes: e.target.value })}
                     className={`w-full p-3 rounded-xl border text-sm font-semibold outline-none focus:border-[#00684a] ${
@@ -375,33 +419,75 @@ export default function InboundReceiving() {
                 </div>
               </div>
 
-              {/* Staged Items List */}
+              {/* Staged Items List with Batch & Expiry Override */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                  <span>Items to be Restocked ({receivingCart.length})</span>
-                  <span>Total Incoming Units: +{totalIncomingUnits}</span>
+                  <span>Received Items & FIFO Parameters ({receivingCart.length})</span>
+                  <span>Total Units: +{totalIncomingUnits}</span>
                 </h4>
 
-                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                   {receivingCart.map(item => (
-                    <div key={item.id} className={`flex justify-between items-center p-3.5 rounded-xl border ${
+                    <div key={item.id} className={`p-4 rounded-2xl border space-y-3 ${
                       isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-slate-50 border-slate-200'
                     }`}>
-                      <div className="min-w-0 flex-1 pr-4">
-                        <p className={`font-extrabold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</p>
-                        <p className="text-[11px] text-slate-400 font-semibold">Current: {item.quantity} units • ₱{item.price.toFixed(2)} each</p>
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <p className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</p>
+                          <p className="text-[11px] text-slate-400 font-semibold">{item.category} • SKU: {item.sku || `SKU-#${item.id}`}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-black text-sm text-[#00684a] dark:text-emerald-400">
+                            +{item.quantity} Units
+                          </span>
+                          <button 
+                            onClick={() => setReceivingCart(receivingCart.filter(c => c.id !== item.id))}
+                            className="text-red-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className="font-black text-sm text-[#00684a] dark:text-emerald-400">
-                          +{item.quantity} Units
-                        </span>
-                        <button 
-                          onClick={() => setReceivingCart(receivingCart.filter(c => c.id !== item.id))}
-                          className="text-red-500 hover:text-red-600 p-1 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
-                          title="Remove item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+
+                      {/* Row Inputs for FIFO Batch, Expiry, and Unit Cost */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                        <div>
+                          <label className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Batch / Lot #</label>
+                          <input 
+                            type="text" 
+                            value={item.batch_number || ''}
+                            onChange={(e) => updateCartItemField(item.id, 'batch_number', e.target.value)}
+                            className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono font-bold ${
+                              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                            }`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Expiry Date</label>
+                          <input 
+                            type="date" 
+                            value={item.expiry_date || ''}
+                            onChange={(e) => updateCartItemField(item.id, 'expiry_date', e.target.value)}
+                            className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold ${
+                              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                            }`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Unit Cost (₱)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={item.cost_price || ''}
+                            onChange={(e) => updateCartItemField(item.id, 'cost_price', parseFloat(e.target.value) || 0)}
+                            className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold ${
+                              isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                            }`}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -413,9 +499,9 @@ export default function InboundReceiving() {
               isDark ? 'bg-[#0b1120]/50 border-slate-800' : 'bg-slate-50 border-slate-200'
             }`}>
               <div className="text-left w-full sm:w-auto">
-                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider block">Incoming Stock Valuation</span>
+                <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider block">Total Landed Acquisition Cost</span>
                 <span className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ₱{totalIncomingValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  ₱{totalIncomingCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
               <div className="flex gap-3 w-full sm:w-auto">
@@ -465,23 +551,35 @@ export default function InboundReceiving() {
               </div>
               <div className="col-span-2">
                 <span className="text-slate-400 font-bold block text-[10px] uppercase">Receiving Notes</span>
-                <span className="font-medium text-slate-700">{grnData.notes || 'Goods verified in good condition.'}</span>
+                <span className="font-medium text-slate-700">{grnData.notes || 'Goods and batch quality verified in good condition.'}</span>
               </div>
             </div>
 
             <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Received Items Breakdown</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Received Items & FIFO Lot Breakdown</span>
               {grnData.items.map(item => (
                 <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100">
-                  <span className="font-bold text-slate-700">{item.name}</span>
-                  <span className="font-black text-[#00684a]">+{item.quantity} Units</span>
+                  <div>
+                    <span className="font-bold text-slate-800 block">{item.name}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">Lot: {item.batch_number || 'DEFAULT'} • Exp: {item.expiry_date || 'N/A'}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-[#00684a] block">+{item.quantity} Units</span>
+                    <span className="text-[10px] text-slate-400">@ ₱{item.cost_price?.toFixed(2)}/unit</span>
+                  </div>
                 </div>
               ))}
             </div>
 
             <div className="border-t pt-3 mb-6 flex justify-between items-center font-black">
-              <span className="text-xs uppercase tracking-wider text-slate-500">Total Units Received</span>
-              <span className="text-lg text-slate-900">+{grnData.totalUnits} Units</span>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-slate-500 block">Total Units Received</span>
+                <span className="text-base text-slate-900">+{grnData.totalUnits} Units</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs uppercase tracking-wider text-slate-500 block">Total Landed Cost</span>
+                <span className="text-base text-[#00684a]">₱{grnData.totalCost?.toFixed(2)}</span>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

@@ -23,12 +23,59 @@ import {
   Layers, 
   CheckCircle2,
   Sliders,
-  Maximize2
+  Maximize2,
+  Clock,
+  DollarSign,
+  Percent,
+  Tag
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line 
 } from 'recharts';
+
+// Helper to compute FIFO expiry status
+const getExpiryStatus = (expiryDateStr) => {
+  if (!expiryDateStr) {
+    return { status: 'none', label: 'No Expiry Set', color: 'slate', days: null };
+  }
+  const expDate = new Date(expiryDateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffTime = expDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return { 
+      status: 'expired', 
+      label: `Expired (${Math.abs(diffDays)}d ago)`, 
+      badgeClass: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50',
+      days: diffDays 
+    };
+  }
+  if (diffDays <= 7) {
+    return { 
+      status: 'critical', 
+      label: `Expires in ${diffDays}d (Critical)`, 
+      badgeClass: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900/50 animate-pulse',
+      days: diffDays 
+    };
+  }
+  if (diffDays <= 30) {
+    return { 
+      status: 'warning', 
+      label: `Expires in ${diffDays}d`, 
+      badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/50',
+      days: diffDays 
+    };
+  }
+  return { 
+    status: 'healthy', 
+    label: `Valid (${expDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`, 
+    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/50',
+    days: diffDays 
+  };
+};
 
 export default function ClerkDashboard() {
   const navigate = useNavigate();
@@ -57,6 +104,11 @@ export default function ClerkDashboard() {
     category: 'Supplies',
     quantity: 0,
     price: '',
+    cost_price: '',
+    sku: '',
+    batch_number: '',
+    expiry_date: '',
+    min_threshold: 5,
     imageFile: null
   });
 
@@ -72,13 +124,6 @@ export default function ClerkDashboard() {
   const userName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Clerk Staff';
   const role = localStorage.getItem('userRole') || 'CLERK';
   const profileImage = localStorage.getItem('userPhoto') || localStorage.getItem('profileImage');
-
-  const currentDateFormatted = new Date().toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
 
   // --- Data Fetching ---
   const fetchData = useCallback(async () => {
@@ -166,12 +211,15 @@ export default function ClerkDashboard() {
   }, [products, fetchAnalytics]);
 
   // --- Computed Filters & Metrics ---
-  const categoriesList = ["General", "Vegetables", "Fruits", "Supplies", "Canned Goods"];
+  const categoriesList = ["General", "Vegetables", "Fruits", "Supplies", "Canned Goods", "Raw Materials"];
   const dynamicCategories = ["All", ...new Set([...categoriesList, ...products.map(p => p.category).filter(Boolean)])];
 
   const filteredProducts = products.filter(p => {
     const matchesCategory = activeCategory === "All" || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = p.name.toLowerCase().includes(q) || 
+                          (p.sku && p.sku.toLowerCase().includes(q)) ||
+                          (p.batch_number && p.batch_number.toLowerCase().includes(q));
     return matchesCategory && matchesSearch;
   });
 
@@ -185,28 +233,46 @@ export default function ClerkDashboard() {
 
   const totalItems = products.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
   const totalValue = products.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.quantity) || 0)), 0);
-  const lowStockProducts = products.filter(p => Number(p.quantity) < lowStockThreshold);
+  const totalCost = products.reduce((sum, p) => {
+    const cost = p.cost_price !== undefined && p.cost_price !== null 
+      ? Number(p.cost_price) 
+      : Math.round(Number(p.price || 0) * 0.65 * 100) / 100;
+    return sum + ((Number(p.quantity) || 0) * cost);
+  }, 0);
+  const potentialProfit = Math.max(0, totalValue - totalCost);
+  const overallMarginPct = totalValue > 0 ? ((potentialProfit / totalValue) * 100) : 0;
+
+  const lowStockProducts = products.filter(p => Number(p.quantity) < (p.min_threshold || lowStockThreshold));
+  const expiringProducts = products.filter(p => {
+    if (!p.expiry_date) return false;
+    const exp = getExpiryStatus(p.expiry_date);
+    return exp.status === 'expired' || exp.status === 'critical' || exp.status === 'warning';
+  });
 
   const STATUS_PIE_COLORS = ['#00684a', '#ef4444', '#f59e0b'];
 
   // --- Handlers ---
   const downloadCSV = () => {
     if (products.length === 0) return;
-    const headers = ["ID", "Product Name", "Category", "Unit Price", "Quantity In Stock", "Status"];
+    const headers = ["ID", "SKU", "Product Name", "Category", "Batch/Lot", "Cost Price", "Selling Price", "Quantity In Stock", "Expiry Date", "Status"];
     const rows = products.map(p => [
       p.id,
+      `"${p.sku || `SKU-${p.id}`}"`,
       `"${p.name}"`, 
       `"${p.category || 'General'}"`,
+      `"${p.batch_number || 'DEFAULT'}"`,
+      p.cost_price || (p.price * 0.65).toFixed(2),
       p.price,
       p.quantity,
-      p.quantity < lowStockThreshold ? "LOW STOCK" : "OPTIMAL"
+      p.expiry_date ? String(p.expiry_date).split('T')[0] : 'N/A',
+      p.quantity < (p.min_threshold || lowStockThreshold) ? "LOW STOCK" : "OPTIMAL"
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `clerk_inventory_audit_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `warehouse_inventory_audit_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -241,6 +307,10 @@ export default function ClerkDashboard() {
         category: selectedProduct.category,
         quantity: calculatedNewQuantity,
         price: selectedProduct.price,
+        cost_price: selectedProduct.cost_price,
+        sku: selectedProduct.sku,
+        batch_number: selectedProduct.batch_number,
+        expiry_date: selectedProduct.expiry_date,
         adjustment: adjustmentType === 'subtract' ? -amount : amount,
         reason: adjustmentReason,
         clerk_name: userName
@@ -267,6 +337,11 @@ export default function ClerkDashboard() {
       formData.append('category', newProduct.category || 'Supplies');
       formData.append('quantity', newProduct.quantity || 0);
       formData.append('price', newProduct.price);
+      formData.append('cost_price', newProduct.cost_price || (parseFloat(newProduct.price) * 0.65).toFixed(2));
+      formData.append('sku', newProduct.sku);
+      formData.append('batch_number', newProduct.batch_number);
+      formData.append('expiry_date', newProduct.expiry_date);
+      formData.append('min_threshold', newProduct.min_threshold || 5);
       if (newProduct.imageFile) {
         formData.append('image', newProduct.imageFile);
       }
@@ -277,7 +352,18 @@ export default function ClerkDashboard() {
 
       if (res.data.success || res.status === 201) {
         setIsAddProductModalOpen(false);
-        setNewProduct({ name: '', category: 'Supplies', quantity: 0, price: '', imageFile: null });
+        setNewProduct({ 
+          name: '', 
+          category: 'Supplies', 
+          quantity: 0, 
+          price: '', 
+          cost_price: '',
+          sku: '',
+          batch_number: '',
+          expiry_date: '',
+          min_threshold: 5,
+          imageFile: null 
+        });
         fetchData();
         fetchAnalytics();
       }
@@ -298,244 +384,57 @@ export default function ClerkDashboard() {
       <header className={`sticky top-0 z-30 px-8 py-3.5 border-b backdrop-blur-md transition-colors ${
         isDark ? 'bg-[#0f172a]/95 border-slate-800 text-slate-100' : 'bg-white/95 border-slate-100 text-slate-800 shadow-xs'
       }`}>
-        <div className="flex items-center justify-between gap-4">
-          
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Clerk Desk</span>
-            </span>
-            <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
-            <div>
-              <h2 className="text-sm font-extrabold tracking-tight truncate">
-                Inventory & Stock Management
-              </h2>
-              <p className="text-[11px] text-slate-400 font-medium hidden md:block">
-                Real-time stock adjustments, logging and dispatch operations
-              </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-extrabold text-[#00684a] dark:text-emerald-400">
+                WAREHOUSE OPERATIONS
+              </span>
+              <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#00684a]/10 dark:bg-emerald-950/40 text-[#00684a] dark:text-emerald-300 font-bold uppercase tracking-wider">
+                FIFO & Margins
+              </span>
             </div>
+            <h1 className={`text-xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Floor Management Desk
+            </h1>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {/* Live Date */}
-            <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold ${
-              isDark ? 'bg-slate-800/80 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200/80 text-slate-600'
-            }`}>
-              <CalendarIcon className="w-3.5 h-3.5 text-[#00684a] dark:text-emerald-400" />
-              <span>{currentDateFormatted}</span>
-            </div>
-
-            {/* Status */}
-            <div className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold ${
-              isDark ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-[#00684a]'
-            }`}>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Terminal Online</span>
-            </div>
-
-            {/* Notifications */}
-            <div className="relative">
-              <button 
-                className={`p-2 rounded-xl border transition-colors relative ${
-                  isDark ? 'border-slate-800 hover:bg-slate-800 text-slate-300' : 'border-slate-100 hover:bg-slate-50 text-slate-600'
-                }`}
-                title="Low Stock Alerts"
-              >
-                <Bell className="w-4 h-4" />
-                {lowStockProducts.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
-                    {lowStockProducts.length}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* Theme Toggle */}
+          <div className="flex items-center gap-4">
             <button 
               onClick={toggleTheme}
-              className={`p-2 rounded-xl border transition-colors ${
-                isDark ? 'border-slate-800 hover:bg-slate-800 text-slate-300' : 'border-slate-100 hover:bg-slate-50 text-slate-600'
+              className={`p-2.5 rounded-xl border transition-colors ${
+                isDark ? 'border-slate-700 bg-slate-800 text-amber-400 hover:bg-slate-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
             >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            {/* User Avatar */}
-            <div className={`flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl border ${
-              isDark ? 'bg-slate-800/60 border-slate-700/80' : 'bg-slate-50 border-slate-200'
-            }`}>
-              <div className="w-7 h-7 rounded-lg bg-[#00684a] text-white flex items-center justify-center font-bold text-xs overflow-hidden">
+            <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-800">
+              <div className="w-9 h-9 rounded-full bg-[#00684a] text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
                 {profileImage ? (
-                  <img src={profileImage.startsWith('http') ? profileImage : `http://localhost:3000${profileImage}`} alt="" className="w-full h-full object-cover" />
+                  <img src={profileImage} alt={userName} className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  userName.charAt(0).toUpperCase()
+                  userName.substring(0, 2)
                 )}
               </div>
-              <span className="text-xs font-bold leading-none hidden md:block">{userName}</span>
+              <div className="hidden sm:block text-left">
+                <p className={`text-xs font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {userName}
+                </p>
+                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
+                  {role} STAFF
+                </p>
+              </div>
             </div>
-
           </div>
-
         </div>
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-8 space-y-7">
-
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-7">
+        
         {/* ========================================================= */}
-        {/* 1. CLERK ANALYTICS & INTELLIGENCE SECTION AT TOP */}
-        {/* ========================================================= */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Stock Analytics & Terminal Intelligence
-              </h1>
-              <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Live category volumes, stock health levels, and weekly movement logs
-              </p>
-            </div>
-
-            <button 
-              onClick={() => {
-                fetchData();
-                fetchAnalytics();
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs ${
-                isDark 
-                  ? 'bg-slate-800/80 border-slate-700 text-slate-200 hover:bg-slate-700' 
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
-            </button>
-          </div>
-
-          {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* BAR CHART: Category Distribution */}
-            <div className={`p-6 rounded-2xl border shadow-xs transition-colors lg:col-span-2 ${
-              isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
-            }`}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">CATEGORY PORTFOLIO (BAR)</h2>
-                  <p className={`text-sm font-extrabold mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Available Stock by Category</p>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-[#e6f4ea] dark:bg-emerald-950/40 text-[#00684a] dark:text-emerald-400 flex items-center justify-center">
-                  <Package className="w-4 h-4" />
-                </div>
-              </div>
-              
-              <div className="h-60 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analyticsData.categoryData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
-                    <XAxis dataKey="name" stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={11} tickLine={false} />
-                    <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={11} tickLine={false} axisLine={false} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: isDark ? '#0f172a' : '#fff', 
-                        borderRadius: '12px', 
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                        fontSize: '12px',
-                        fontWeight: 600
-                      }}
-                      itemStyle={{ color: '#00684a' }}
-                    />
-                    <Bar dataKey="value" fill="#00684a" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* PIE CHART: Stock Health */}
-            <div className={`p-6 rounded-2xl border shadow-xs transition-colors ${
-              isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
-            }`}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">INVENTORY HEALTH</h2>
-                  <p className={`text-sm font-extrabold mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Threshold Proportions</p>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#00684a] dark:text-emerald-400 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-              </div>
-              
-              <div className="h-60 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={analyticsData.stockStatusData}
-                      innerRadius={50}
-                      outerRadius={75}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {analyticsData.stockStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={STATUS_PIE_COLORS[index % STATUS_PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: isDark ? '#0f172a' : '#fff', 
-                        borderRadius: '12px', 
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                        fontSize: '12px' 
-                      }}
-                    />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* LINE CHART: Clerk Weekly Activity */}
-            <div className={`p-6 rounded-2xl border shadow-xs col-span-1 lg:col-span-3 transition-colors ${
-              isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
-            }`}>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">TERMINAL INFLOW VS. DISPATCH</h2>
-                  <p className={`text-sm font-extrabold mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Weekly Restock vs. Sales / Outflows</p>
-                </div>
-                <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#00684a] dark:text-emerald-400 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-              </div>
-              
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analyticsData.movementTrends}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#1e293b' : '#f1f5f9'} vertical={false} />
-                    <XAxis dataKey="day" stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={11} tickLine={false} />
-                    <YAxis stroke={isDark ? '#64748b' : '#94a3b8'} fontSize={11} tickLine={false} axisLine={false} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: isDark ? '#0f172a' : '#fff', 
-                        borderRadius: '12px', 
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                        fontSize: '12px',
-                        fontWeight: 600
-                      }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                    <Line type="monotone" name="Restock Inflows" dataKey="restock" stroke="#00684a" strokeWidth={3} dot={{ r: 4, fill: '#00684a' }} activeDot={{ r: 6 }} />
-                    <Line type="monotone" name="Order Dispatches" dataKey="dispatch" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, fill: '#f59e0b' }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* 2. CLERK ACTIONS DESK & LOW STOCK NOTICE */}
+        {/* 1. CLERK QUICK-DESK ACTIONS & ALERTS */}
         {/* ========================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
@@ -614,28 +513,28 @@ export default function ClerkDashboard() {
             </div>
           </div>
 
-          {/* Pending Alerts / Notice Card (Col 4) */}
+          {/* FIFO Expiry & Quality Notice Card (Col 4) */}
           <div className="lg:col-span-4 p-5 rounded-2xl bg-[#fef9ee] dark:bg-amber-950/20 border border-[#fde8bb] dark:border-amber-900/30 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-bold text-xs">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  <span>Clerk Stock Alerts</span>
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span>FIFO Expiration Watchlist</span>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 bg-amber-200/60 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 font-bold rounded-full">
-                  {lowStockProducts.length} Items
+                  {expiringProducts.length} Batches
                 </span>
               </div>
               <p className="text-xs text-amber-900/80 dark:text-amber-300/80 font-medium mt-2 leading-relaxed">
-                {lowStockProducts.length > 0 
-                  ? `${lowStockProducts.length} product(s) have dropped below ${lowStockThreshold} units. Restock is advised.`
-                  : "All inventory products are currently stocked at safe levels."}
+                {expiringProducts.length > 0 
+                  ? `${expiringProducts.length} product batch(es) are nearing expiry or expired. Prioritize FIFO dispatch.`
+                  : "All current inventory batches are safely within quality dates."}
               </p>
             </div>
 
             <div className="mt-4 pt-3 border-t border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between">
               <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400">
-                Quick Action Required
+                {lowStockProducts.length} Low Stock Alert(s)
               </span>
               <button 
                 onClick={() => {
@@ -644,7 +543,7 @@ export default function ClerkDashboard() {
                 }}
                 className="text-[11px] font-extrabold text-[#00684a] dark:text-emerald-400 hover:underline"
               >
-                Inspect Catalog ↓
+                Inspect Batches ↓
               </button>
             </div>
           </div>
@@ -652,13 +551,13 @@ export default function ClerkDashboard() {
         </div>
 
         {/* ========================================================= */}
-        {/* 3. KPI STAT METRIC CARDS */}
+        {/* 2. CORE FINANCIAL & INVENTORY METRIC CARDS */}
         {/* ========================================================= */}
         <div>
           <h2 className={`text-xs font-bold uppercase tracking-wider mb-3.5 ${
             isDark ? 'text-slate-400' : 'text-slate-500'
           }`}>
-            Core Inventory Metrics
+            Core Inventory Metrics & Margins
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -671,7 +570,7 @@ export default function ClerkDashboard() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   CATALOG ITEMS
                 </p>
-                <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:blue-400 flex items-center justify-center">
                   <Package className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -691,7 +590,7 @@ export default function ClerkDashboard() {
             }`}>
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  TOTAL UNITS
+                  TOTAL UNITS ON-HAND
                 </p>
                 <div className="w-7 h-7 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-[#00684a] dark:text-emerald-400 flex items-center justify-center">
                   <Layers className="w-3.5 h-3.5" />
@@ -703,37 +602,37 @@ export default function ClerkDashboard() {
                 </h3>
               </div>
               <p className="text-[10px] text-slate-400">
-                Aggregated inventory volume
+                Total physical stock quantity
               </p>
             </div>
 
-            {/* Card 3: Low Stock Alerts */}
+            {/* Card 3: Potential Profit & Margin */}
             <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
               isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
             }`}>
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  LOW STOCK ALERTS
+                  POTENTIAL GROSS PROFIT
                 </p>
-                <div className="w-7 h-7 rounded-full bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center justify-center">
-                  <TrendingDown className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                  <Percent className="w-3.5 h-3.5" />
                 </div>
               </div>
               <div className="my-3">
-                <h3 className={`text-2xl font-extrabold tracking-tight ${lowStockProducts.length > 0 ? 'text-red-500' : (isDark ? 'text-white' : 'text-slate-900')}`}>
-                  {lowStockProducts.length} <span className="text-xs font-normal text-slate-400">Alerts</span>
+                <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  ₱{potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
               <p className="text-[10px] text-slate-400">
-                Below minimum limit (&lt;{lowStockThreshold})
+                Avg margin: <span className="font-bold text-[#00684a] dark:text-emerald-400">+{overallMarginPct.toFixed(1)}%</span>
               </p>
             </div>
 
-            {/* Card 4: Total Inventory Value */}
+            {/* Card 4: Total Inventory Valuation */}
             <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
-                  TOTAL VALUE
+                  TOTAL SELLING VALUATION
                 </p>
                 <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center">
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -745,7 +644,7 @@ export default function ClerkDashboard() {
                 </h3>
               </div>
               <p className="text-[10px] text-emerald-100">
-                Assessed stock assets on floor
+                Floor inventory assessed value
               </p>
             </div>
 
@@ -753,16 +652,16 @@ export default function ClerkDashboard() {
         </div>
 
         {/* ========================================================= */}
-        {/* 4. OPERATIONAL PRODUCT MANAGEMENT TABLE */}
+        {/* 3. OPERATIONAL PRODUCT MANAGEMENT TABLE */}
         {/* ========================================================= */}
         <div id="clerk-inventory-table" className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className={`text-base font-extrabold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Operational Stock Inventory
+                Operational Stock Inventory & FIFO Tracking
               </h2>
               <p className="text-xs text-slate-400">
-                Click Adjust to perform rapid restock or inventory corrections
+                Track unit profit margins, batch codes, and shelf-life expiration dates
               </p>
             </div>
 
@@ -772,7 +671,7 @@ export default function ClerkDashboard() {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input 
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="Search name, SKU, batch..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={`pl-9 pr-4 py-2 rounded-xl text-xs font-medium border outline-none transition-all ${
@@ -816,11 +715,14 @@ export default function ClerkDashboard() {
                 <tr className={`text-[11px] font-bold uppercase tracking-wider border-b ${
                   isDark ? 'bg-slate-900/60 text-slate-400 border-slate-800' : 'bg-[#fcfdfd] text-slate-500 border-slate-100'
                 }`}>
-                  <th className="py-4 px-6">Product Details</th>
-                  <th className="py-4 px-6">Category</th>
-                  <th className="py-4 px-6 text-center">Stock Level</th>
-                  <th className="py-4 px-6">Unit Price</th>
-                  <th className="py-4 px-6 text-right">Quick Stock Action</th>
+                  <th className="py-4 px-5">Product & SKU</th>
+                  <th className="py-4 px-4">Batch / Lot</th>
+                  <th className="py-4 px-4">Cost Price</th>
+                  <th className="py-4 px-4">Selling Price</th>
+                  <th className="py-4 px-4 text-center">Unit Margin</th>
+                  <th className="py-4 px-4">FIFO Expiry Status</th>
+                  <th className="py-4 px-4 text-center">Stock Level</th>
+                  <th className="py-4 px-5 text-right">Quick Stock Action</th>
                 </tr>
               </thead>
               <tbody className={`divide-y text-xs font-medium ${
@@ -828,7 +730,15 @@ export default function ClerkDashboard() {
               }`}>
                 {displayedProducts.length > 0 ? (
                   displayedProducts.map((item) => {
-                    const isLow = Number(item.quantity) < lowStockThreshold;
+                    const isLow = Number(item.quantity) < (item.min_threshold || lowStockThreshold);
+                    const costPrice = item.cost_price !== undefined && item.cost_price !== null 
+                      ? Number(item.cost_price) 
+                      : Math.round(Number(item.price || 0) * 0.65 * 100) / 100;
+                    const sellPrice = Number(item.price || 0);
+                    const unitProfit = Math.max(0, sellPrice - costPrice);
+                    const marginPct = sellPrice > 0 ? ((unitProfit / sellPrice) * 100) : 0;
+                    const expiry = getExpiryStatus(item.expiry_date);
+
                     return (
                       <tr 
                         key={item.id} 
@@ -836,10 +746,10 @@ export default function ClerkDashboard() {
                           isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'
                         }`}
                       >
-                        {/* Product Detail */}
-                        <td className="py-3.5 px-6">
-                          <div className="flex items-center gap-3.5">
-                            <div className={`w-11 h-11 rounded-xl overflow-hidden shrink-0 border flex items-center justify-center ${
+                        {/* Product Detail & SKU */}
+                        <td className="py-3.5 px-5">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl overflow-hidden shrink-0 border flex items-center justify-center ${
                               isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'
                             }`}>
                               {item.image_url ? (
@@ -849,61 +759,95 @@ export default function ClerkDashboard() {
                                   className="w-full h-full object-cover" 
                                 />
                               ) : (
-                                <Package className="w-5 h-5 text-slate-400" />
+                                <Package className="w-4 h-4 text-slate-400" />
                               )}
                             </div>
-                            <div>
-                              <p className={`font-bold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            <div className="min-w-0">
+                              <p className={`font-bold text-sm leading-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 {item.name}
                               </p>
-                              <span className="text-[10px] font-mono text-slate-400">
-                                SKU-#{item.id}
-                              </span>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] font-mono font-bold text-slate-400">
+                                  {item.sku || `SKU-${(item.category || 'GEN').substring(0, 3).toUpperCase()}-${item.id}`}
+                                </span>
+                                <span className="text-[10px] text-slate-400">•</span>
+                                <span className="text-[10px] text-slate-400 font-semibold">{item.category || 'General'}</span>
+                              </div>
                             </div>
                           </div>
                         </td>
 
-                        {/* Category */}
-                        <td className="py-3.5 px-6">
-                          <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                            item.category === 'Vegetables' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' :
-                            item.category === 'Fruits' ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-800' :
-                            item.category === 'Supplies' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800' :
-                            'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                          }`}>
-                            {item.category || 'General'}
-                          </span>
+                        {/* Batch / Lot */}
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                          {item.batch_number ? (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold">
+                              {item.batch_number}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-[10px]">LOT-DEFAULT</span>
+                          )}
+                        </td>
+
+                        {/* Cost Price */}
+                        <td className="py-3.5 px-4 font-semibold text-slate-500 dark:text-slate-400">
+                          ₱{costPrice.toFixed(2)}
+                        </td>
+
+                        {/* Selling Price */}
+                        <td className="py-3.5 px-4 font-bold text-slate-800 dark:text-white">
+                          ₱{sellPrice.toFixed(2)}
+                        </td>
+
+                        {/* Unit Margin % */}
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="inline-flex flex-col items-center">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                              marginPct >= 35 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
+                                : marginPct >= 20 
+                                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                            }`}>
+                              +{marginPct.toFixed(1)}%
+                            </span>
+                            <span className="text-[9px] text-slate-400 mt-0.5">
+                              ₱{unitProfit.toFixed(2)}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* FIFO Expiry Status */}
+                        <td className="py-3.5 px-4">
+                          {item.expiry_date ? (
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border ${expiry.badgeClass}`}>
+                              <Clock className="w-3 h-3" />
+                              {expiry.label}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 italic">No Expiry Set</span>
+                          )}
                         </td>
 
                         {/* Stock Level */}
-                        <td className="py-3.5 px-6 text-center">
-                          <div className="inline-flex items-center gap-1.5">
-                            <span className={`font-extrabold text-sm ${
-                              isLow ? 'text-red-500' : isDark ? 'text-slate-200' : 'text-slate-800'
-                            }`}>
+                        <td className="py-3.5 px-4 text-center">
+                          <div className="inline-flex flex-col items-center">
+                            <span className={`font-extrabold ${isLow ? 'text-red-500' : isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                               {item.quantity} units
                             </span>
                             {isLow && (
-                              <span className="px-1.5 py-0.5 rounded-md bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase">
-                                Low
-                              </span>
+                              <span className="text-[9px] text-red-500 font-bold uppercase tracking-wider">Low</span>
                             )}
                           </div>
                         </td>
 
-                        {/* Unit Price */}
-                        <td className="py-3.5 px-6 font-bold text-[#00684a] dark:text-emerald-400">
-                          ₱{Number(item.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-
                         {/* Actions */}
-                        <td className="py-3.5 px-6 text-right">
+                        <td className="py-3.5 px-5 text-right">
                           <button 
                             onClick={() => openAdjustmentModal(item)}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold transition-all shadow-sm shadow-[#00684a]/20 active:scale-95"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold transition-all shadow-sm shadow-[#00684a]/20 active:scale-95 cursor-pointer"
                           >
                             <Sliders className="w-3.5 h-3.5" />
-                            <span>Adjust Stock</span>
+                            <span>Adjust</span>
                           </button>
                         </td>
                       </tr>
@@ -911,7 +855,7 @@ export default function ClerkDashboard() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="5" className="py-12 text-center text-slate-400 text-xs">
+                    <td colSpan="8" className="py-12 text-center text-slate-400 text-xs">
                       No products found matching your filter criteria.
                     </td>
                   </tr>
@@ -948,39 +892,43 @@ export default function ClerkDashboard() {
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
-              <div>
-                <h3 className="text-base font-extrabold">Adjust Product Stock</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Terminal logging for {selectedProduct.name}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center font-bold">
+                  <Sliders className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold leading-tight">Quick Stock Adjustment</h3>
+                  <p className="text-[11px] text-slate-400">Update warehouse floor count & log audit trail</p>
+                </div>
               </div>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-bold"
               >
                 ✕
               </button>
             </div>
 
-            {/* Current Status Pill */}
-            <div className={`p-3.5 rounded-2xl border flex items-center justify-between mb-5 ${
-              isDark ? 'bg-slate-800/40 border-slate-700/60' : 'bg-slate-50 border-slate-200/80'
-            }`}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
-                  <Package className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold leading-tight">{selectedProduct.name}</p>
-                  <p className="text-[10px] text-slate-400 font-mono">SKU-#{selectedProduct.id} • {selectedProduct.category}</p>
+            {/* Product Summary Preview */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between mb-5">
+              <div className="min-w-0 pr-3">
+                <h4 className="font-extrabold text-sm truncate">{selectedProduct.name}</h4>
+                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
+                  <span>{selectedProduct.sku || `SKU-#${selectedProduct.id}`}</span>
+                  <span>•</span>
+                  <span>{selectedProduct.batch_number || 'LOT-DEFAULT'}</span>
                 </div>
               </div>
-              <div className="text-right">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Current</span>
-                <span className="text-sm font-extrabold text-[#00684a] dark:text-emerald-400">{selectedProduct.quantity} units</span>
+              <div className="text-right shrink-0">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Current Stock</span>
+                <span className="text-base font-black text-[#00684a] dark:text-emerald-400">
+                  {selectedProduct.quantity} Units
+                </span>
               </div>
             </div>
 
-            {/* Adjustment Type Switcher */}
             <div className="space-y-4">
+              {/* Type Select */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">
                   Action Type
@@ -989,78 +937,53 @@ export default function ClerkDashboard() {
                   <button
                     type="button"
                     onClick={() => setAdjustmentType('add')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                       adjustmentType === 'add'
                         ? 'bg-[#00684a] text-white border-[#00684a] shadow-xs'
-                        : `${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`
+                        : `${isDark ? 'border-slate-700 bg-slate-800 text-slate-300' : 'border-slate-200 bg-white text-slate-600'}`
                     }`}
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Restock</span>
+                    <Plus className="w-3.5 h-3.5" /> Restock
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setAdjustmentType('subtract')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                       adjustmentType === 'subtract'
-                        ? 'bg-red-600 text-white border-red-600 shadow-xs'
-                        : `${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                        : `${isDark ? 'border-slate-700 bg-slate-800 text-slate-300' : 'border-slate-200 bg-white text-slate-600'}`
                     }`}
                   >
-                    <Minus className="w-3.5 h-3.5" />
-                    <span>Deduct</span>
+                    <Minus className="w-3.5 h-3.5" /> Dispatch
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setAdjustmentType('set')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                    className={`py-2 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
                       adjustmentType === 'set'
                         ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                        : `${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-700'}`
+                        : `${isDark ? 'border-slate-700 bg-slate-800 text-slate-300' : 'border-slate-200 bg-white text-slate-600'}`
                     }`}
                   >
-                    <Sliders className="w-3.5 h-3.5" />
-                    <span>Override</span>
+                    Exact Count
                   </button>
                 </div>
               </div>
 
-              {/* Quantity Input & Fast Presets */}
+              {/* Amount Input */}
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">
-                  Amount
+                  {adjustmentType === 'set' ? 'New Exact Quantity' : 'Adjustment Units'}
                 </label>
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="number"
-                    min="1"
-                    value={adjustmentAmount}
-                    onChange={(e) => setAdjustmentAmount(Math.max(0, parseInt(e.target.value) || 0))}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-sm font-extrabold outline-none ${
-                      isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
-                    }`}
-                  />
-                </div>
-
-                {/* Quick Presets */}
-                <div className="flex items-center gap-1.5 mt-2">
-                  {[1, 5, 10, 25, 50].map(val => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setAdjustmentAmount(val)}
-                      className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold transition-all ${
-                        adjustmentAmount === val 
-                          ? 'bg-[#00684a]/10 border-[#00684a] text-[#00684a] dark:text-emerald-400' 
-                          : `${isDark ? 'border-slate-700 bg-slate-800/60 text-slate-400' : 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200'}`
-                      }`}
-                    >
-                      +{val}
-                    </button>
-                  ))}
-                </div>
+                <input
+                  type="number"
+                  min="1"
+                  value={adjustmentAmount}
+                  onChange={(e) => setAdjustmentAmount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm font-bold outline-none ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                  }`}
+                />
               </div>
 
               {/* Reason / Notes */}
@@ -1077,7 +1000,7 @@ export default function ClerkDashboard() {
                 >
                   <option value="Weekly Restock">Weekly Restock</option>
                   <option value="Supplier Batch Delivery">Supplier Batch Delivery</option>
-                  <option value="Damaged Goods Removal">Damaged Goods Removal</option>
+                  <option value="Damaged / Expired Goods Removal">Damaged / Expired Goods Removal</option>
                   <option value="Physical Inventory Audit">Physical Inventory Audit</option>
                   <option value="Manual Correction">Manual Correction</option>
                 </select>
@@ -1111,21 +1034,21 @@ export default function ClerkDashboard() {
       )}
 
       {/* ========================================================= */}
-      {/* 6. CLERK ADD PRODUCT MODAL */}
+      {/* 4. CLERK ADD PRODUCT MODAL */}
       {/* ========================================================= */}
       {isAddProductModalOpen && (
         <div className="fixed inset-0 backdrop-blur-xs bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className={`w-full max-w-md rounded-3xl p-7 border shadow-xl ${
+          <div className={`w-full max-w-lg rounded-3xl p-7 border shadow-2xl max-h-[90vh] overflow-y-auto ${
             isDark ? 'bg-[#0f172a] border-slate-800 text-white' : 'bg-white border-slate-100 text-slate-900'
           }`}>
             <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-[#00684a] text-white flex items-center justify-center">
-                  <Plus className="w-4 h-4" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#00684a] text-white flex items-center justify-center">
+                  <Plus className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-base font-black tracking-tight">Register New Product</h2>
-                  <p className="text-[11px] text-slate-400">Add an item to the warehouse catalog</p>
+                  <p className="text-[11px] text-slate-400">Add an item with cost, SKU and FIFO batch details</p>
                 </div>
               </div>
               <button 
@@ -1136,7 +1059,7 @@ export default function ClerkDashboard() {
               </button>
             </div>
             
-            <div className="space-y-3.5">
+            <div className="space-y-4">
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
                   Product Name *
@@ -1165,46 +1088,136 @@ export default function ClerkDashboard() {
                       isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
                     }`}
                   >
-                    <option value="Vegetables">Vegetables</option>
-                    <option value="Fruits">Fruits</option>
-                    <option value="Supplies">Supplies</option>
-                    <option value="Canned Goods">Canned Goods</option>
-                    <option value="Raw Materials">Raw Materials</option>
+                    {categoriesList.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
 
                 <div>
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-                    Unit Valuation (₱) *
+                    SKU Code (Optional)
                   </label>
                   <input 
-                    type="number" 
-                    placeholder="0.00"
-                    step="0.01"
-                    value={newProduct.price || ''}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                    type="text" 
+                    placeholder="e.g. SKU-APP-001"
+                    value={newProduct.sku}
+                    onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
                     className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
-                      isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
+                      isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
                     }`}
-                    required
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-                  Initial Warehouse Stock Quantity
-                </label>
-                <input 
-                  type="number" 
-                  placeholder="0"
-                  min="0"
-                  value={newProduct.quantity || ''}
-                  onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value, 10) || 0 })}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
-                    isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
-                  }`}
-                />
+              {/* Pricing & Cost Margin Section */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#00684a] dark:text-emerald-400 block">
+                  Valuation & Cost Price
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                      Cost Price (₱)
+                    </label>
+                    <input 
+                      type="number" 
+                      placeholder="0.00"
+                      step="0.01"
+                      value={newProduct.cost_price}
+                      onChange={(e) => setNewProduct({ ...newProduct, cost_price: e.target.value })}
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs font-semibold outline-none ${
+                        isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                      Selling Price (₱) *
+                    </label>
+                    <input 
+                      type="number" 
+                      placeholder="0.00"
+                      step="0.01"
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs font-semibold outline-none ${
+                        isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                      }`}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* FIFO Batch & Expiry Date */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 space-y-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#00684a] dark:text-emerald-400 block">
+                  FIFO Batch & Expiry
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                      Batch / Lot #
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. LOT-202609-02"
+                      value={newProduct.batch_number}
+                      onChange={(e) => setNewProduct({ ...newProduct, batch_number: e.target.value })}
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs font-semibold outline-none ${
+                        isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                      Expiry Date
+                    </label>
+                    <input 
+                      type="date" 
+                      value={newProduct.expiry_date}
+                      onChange={(e) => setNewProduct({ ...newProduct, expiry_date: e.target.value })}
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs font-semibold outline-none ${
+                        isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                    Initial Stock Quantity
+                  </label>
+                  <input 
+                    type="number" 
+                    placeholder="0"
+                    min="0"
+                    value={newProduct.quantity || ''}
+                    onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value, 10) || 0 })}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                    Min Stock Threshold
+                  </label>
+                  <input 
+                    type="number" 
+                    placeholder="5"
+                    min="1"
+                    value={newProduct.min_threshold || 5}
+                    onChange={(e) => setNewProduct({ ...newProduct, min_threshold: parseInt(e.target.value, 10) || 5 })}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
               </div>
 
               <div>
@@ -1237,7 +1250,7 @@ export default function ClerkDashboard() {
                   onClick={handleAddProduct}
                   className="flex-1 py-2.5 bg-[#00684a] text-white rounded-xl text-xs font-extrabold shadow-md shadow-[#00684a]/20 hover:bg-[#005a3f] transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmitting ? "Creating Item..." : "Register Product"}
+                  {isSubmitting ? "Registering..." : "Save Product"}
                 </button>
               </div>
             </div>

@@ -79,10 +79,38 @@ app.get('/api/stock-history', async (req, res) => {
     try {
         let rows = [];
         try {
-            [rows] = await db.query('SELECT * FROM stock_history ORDER BY id DESC');
+            [rows] = await db.query(`
+                SELECT 
+                    sh.id, 
+                    sh.product_id, 
+                    COALESCE(p.name, CONCAT('Product #', sh.product_id)) AS product_name,
+                    p.image_url,
+                    p.category,
+                    sh.user_name, 
+                    sh.change_amount, 
+                    sh.action_type, 
+                    sh.reference_no,
+                    sh.notes,
+                    sh.created_at 
+                FROM stock_history sh
+                LEFT JOIN products p ON sh.product_id = p.id
+                ORDER BY sh.id DESC
+            `);
         } catch (e) {
             try {
-                [rows] = await db.query('SELECT id, product_id, clerk_name AS user_name, adjustment AS change_amount, created_at FROM stock_logs ORDER BY id DESC');
+                [rows] = await db.query(`
+                    SELECT 
+                        sl.id, 
+                        sl.product_id, 
+                        COALESCE(sl.product_name, p.name, CONCAT('Product #', sl.product_id)) AS product_name, 
+                        sl.clerk_name AS user_name, 
+                        sl.adjustment AS change_amount, 
+                        'adjustment' AS action_type,
+                        sl.created_at 
+                    FROM stock_logs sl
+                    LEFT JOIN products p ON sl.product_id = p.id
+                    ORDER BY sl.id DESC
+                `);
             } catch (err2) {
                 rows = [];
             }

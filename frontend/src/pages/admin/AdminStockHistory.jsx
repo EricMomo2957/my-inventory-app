@@ -7,6 +7,7 @@ import TablePagination from '../../components/TablePagination';
 export default function AdminStockHistory() {
   const { isDark } = useTheme();
   const [history, setHistory] = useState([]);
+  const [productsMap, setProductsMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,28 +16,48 @@ export default function AdminStockHistory() {
 
   const fetchHistory = () => {
     setLoading(true);
-    fetch('http://localhost:3000/api/stock-history')
-      .then(res => res.json())
-      .then(data => {
-        setHistory(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Error fetching history:", err);
-        setHistory([]);
-        setLoading(false);
-      });
+    Promise.all([
+      fetch('http://localhost:3000/api/stock-history').then(res => res.json()).catch(() => []),
+      fetch('http://localhost:3000/api/products').then(res => res.json()).catch(() => [])
+    ]).then(([historyData, productsData]) => {
+      const pMap = {};
+      if (Array.isArray(productsData)) {
+        productsData.forEach(p => {
+          pMap[p.id] = p;
+        });
+      }
+      setProductsMap(pMap);
+      setHistory(Array.isArray(historyData) ? historyData : []);
+      setLoading(false);
+    }).catch(err => {
+      console.error("Error fetching history:", err);
+      setHistory([]);
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
     fetchHistory();
   }, []);
 
-  const filteredHistory = history.filter(item => 
-    (item.product_name || item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.reason || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getProductName = (log) => {
+    if (log.product_name && !log.product_name.startsWith('Product #')) {
+      return log.product_name;
+    }
+    if (log.product_id && productsMap[log.product_id]?.name) {
+      return productsMap[log.product_id].name;
+    }
+    return log.product_name || (log.product_id ? `Product #${log.product_id}` : 'General Stock Item');
+  };
+
+  const filteredHistory = history.filter(item => {
+    const prodName = getProductName(item);
+    return prodName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.action_type || item.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.user_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.reference_no || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   const displayedHistory = isExpanded 
     ? filteredHistory 
@@ -116,17 +137,28 @@ export default function AdminStockHistory() {
               </tr>
             ) : displayedHistory.length > 0 ? (
               displayedHistory.map((log) => {
-                const isRestock = log.action_type === 'restock' || (log.change_amount > 0);
+                const isRestock = log.action_type === 'restock' || log.action_type === 'stock_in' || (log.change_amount > 0);
+                const isRecon = log.action_type === 'reconciliation';
+                const displayName = getProductName(log);
+                const category = log.category || (log.product_id && productsMap[log.product_id]?.category);
+
                 return (
                   <tr key={log.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
                     <td className="py-4 px-6">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-mono text-[10px]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold shrink-0">
                           #{log.product_id || '—'}
                         </div>
-                        <span className="font-mono text-xs text-slate-400">
-                          {log.product_name ? log.product_name : `Product #${log.product_id}`}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <span className={`font-bold text-xs truncate max-w-[220px] ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                            {displayName}
+                          </span>
+                          {category && (
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                              {category}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 px-6">
@@ -141,18 +173,22 @@ export default function AdminStockHistory() {
                     </td>
                     <td className="py-4 px-6">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                        isRestock 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' 
-                          : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800'
+                        isRecon
+                          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800'
+                          : isRestock 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' 
+                            : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800'
                       }`}>
-                        {isRestock ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                        {isRestock ? 'Restock / Inflow' : 'Sale / Deduction'}
+                        {isRecon ? <Layers className="w-3 h-3" /> : (isRestock ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />)}
+                        {isRecon ? 'Audit Reconciliation' : (isRestock ? 'Restock / Inflow' : 'Dispatch / Outflow')}
                       </span>
                     </td>
                     <td className={`py-4 px-6 text-center font-extrabold ${
-                      isRestock ? 'text-[#00684a] dark:text-emerald-400' : 'text-red-500'
+                      isRecon
+                        ? (log.change_amount > 0 ? 'text-emerald-400' : log.change_amount < 0 ? 'text-amber-400' : 'text-slate-400')
+                        : (isRestock ? 'text-[#00684a] dark:text-emerald-400' : 'text-red-500')
                     }`}>
-                      {isRestock ? '+' : '-'}{Math.abs(log.change_amount || 1)}
+                      {log.change_amount > 0 ? `+${log.change_amount}` : log.change_amount}
                     </td>
                     <td className="py-4 px-6 text-right text-xs text-slate-400 font-medium">
                       {new Date(log.created_at || Date.now()).toLocaleString('en-US', {

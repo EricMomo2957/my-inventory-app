@@ -37,16 +37,46 @@ exports.getProductById = async (req, res) => {
 // 3. CREATE PRODUCT
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, quantity, price } = req.body;
+        const { name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold } = req.body;
         const uploadedFile = (req.files?.image && req.files.image[0]) || (req.files?.productImage && req.files.productImage[0]);
         const imageUrl = uploadedFile ? `/uploads/${uploadedFile.filename}` : null;
 
-        const sql = 'INSERT INTO products (name, category, quantity, price, image_url) VALUES (?, ?, ?, ?, ?)';
-        const [result] = await db.query(sql, [name, category, quantity || 0, price || 0, imageUrl]);
+        const cost = cost_price !== undefined && cost_price !== '' ? parseFloat(cost_price) : Math.round((parseFloat(price) || 0) * 0.65 * 100) / 100;
+        const generatedSku = sku || `SKU-${(category || 'GEN').substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+        const generatedBatch = batch_number || `LOT-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(10 + Math.random() * 90)}`;
+        const expiry = expiry_date || null;
+        const threshold = min_threshold !== undefined ? parseInt(min_threshold) : 5;
+
+        const sql = `INSERT INTO products (name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold, image_url) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const [result] = await db.query(sql, [
+            name, 
+            category || 'General', 
+            quantity || 0, 
+            price || 0, 
+            cost, 
+            generatedSku, 
+            generatedBatch, 
+            expiry, 
+            threshold, 
+            imageUrl
+        ]);
+
+        // Also record initial batch if quantity > 0
+        if (parseInt(quantity) > 0) {
+            try {
+                await db.query(`
+                    INSERT INTO product_batches (product_id, batch_number, supplier, quantity_received, quantity_remaining, cost_price, expiry_date)
+                    VALUES (?, ?, 'Initial Registration', ?, ?, ?, ?)
+                `, [result.insertId, generatedBatch, quantity, quantity, cost, expiry]);
+            } catch (bErr) {
+                console.warn("Initial batch log skipped:", bErr.message);
+            }
+        }
         
         res.status(201).json({ 
             success: true, 
-            message: "Product added successfully", 
+            message: "Product added successfully with Cost and Batch details", 
             id: result.insertId,
             imageUrl: imageUrl 
         });
@@ -59,7 +89,7 @@ exports.createProduct = async (req, res) => {
 // 4. UPDATE PRODUCT (With image upload and audit logging)
 exports.updateProduct = async (req, res) => {
     const productId = req.params.id;
-    const { name, category, quantity, price, adjustment, clerk_name } = req.body;
+    const { name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold, adjustment, clerk_name } = req.body;
 
     let connection;
     try {
@@ -78,6 +108,11 @@ exports.updateProduct = async (req, res) => {
         const newCategory = category !== undefined ? category : existing.category;
         const newQuantity = quantity !== undefined ? parseInt(quantity) : existing.quantity;
         const newPrice = price !== undefined ? parseFloat(price) : existing.price;
+        const newCost = cost_price !== undefined ? parseFloat(cost_price) : existing.cost_price;
+        const newSku = sku !== undefined ? sku : existing.sku;
+        const newBatch = batch_number !== undefined ? batch_number : existing.batch_number;
+        const newExpiry = expiry_date !== undefined ? expiry_date : existing.expiry_date;
+        const newThreshold = min_threshold !== undefined ? parseInt(min_threshold) : existing.min_threshold;
 
         const uploadedFile = (req.files?.image && req.files.image[0]) || (req.files?.productImage && req.files.productImage[0]);
         let newImageUrl = existing.image_url;
@@ -85,8 +120,22 @@ exports.updateProduct = async (req, res) => {
             newImageUrl = `/uploads/${uploadedFile.filename}`;
         }
 
-        const updateSql = 'UPDATE products SET name = ?, category = ?, quantity = ?, price = ?, image_url = ? WHERE id = ?';
-        await connection.query(updateSql, [newName, newCategory, newQuantity, newPrice, newImageUrl, productId]);
+        const updateSql = `UPDATE products 
+                           SET name = ?, category = ?, quantity = ?, price = ?, cost_price = ?, sku = ?, batch_number = ?, expiry_date = ?, min_threshold = ?, image_url = ? 
+                           WHERE id = ?`;
+        await connection.query(updateSql, [
+            newName, 
+            newCategory, 
+            newQuantity, 
+            newPrice, 
+            newCost, 
+            newSku, 
+            newBatch, 
+            newExpiry, 
+            newThreshold, 
+            newImageUrl, 
+            productId
+        ]);
 
         // Audit Logging
         if (adjustment || newQuantity !== oldQuantity) {
@@ -191,12 +240,43 @@ exports.batchStockIn = async (req, res) => {
             const qty = parseInt(item.quantity, 10);
             if (isNaN(qty) || qty <= 0) continue;
 
-            await connection.query(
-                'UPDATE products SET quantity = quantity + ? WHERE id = ?',
-                [qty, item.id]
-            );
+            const batchNo = item.batch_number || `LOT-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(10 + Math.random() * 90)}`;
+            const expiry = item.expiry_date || null;
+            const cost = item.cost_price ? parseFloat(item.cost_price) : null;
 
-            const auditNotes = `Supplier: ${sup}. ${notes ? notes : ''}`.trim();
+            // Update product quantity, and optionally update batch / expiry / cost
+            let updateSql = 'UPDATE products SET quantity = quantity + ?';
+            const params = [qty];
+
+            if (batchNo) {
+                updateSql += ', batch_number = ?';
+                params.push(batchNo);
+            }
+            if (expiry) {
+                updateSql += ', expiry_date = ?';
+                params.push(expiry);
+            }
+            if (cost) {
+                updateSql += ', cost_price = ?';
+                params.push(cost);
+            }
+
+            updateSql += ' WHERE id = ?';
+            params.push(item.id);
+
+            await connection.query(updateSql, params);
+
+            // Insert into product_batches table for FIFO tracking
+            try {
+                await connection.query(`
+                    INSERT INTO product_batches (product_id, batch_number, supplier, quantity_received, quantity_remaining, cost_price, expiry_date)
+                    VALUES (?, ?, ?, ?, ?, COALESCE(?, 0), ?)
+                `, [item.id, batchNo, sup, qty, qty, cost, expiry]);
+            } catch (bErr) {
+                console.warn("Batch record skipped:", bErr.message);
+            }
+
+            const auditNotes = `Supplier: ${sup}. Batch: ${batchNo}. ${expiry ? `Expiry: ${expiry}. ` : ''}${notes ? notes : ''}`.trim();
             await connection.query(
                 'INSERT INTO stock_history (product_id, user_name, change_amount, action_type, reference_no, notes) VALUES (?, ?, ?, "stock_in", ?, ?)',
                 [item.id, clerk, qty, refNo, auditNotes]
