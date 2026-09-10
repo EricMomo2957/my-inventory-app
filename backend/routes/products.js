@@ -21,6 +21,8 @@ const upload = multer({ storage: storage });
 
 // Product Endpoints
 router.get('/', productController.getAllProducts);
+router.post('/batch-stock-in', productController.batchStockIn);
+router.post('/batch-reconciliation', productController.batchReconciliation);
 router.get('/:id', productController.getProductById);
 router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'productImage', maxCount: 1 }]), productController.createProduct);
 router.put('/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'productImage', maxCount: 1 }]), productController.updateProduct);

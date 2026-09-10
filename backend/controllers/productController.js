@@ -169,3 +169,105 @@ exports.restockProduct = async (req, res) => {
         res.status(500).json({ error: "Restock operation failed" });
     }
 };
+
+// 7. BATCH INBOUND STOCK RECEIVING (Supplier Delivery)
+exports.batchStockIn = async (req, res) => {
+    const { items, supplier, reference_no, clerk_name, notes } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ success: false, message: "No items provided for inbound receiving" });
+    }
+
+    let connection;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        const clerk = clerk_name || 'Warehouse Clerk';
+        const refNo = reference_no || `REC-${Date.now()}`;
+        const sup = supplier || 'General Supplier';
+
+        for (const item of items) {
+            const qty = parseInt(item.quantity, 10);
+            if (isNaN(qty) || qty <= 0) continue;
+
+            await connection.query(
+                'UPDATE products SET quantity = quantity + ? WHERE id = ?',
+                [qty, item.id]
+            );
+
+            const auditNotes = `Supplier: ${sup}. ${notes ? notes : ''}`.trim();
+            await connection.query(
+                'INSERT INTO stock_history (product_id, user_name, change_amount, action_type, reference_no, notes) VALUES (?, ?, ?, "stock_in", ?, ?)',
+                [item.id, clerk, qty, refNo, auditNotes]
+            );
+        }
+
+        await connection.commit();
+        res.json({ 
+            success: true, 
+            message: `Successfully received and stocked ${items.length} items from ${sup}.`,
+            reference_no: refNo
+        });
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error("Batch Stock In Error:", err);
+        res.status(500).json({ success: false, message: "Inbound receiving failed: " + err.message });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+// 8. BATCH CYCLE COUNT RECONCILIATION
+exports.batchReconciliation = async (req, res) => {
+    const { items, clerk_name, reference_no, notes } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ success: false, message: "No reconciliation items provided" });
+    }
+
+    let connection;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        const clerk = clerk_name || 'Inventory Auditor';
+        const refNo = reference_no || `AUDIT-${Date.now()}`;
+
+        for (const item of items) {
+            const physicalCount = parseInt(item.physical_count, 10);
+            const recordedCount = parseInt(item.recorded_count, 10);
+            const variance = physicalCount - recordedCount;
+            const reason = item.reason || 'Cycle Count Audit Adjustment';
+
+            if (isNaN(physicalCount)) continue;
+
+            // Set the exact physical count as the new quantity
+            await connection.query(
+                'UPDATE products SET quantity = ? WHERE id = ?',
+                [physicalCount, item.id]
+            );
+
+            // Log the adjustment in stock_history
+            const auditNotes = `Variance: ${variance >= 0 ? '+' : ''}${variance}. Reason: ${reason}. ${notes || ''}`.trim();
+            await connection.query(
+                'INSERT INTO stock_history (product_id, user_name, change_amount, action_type, reference_no, notes) VALUES (?, ?, ?, "reconciliation", ?, ?)',
+                [item.id, clerk, variance, refNo, auditNotes]
+            );
+        }
+
+        await connection.commit();
+        res.json({ 
+            success: true, 
+            message: `Successfully reconciled ${items.length} inventory items.`,
+            reference_no: refNo
+        });
+    } catch (err) {
+        if (connection) await connection.rollback();
+        console.error("Batch Reconciliation Error:", err);
+        res.status(500).json({ success: false, message: "Reconciliation failed: " + err.message });
+    } finally {
+        if (connection) connection.release();
+    }
+};
+

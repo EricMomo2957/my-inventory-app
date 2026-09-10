@@ -3,7 +3,9 @@ import { NavLink } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { 
   LayoutDashboard, 
+  PackagePlus, 
   Truck, 
+  Scale, 
   CalendarDays, 
   User, 
   Settings, 
@@ -19,7 +21,9 @@ const ClerkSidenav = ({ user, onLogout }) => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/clerk/ClerkDashboard', icon: LayoutDashboard },
+    { name: 'Stock In (Receive)', path: '/clerk/stock-in', icon: PackagePlus },
     { name: 'Stock Dispatch', path: '/clerk/order', icon: Truck },
+    { name: 'Cycle Count Audit', path: '/clerk/cycle-count', icon: Scale },
     { name: 'Calendar', path: '/clerk/clerkCalendar', icon: CalendarDays },
     { name: 'Profile', path: '/clerk/clerkProfile', icon: User },
     { name: 'Settings', path: '/clerk/clerkSetting', icon: Settings },

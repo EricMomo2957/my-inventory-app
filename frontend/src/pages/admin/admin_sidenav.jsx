@@ -3,10 +3,11 @@ import { NavLink } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { 
   LayoutDashboard, 
+  PackagePlus,
+  Scale,
   CalendarDays, 
   Users, 
   History, 
-  BarChart3, 
   MessageSquare, 
   Settings, 
   LogOut, 
@@ -30,10 +31,12 @@ export default function AdminSideNav() {
 
   const menuItems = [
     { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Calendar', path: '/calendar', icon: CalendarDays },
-    { name: 'Staff & Users', path: '/admin/users', icon: Users },
+    { name: 'Stock In (Receive)', path: '/admin/stock-in', icon: PackagePlus },
+    { name: 'Cycle Count Audit', path: '/admin/cycle-count', icon: Scale },
+    { name: 'Staff Management', path: '/admin/users', icon: Users },
     { name: 'Stock Movement', path: '/admin/history', icon: History },
     { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
+    { name: 'Calendar', path: '/calendar', icon: CalendarDays },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 

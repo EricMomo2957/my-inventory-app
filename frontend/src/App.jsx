@@ -17,9 +17,11 @@ import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 
-// Private Pages - Clerk Folder
+// Private Pages - Clerk & Warehouse Operations
 import ClerkDashboard from './pages/clerk/ClerkDashboard';
 import ClerkOrderManagement from './pages/clerk/order';
+import InboundReceiving from './pages/clerk/InboundReceiving';
+import CycleCountReconciliation from './pages/clerk/CycleCountReconciliation';
 import ClerkCalendar from './pages/clerk/clerkCalendar';
 import ClerkSetting from './pages/clerk/clerkSetting';
 import ClerkProfile from './pages/clerk/clerkProfile';
@@ -133,12 +135,16 @@ export default function App() {
 
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
+              <Route path="/clerk/stock-in" element={<InboundReceiving />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
+              <Route path="/clerk/cycle-count" element={<CycleCountReconciliation />} />
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
               <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
               <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
               
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
+              <Route path="/admin/stock-in" element={<InboundReceiving />} />
+              <Route path="/admin/cycle-count" element={<CycleCountReconciliation />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/admin/settings" element={<AdminSetting />} /> 
               <Route path="/admin/view-profile" element={<AdminProfile />} />
