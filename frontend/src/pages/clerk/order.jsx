@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext'; 
 import axios from 'axios';
+import TablePagination from '../../components/TablePagination';
 
 export default function Order() {
   const { isDark } = useTheme(); 
@@ -16,6 +17,9 @@ export default function Order() {
   const [quantities, setQuantities] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
 
   // --- DATA FETCHING ---
   useEffect(() => {
@@ -97,6 +101,14 @@ export default function Order() {
     return matchesSearch && matchesCategory;
   });
 
+  const displayedProducts = isExpanded
+    ? filteredProducts
+    : filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeCategory]);
+
   return (
     <div className={`w-full min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-700">
@@ -162,7 +174,7 @@ export default function Order() {
 
         {/* --- PRODUCT GRID --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map(item => (
+          {displayedProducts.map(item => (
             <div key={item.id} className={`p-5 rounded-3xl group border transition-all duration-500 flex flex-col hover:shadow-2xl ${
               isDark ? 'bg-[#111827]/40 border-slate-800 hover:border-[#4361ee]/50' : 'bg-white border-slate-200 hover:border-[#4361ee]/30'
             }`}>
@@ -210,6 +222,19 @@ export default function Order() {
             </div>
           ))}
         </div>
+
+        {/* Table Pagination Component */}
+        {filteredProducts.length > 0 && (
+          <TablePagination 
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            isExpanded={isExpanded}
+            onToggleExpand={() => setIsExpanded(!isExpanded)}
+            itemLabel="products"
+          />
+        )}
       </div>
 
       {/* --- CART MODAL --- */}

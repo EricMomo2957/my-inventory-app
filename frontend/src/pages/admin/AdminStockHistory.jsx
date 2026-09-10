@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { History, ArrowUpRight, ArrowDownRight, RefreshCw, Layers } from 'lucide-react';
+import AdminHeader from './AdminHeader';
+import TablePagination from '../../components/TablePagination';
 
 export default function AdminStockHistory() {
   const { isDark } = useTheme();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
 
   const fetchHistory = () => {
     setLoading(true);
@@ -26,20 +32,43 @@ export default function AdminStockHistory() {
     fetchHistory();
   }, []);
 
+  const filteredHistory = history.filter(item => 
+    (item.product_name || item.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.reason || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayedHistory = isExpanded 
+    ? filteredHistory 
+    : filteredHistory.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
-    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 p-8 space-y-7 ${
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
     }`}>
-      {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Stock Movement & Audit Trail
-          </h1>
-          <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Immutable transaction records for inventory restocks, deductions, and sales
-          </p>
-        </div>
+      {/* Top Header Bar */}
+      <AdminHeader 
+        title="Stock Movement"
+        subtitle="Immutable Audit Trail of Inventory Transactions"
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
+
+      <div className="flex-1 overflow-y-auto p-8 space-y-7">
+        {/* Header Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Stock Movement & Audit Trail
+            </h1>
+            <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Immutable transaction records for inventory restocks, deductions, and sales
+            </p>
+          </div>
         
         <div className="flex items-center gap-3">
           <div className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold ${
@@ -85,8 +114,8 @@ export default function AdminStockHistory() {
                   Loading Audit Logs...
                 </td>
               </tr>
-            ) : history.length > 0 ? (
-              history.map((log) => {
+            ) : displayedHistory.length > 0 ? (
+              displayedHistory.map((log) => {
                 const isRestock = log.action_type === 'restock' || (log.change_amount > 0);
                 return (
                   <tr key={log.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
@@ -146,6 +175,20 @@ export default function AdminStockHistory() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Component */}
+      {filteredHistory.length > 0 && (
+        <TablePagination 
+          currentPage={currentPage}
+          totalItems={filteredHistory.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          isExpanded={isExpanded}
+          onToggleExpand={() => setIsExpanded(!isExpanded)}
+          itemLabel="transactions"
+        />
+      )}
       </div>
     </div>
   );

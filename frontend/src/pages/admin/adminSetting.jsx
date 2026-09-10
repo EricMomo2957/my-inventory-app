@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import AdminHeader from './AdminHeader';
 
 export default function AdminSetting() {
   const { isDark, toggleTheme } = useTheme();
@@ -46,8 +47,12 @@ export default function AdminSetting() {
   ];
 
   return (
-    // Changed: p-4/p-8 to p-0 so it can touch the edges if needed, though kept a small margin for aesthetics
-    <div className={`min-h-[calc(100vh-2rem)] m-4 flex items-stretch justify-center transition-colors duration-500 ${isDark ? 'bg-[#0b1120]' : 'bg-slate-100'}`}>
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${isDark ? 'bg-[#0b1120]' : 'bg-[#f8fafc]'}`}>
+      <AdminHeader 
+        title="System Settings" 
+        subtitle="Account Preferences, Security & Configuration" 
+      />
+      <div className="flex-1 overflow-y-auto p-8 flex items-stretch justify-center">
       
       {/* Changed: max-w-5xl to max-w-[1400px] and min-h-[80vh] to expand the box */}
       <div className={`w-full max-w-425 min-h-187.5 flex flex-col md:flex-row rounded-[2.5rem] shadow-2xl border overflow-hidden transition-all duration-500 ${isDark ? 'bg-[#111827] border-slate-800 shadow-black/50' : 'bg-white border-white shadow-slate-300'}`}>
@@ -158,6 +163,7 @@ export default function AdminSetting() {
             </div>
           )}
         </main>
+      </div>
       </div>
     </div>
   );

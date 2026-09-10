@@ -3,16 +3,19 @@ import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useTheme } from '../../context/ThemeContext';
+import TablePagination from '../../components/TablePagination';
 
 export default function Orders() {
   const { isDark } = useTheme();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
   const userId = localStorage.getItem('userId');
 
   const fetchOrders = useCallback(async () => {
     try {
-      // Ensure your backend is running the improved version we discussed
       const res = await axios.get(`http://localhost:3000/api/orders/${userId}`);
       setOrders(res.data);
     } catch (err) {
@@ -25,6 +28,10 @@ export default function Orders() {
   useEffect(() => {
     if (userId) fetchOrders();
   }, [fetchOrders, userId]);
+
+  const displayedOrders = isExpanded
+    ? orders
+    : orders.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Logic: Calculate totals from the order list
   const totalItemsPurchased = orders.reduce((sum, order) => sum + (parseInt(order.quantity) || 0), 0);
@@ -121,7 +128,7 @@ export default function Orders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-500/5">
-              {orders.map((order) => (
+              {displayedOrders.map((order) => (
                 <tr key={order.id} className={`group transition-all ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/80'}`}>
                   <td className="p-6">
                     <span className="font-bold text-blue-500 text-sm block">#ORD-{order.id}</span>
@@ -175,6 +182,19 @@ export default function Orders() {
           </div>
         )}
       </div>
+
+      {/* Pagination Component */}
+      {orders.length > 0 && (
+        <TablePagination 
+          currentPage={currentPage}
+          totalItems={orders.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          isExpanded={isExpanded}
+          onToggleExpand={() => setIsExpanded(!isExpanded)}
+          itemLabel="orders"
+        />
+      )}
     </div>
   );
 }

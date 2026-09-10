@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTheme } from '../../context/ThemeContext';
+import TablePagination from '../../components/TablePagination';
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -10,12 +11,12 @@ export default function UserDashboard() {
   // --- State ---
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState(JSON.parse(localStorage.getItem('userCart')) || []);
-  
-  // UPDATED: Favorites now fetch from the DB instead of localStorage
   const [favorites, setFavorites] = useState([]);
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedQtys, setSelectedQtys] = useState({});
@@ -61,6 +62,14 @@ export default function UserDashboard() {
     const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const displayedProducts = isExpanded 
+    ? filteredProducts 
+    : filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
@@ -208,8 +217,8 @@ export default function UserDashboard() {
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-        {filteredProducts.map(product => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {displayedProducts.map(product => {
           const isOut = product.quantity <= 0;
           const isFav = favorites.includes(product.id);
           const currentQty = selectedQtys[product.id] || 1;
@@ -283,6 +292,21 @@ export default function UserDashboard() {
           );
         })}
       </div>
+
+      {/* Pagination Component */}
+      {filteredProducts.length > 0 && (
+        <div className="mb-16">
+          <TablePagination 
+            currentPage={currentPage}
+            totalItems={filteredProducts.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            isExpanded={isExpanded}
+            onToggleExpand={() => setIsExpanded(!isExpanded)}
+            itemLabel="products"
+          />
+        </div>
+      )}
 
       {/* Cart Button */}
       <button 

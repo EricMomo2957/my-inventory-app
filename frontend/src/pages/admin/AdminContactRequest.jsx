@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { MessageSquare, RefreshCw, Trash2, Mail } from 'lucide-react';
+import AdminHeader from './AdminHeader';
+import TablePagination from '../../components/TablePagination';
 
 export default function AdminContactRequest() {
   const { isDark } = useTheme();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState(null); // Track which item is being deleted
+  const [deletingId, setDeletingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -43,14 +50,53 @@ export default function AdminContactRequest() {
     fetchRequests();
   }, []);
 
+  const filteredRequests = requests.filter(req => 
+    (req.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (req.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (req.message || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayedRequests = isExpanded
+    ? filteredRequests
+    : filteredRequests.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
-    <div className={`p-8 space-y-8 min-h-screen transition-colors duration-500 ${isDark ? 'bg-[#0b1120]' : 'bg-slate-50'}`}>
-      <header>
-        <h1 className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Contact Inquiries</h1>
-        <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          Reviewing user feedback and support requests.
-        </p>
-      </header>
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
+      isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
+    }`}>
+      {/* Top Header Bar */}
+      <AdminHeader 
+        title="Contact Inquiries"
+        subtitle="Customer Feedback & Support Requests"
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
+
+      <div className="flex-1 overflow-y-auto p-8 space-y-7">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Contact Inquiries & Feedback
+            </h1>
+            <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Review incoming user feedback, support requests, and messages
+            </p>
+          </div>
+
+          <button 
+            onClick={fetchRequests}
+            className={`p-2.5 rounded-xl border transition-colors ${
+              isDark ? 'border-slate-800 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+            }`}
+            title="Refresh Inquiries"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
 
       <div className={`rounded-3xl border shadow-sm ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className="overflow-x-auto">
@@ -67,10 +113,10 @@ export default function AdminContactRequest() {
             <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-100'}`}>
               {loading ? (
                 <tr><td colSpan="5" className="p-10 text-center font-bold animate-pulse text-slate-500">Retrieving Inquiries...</td></tr>
-              ) : requests.length === 0 ? (
+              ) : displayedRequests.length === 0 ? (
                 <tr><td colSpan="5" className="p-10 text-center text-slate-500 italic">No inquiries found.</td></tr>
               ) : (
-                requests.map((req) => (
+                displayedRequests.map((req) => (
                   <tr key={req.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/50 text-slate-300' : 'hover:bg-slate-50 text-slate-600'}`}>
                     <td className="p-5 text-[11px] font-mono">{new Date(req.created_at).toLocaleString()}</td>
                     <td className="p-5 font-bold">{req.name}</td>
@@ -95,6 +141,20 @@ export default function AdminContactRequest() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Pagination Component */}
+      {filteredRequests.length > 0 && (
+        <TablePagination 
+          currentPage={currentPage}
+          totalItems={filteredRequests.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          isExpanded={isExpanded}
+          onToggleExpand={() => setIsExpanded(!isExpanded)}
+          itemLabel="inquiries"
+        />
+      )}
       </div>
     </div>
   );

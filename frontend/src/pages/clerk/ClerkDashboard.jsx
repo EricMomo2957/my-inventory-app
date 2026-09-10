@@ -2,18 +2,20 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ClerkSetting from './clerkSetting'; 
-import { useTheme } from '../../context/ThemeContext'; // 1. Import Theme Context
+import { useTheme } from '../../context/ThemeContext';
+import TablePagination from '../../components/TablePagination';
 
 export default function ClerkDashboard() {
   const navigate = useNavigate();
-  
-  // 2. Consume central theme state
   const { isDark } = useTheme();
 
   // --- State Management ---
   const [activeView, setActiveView] = useState('stock-view');
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [adjustment, setAdjustment] = useState('');
@@ -103,6 +105,14 @@ export default function ClerkDashboard() {
   };
 
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const displayedProducts = isExpanded 
+    ? filteredProducts 
+    : filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const lowStockCount = products.filter(p => p.quantity <= lowStockThreshold).length;
   const totalValue = products.reduce((acc, p) => acc + (p.price * p.quantity), 0);
 
@@ -154,7 +164,7 @@ export default function ClerkDashboard() {
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-100'}`}>
-                    {filteredProducts.map(p => (
+                    {displayedProducts.map(p => (
                       <tr key={p.id} className="hover:bg-blue-500/5 transition-colors group">
                         <td className="p-5">
                           <div className="font-bold text-lg">{p.name}</div>
@@ -177,6 +187,19 @@ export default function ClerkDashboard() {
                   </tbody>
                </table>
             </div>
+
+            {/* Table Pagination Component */}
+            {filteredProducts.length > 0 && (
+              <TablePagination 
+                currentPage={currentPage}
+                totalItems={filteredProducts.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                isExpanded={isExpanded}
+                onToggleExpand={() => setIsExpanded(!isExpanded)}
+                itemLabel="products"
+              />
+            )}
           </div>
         )}
 

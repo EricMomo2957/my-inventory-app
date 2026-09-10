@@ -33,7 +33,6 @@ export default function AdminSideNav() {
     { name: 'Calendar', path: '/calendar', icon: CalendarDays },
     { name: 'Staff & Users', path: '/admin/users', icon: Users },
     { name: 'Stock Movement', path: '/admin/history', icon: History },
-    { name: 'Reports', path: '/admin/reports', icon: BarChart3 },
     { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];

@@ -3,14 +3,17 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import TablePagination from '../components/TablePagination';
 
 export default function CustomerOrder() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
-  // Removed setActiveCategory from declaration since it wasn't being used in your filter logic
   const [activeCategory] = useState('All'); 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 6;
   
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [guestInfo, setGuestInfo] = useState({ name: '', contact: '', address: '' });
@@ -124,6 +127,14 @@ export default function CustomerOrder() {
     return matchesSearch && matchesCategory;
   });
 
+  const displayedProducts = isExpanded
+    ? filteredProducts
+    : filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, activeCategory]);
+
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-[#0b1120] text-white' : 'bg-slate-50 text-slate-900'}`}>
       
@@ -181,7 +192,7 @@ export default function CustomerOrder() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredProducts.map(item => (
+            {displayedProducts.map(item => (
               <div key={item.id} className={`group p-4 rounded-3xl border transition-all hover:shadow-xl ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
                 <div className="aspect-square rounded-2xl mb-4 overflow-hidden bg-slate-100">
                    <img 
@@ -203,6 +214,19 @@ export default function CustomerOrder() {
               </div>
             ))}
           </div>
+
+          {/* Pagination Component */}
+          {filteredProducts.length > 0 && (
+            <TablePagination 
+              currentPage={currentPage}
+              totalItems={filteredProducts.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              isExpanded={isExpanded}
+              onToggleExpand={() => setIsExpanded(!isExpanded)}
+              itemLabel="products"
+            />
+          )}
         </div>
 
         <aside className={`w-full lg:w-96 h-fit sticky top-28 p-8 rounded-4xl border ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>

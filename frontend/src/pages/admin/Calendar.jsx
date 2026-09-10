@@ -11,6 +11,8 @@ const categoryStyles = {
   'Supplier Meeting': { bg: 'bg-purple-500/10', text: 'text-purple-500', border: 'border-purple-500/20', hex: '#a855f7' },
 };
 
+import AdminHeader from './AdminHeader';
+
 export default function Calendar() {
   const { isDark } = useTheme();
   const [events, setEvents] = useState([]);
@@ -55,7 +57,6 @@ export default function Calendar() {
     setEditId(event.id);
     setFormData({
       title: event.title,
-      // Ensures the date is in YYYY-MM-DD format for the input field
       date: new Date(event.date).toISOString().split('T')[0],
       category: event.category || 'Work Task'
     });
@@ -79,12 +80,18 @@ export default function Calendar() {
   };
 
   return (
-    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-500 ${isDark ? 'dark bg-slate-950' : 'bg-slate-50'}`}>
-      <header className="p-8 border-b border-slate-200 dark:border-slate-800/50 bg-white/50 dark:bg-transparent backdrop-blur-md">
-        <h1 className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>📅 Schedule</h1>
-      </header>
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
+      isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
+    }`}>
+      {/* Top Header Bar */}
+      <AdminHeader 
+        title="Operations Calendar"
+        subtitle="Work Tasks, Restock Deadlines & Delivery Schedules"
+        searchValue={listSearch}
+        onSearchChange={setListSearch}
+      />
 
-      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+      <div className="flex-1 overflow-y-auto p-8 space-y-7">
         <div className={`rounded-3xl border p-6 shadow-2xl ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
           <FullCalendar
             key={isDark ? 'dark' : 'light'}

@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { Users, UserPlus, Edit3, Trash2, Shield, Mail, Building, RefreshCw } from 'lucide-react';
+import AdminHeader from './AdminHeader';
+import TablePagination from '../../components/TablePagination';
 
 export default function AdminManagement() {
   const { isDark } = useTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const pageSize = 8;
 
   // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -72,20 +78,43 @@ export default function AdminManagement() {
     } catch (error) { console.error(error); }
   };
 
+  const filteredUsers = users.filter(u => 
+    (u.full_name || u.username || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.role || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const displayedUsers = isExpanded 
+    ? filteredUsers 
+    : filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
-    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 p-8 space-y-7 ${
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
     }`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Staff & Member Directory
-          </h1>
-          <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Manage organizational access, staff roles, and administrative permissions
-          </p>
-        </div>
+      {/* Top Header Bar */}
+      <AdminHeader 
+        title="Staff & Members"
+        subtitle="Organizational Roles & Access Permissions"
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
+
+      <div className="flex-1 overflow-y-auto p-8 space-y-7">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Staff & Member Directory
+            </h1>
+            <p className={`text-xs font-medium mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Manage organizational access, staff roles, and administrative permissions
+            </p>
+          </div>
 
         <div className="flex items-center gap-3">
           <button 
@@ -132,8 +161,8 @@ export default function AdminManagement() {
                   Loading User Directory...
                 </td>
               </tr>
-            ) : users.length > 0 ? (
-              users.map((u) => (
+            ) : displayedUsers.length > 0 ? (
+              displayedUsers.map((u) => (
                 <tr key={u.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3.5">
@@ -197,6 +226,19 @@ export default function AdminManagement() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Component */}
+      {filteredUsers.length > 0 && (
+        <TablePagination 
+          currentPage={currentPage}
+          totalItems={filteredUsers.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          isExpanded={isExpanded}
+          onToggleExpand={() => setIsExpanded(!isExpanded)}
+          itemLabel="members"
+        />
+      )}
 
       {/* ADD USER MODAL */}
       {isAddModalOpen && (
@@ -294,6 +336,7 @@ export default function AdminManagement() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
