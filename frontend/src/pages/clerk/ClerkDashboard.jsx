@@ -45,10 +45,20 @@ export default function ClerkDashboard() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [adjustmentType, setAdjustmentType] = useState('add'); // 'add' | 'subtract' | 'set'
-  const [adjustmentAmount, setAdjustmentAmount] = useState(1);
+  const [adjustmentAmount, setAdjustmentAmount] = useState(5);
+  const [adjustmentType, setAdjustmentType] = useState('add');
   const [adjustmentReason, setAdjustmentReason] = useState('Weekly Restock');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Add New Product State for Clerk
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    category: 'Supplies',
+    quantity: 0,
+    price: '',
+    imageFile: null
+  });
 
   // Live analytics state
   const [analyticsData, setAnalyticsData] = useState({
@@ -240,6 +250,40 @@ export default function ClerkDashboard() {
     } catch (error) {
       console.error("Update failed:", error);
       alert("Failed to update stock. Check network connection.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddProduct = async () => {
+    if (!newProduct.name.trim() || !newProduct.price) {
+      alert("Please enter product name and unit price.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('name', newProduct.name);
+      formData.append('category', newProduct.category || 'Supplies');
+      formData.append('quantity', newProduct.quantity || 0);
+      formData.append('price', newProduct.price);
+      if (newProduct.imageFile) {
+        formData.append('image', newProduct.imageFile);
+      }
+
+      const res = await axios.post('http://localhost:3000/api/products', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.data.success || res.status === 201) {
+        setIsAddProductModalOpen(false);
+        setNewProduct({ name: '', category: 'Supplies', quantity: 0, price: '', imageFile: null });
+        fetchData();
+        fetchAnalytics();
+      }
+    } catch (err) {
+      console.error("Add Product Error:", err);
+      alert("Failed to add product: " + (err.response?.data?.error || err.message));
     } finally {
       setIsSubmitting(false);
     }
@@ -505,12 +549,42 @@ export default function ClerkDashboard() {
               Clerk Operations Quick-Desk
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               
-              {/* Action 1: Manage Orders */}
+              {/* Action 1: Add New Product */}
+              <button 
+                onClick={() => setIsAddProductModalOpen(true)}
+                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
+                  isDark ? 'bg-emerald-950/30 border-emerald-800/50 hover:bg-emerald-950/50 text-emerald-300' : 'bg-[#e6f4ea]/60 border-[#ccebd7] hover:bg-[#e6f4ea] text-[#00684a]'
+                }`}
+              >
+                <div className="w-9 h-9 rounded-full bg-[#00684a] text-white flex items-center justify-center shadow-sm">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <span className="text-xs font-black">
+                  + Add Product
+                </span>
+              </button>
+
+              {/* Action 2: Inbound Stock In */}
+              <button 
+                onClick={() => navigate('/clerk/stock-in')}
+                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
+                  isDark ? 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800' : 'bg-[#fcfdfd] border-slate-100 hover:bg-slate-50 hover:border-slate-200'
+                }`}
+              >
+                <div className="w-9 h-9 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <Package className="w-5 h-5" />
+                </div>
+                <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                  Inbound Stock In
+                </span>
+              </button>
+
+              {/* Action 3: Stock Dispatch */}
               <button 
                 onClick={() => navigate('/clerk/order')}
-                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
                   isDark ? 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800' : 'bg-[#fcfdfd] border-slate-100 hover:bg-slate-50 hover:border-slate-200'
                 }`}
               >
@@ -518,37 +592,22 @@ export default function ClerkDashboard() {
                   <ShoppingCart className="w-5 h-5" />
                 </div>
                 <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                  Point of Sale / Orders
+                  Stock Dispatch
                 </span>
               </button>
 
-              {/* Action 2: Export CSV */}
+              {/* Action 4: Export CSV */}
               <button 
                 onClick={downloadCSV}
-                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
                   isDark ? 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800' : 'bg-[#fcfdfd] border-slate-100 hover:bg-slate-50 hover:border-slate-200'
                 }`}
               >
-                <div className="w-9 h-9 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                   <Download className="w-5 h-5" />
                 </div>
                 <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                   Export Stock CSV
-                </span>
-              </button>
-
-              {/* Action 3: Operations Calendar */}
-              <button 
-                onClick={() => navigate('/clerk/clerkCalendar')}
-                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] ${
-                  isDark ? 'bg-slate-800/40 border-slate-700/60 hover:bg-slate-800' : 'bg-[#fcfdfd] border-slate-100 hover:bg-slate-50 hover:border-slate-200'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                  <CalendarIcon className="w-5 h-5" />
-                </div>
-                <span className={`text-xs font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                  Schedule & Tasks
                 </span>
               </button>
 
@@ -707,8 +766,8 @@ export default function ClerkDashboard() {
               </p>
             </div>
 
-            {/* Search & Category Pills */}
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Search, Category Pills, and Add Product Button */}
+            <div className="flex flex-wrap items-center gap-2.5">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input 
@@ -737,6 +796,14 @@ export default function ClerkDashboard() {
                   </button>
                 ))}
               </div>
+
+              <button
+                onClick={() => setIsAddProductModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#00684a] hover:bg-[#005a3f] text-white rounded-xl text-xs font-extrabold shadow-sm shadow-[#00684a]/20 transition-all cursor-pointer shrink-0 active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Add Product</span>
+              </button>
             </div>
           </div>
 
@@ -1031,7 +1098,7 @@ export default function ClerkDashboard() {
                   type="button"
                   disabled={isSubmitting}
                   onClick={applyAdjustment}
-                  className="flex-1 py-2.5 bg-[#00684a] hover:bg-[#00553c] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#00684a]/20 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-[#00684a] hover:bg-[#00553c] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#00684a]/20 disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? "Updating..." : "Commit Stock"}
                 </button>
@@ -1039,6 +1106,141 @@ export default function ClerkDashboard() {
 
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 6. CLERK ADD PRODUCT MODAL */}
+      {/* ========================================================= */}
+      {isAddProductModalOpen && (
+        <div className="fixed inset-0 backdrop-blur-xs bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className={`w-full max-w-md rounded-3xl p-7 border shadow-xl ${
+            isDark ? 'bg-[#0f172a] border-slate-800 text-white' : 'bg-white border-slate-100 text-slate-900'
+          }`}>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#00684a] text-white flex items-center justify-center">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black tracking-tight">Register New Product</h2>
+                  <p className="text-[11px] text-slate-400">Add an item to the warehouse catalog</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsAddProductModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="space-y-3.5">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                  Product Name *
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Fresh Gala Apples"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
+                  }`}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                    Category
+                  </label>
+                  <select
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
+                  >
+                    <option value="Vegetables">Vegetables</option>
+                    <option value="Fruits">Fruits</option>
+                    <option value="Supplies">Supplies</option>
+                    <option value="Canned Goods">Canned Goods</option>
+                    <option value="Raw Materials">Raw Materials</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                    Unit Valuation (₱) *
+                  </label>
+                  <input 
+                    type="number" 
+                    placeholder="0.00"
+                    step="0.01"
+                    value={newProduct.price || ''}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
+                    }`}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                  Initial Warehouse Stock Quantity
+                </label>
+                <input 
+                  type="number" 
+                  placeholder="0"
+                  min="0"
+                  value={newProduct.quantity || ''}
+                  onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value, 10) || 0 })}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-xs font-semibold outline-none ${
+                    isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-[#00684a]'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                  Product Image (Optional)
+                </label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => setNewProduct({ ...newProduct, imageFile: e.target.files[0] })}
+                  className={`w-full px-3 py-2 rounded-xl border text-xs text-slate-400 ${
+                    isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
+                  }`}
+                />
+              </div>
+
+              <div className="flex gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                  type="button"
+                  onClick={() => setIsAddProductModalOpen(false)}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
+                    isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleAddProduct}
+                  className="flex-1 py-2.5 bg-[#00684a] text-white rounded-xl text-xs font-extrabold shadow-md shadow-[#00684a]/20 hover:bg-[#005a3f] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmitting ? "Creating Item..." : "Register Product"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
