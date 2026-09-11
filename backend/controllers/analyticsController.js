@@ -13,6 +13,7 @@ exports.getReorderRecommendations = async (req, res) => {
                 p.price,
                 COALESCE(p.cost_price, ROUND(p.price * 0.65, 2)) as cost_price,
                 COALESCE(p.min_threshold, 5) as min_threshold,
+                p.image_url,
                 p.location_zone,
                 p.location_aisle,
                 p.location_rack,
@@ -35,6 +36,7 @@ exports.getReorderRecommendations = async (req, res) => {
                 name: p.name,
                 category: p.category,
                 sku: p.sku || `SKU-${p.id}`,
+                image_url: p.image_url,
                 current_stock: p.quantity,
                 min_threshold: p.min_threshold || 5,
                 target_stock: targetMax,
@@ -75,6 +77,7 @@ exports.getABCAnalysis = async (req, res) => {
                 p.sku, 
                 p.quantity, 
                 p.price,
+                p.image_url,
                 COALESCE(p.cost_price, ROUND(p.price * 0.65, 2)) as cost_price
             FROM products p
         `);
@@ -88,6 +91,7 @@ exports.getABCAnalysis = async (req, res) => {
                 name: p.name,
                 category: p.category,
                 sku: p.sku || `SKU-${p.id}`,
+                image_url: p.image_url,
                 quantity: parseInt(p.quantity, 10) || 0,
                 cost_price: cost,
                 holding_value: holdingValue
