@@ -140,7 +140,7 @@ const LandingPage = () => {
               <Warehouse className="w-5 h-5" />
             </div>
             <Link to="/" className="text-xl font-extrabold tracking-tight">
-              Inventory<span className="text-[#00684a]">IMS</span>
+              Mind<span className="text-[#00684a]">Stock</span>
             </Link>
           </div>
 
@@ -378,7 +378,7 @@ const LandingPage = () => {
         </section>
 
         <footer className="py-8 text-center text-xs text-slate-400 border-t border-slate-200 dark:border-slate-800/80">
-          <p>&copy; 2026 Enterprise Warehouse & Inventory Management System. All rights reserved.</p>
+          <p>&copy; 2026 MindStock Enterprise Warehouse & Inventory Management System. All rights reserved.</p>
         </footer>
       </div>
 

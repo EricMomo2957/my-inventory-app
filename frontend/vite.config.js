@@ -8,6 +8,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    preserveSymlinks: true,
+  },
   server: {
     proxy: {
       // This tells Vite: "If I fetch /api, send it to the Node server at port 3000"

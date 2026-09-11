@@ -33,7 +33,7 @@ export default function AdminHeader({
 
   const adminName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Administrator';
   const role = localStorage.getItem('userRole') || 'ADMIN';
-  const adminEmail = localStorage.getItem('userEmail') || 'admin@inventorypro.com';
+  const adminEmail = localStorage.getItem('userEmail') || 'admin@mindstock.com';
   const profileImage = localStorage.getItem('userPhoto') || localStorage.getItem('profileImage');
 
   const currentDateFormatted = new Date().toLocaleDateString('en-US', {

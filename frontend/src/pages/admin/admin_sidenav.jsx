@@ -54,7 +54,7 @@ export default function AdminSideNav() {
             </div>
             <div>
               <h1 className={`text-base font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Inventory <span className="text-[#00684a]">Sync</span>
+                Mind<span className="text-[#00684a]">Stock</span>
               </h1>
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function AdminSideNav() {
         {!collapsed && (
           <div className="mt-3 pt-3 px-2 flex items-center justify-between text-[11px] text-slate-400">
             <span className="flex items-center gap-1">
-              <span className="text-xs">📦</span> By Inventory Pro
+              <span className="text-xs">📦</span> By MindStock
             </span>
             <span className="text-[10px] font-mono">v1.2</span>
           </div>

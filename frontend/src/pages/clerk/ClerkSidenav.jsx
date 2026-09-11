@@ -47,8 +47,9 @@ const ClerkSidenav = ({ user, onLogout }) => {
             </div>
             <div>
               <h1 className={`text-base font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Clerk <span className="text-[#00684a]">Desk</span>
+                Mind<span className="text-[#00684a]">Stock</span>
               </h1>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Clerk Desk</p>
             </div>
           </div>
         )}

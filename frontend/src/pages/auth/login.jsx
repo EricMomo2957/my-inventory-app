@@ -105,10 +105,10 @@ export default function Login({ setIsLoggedIn }) {
             <span className="text-[10px] font-black uppercase tracking-widest">Internal Enterprise Portal</span>
           </div>
           <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-            Inventory<span className="text-[#00684a]">IMS</span>
+            Mind<span className="text-[#00684a]">Stock</span>
           </h1>
           <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-500'} text-xs font-medium mt-1`}>
-            Authorized Staff Sign-In for Warehouse Operations
+            Authorized Staff Sign-In for MindStock Operations
           </p>
         </header>
 
