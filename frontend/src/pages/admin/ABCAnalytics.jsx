@@ -16,7 +16,8 @@ import {
   ArrowUpRight,
   Filter,
   CheckCircle2,
-  Lock
+  Lock,
+  Package
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -366,8 +367,26 @@ export default function ABCAnalytics() {
                       </td>
 
                       <td className="py-3 px-3">
-                        <div className="font-bold text-sm">{item.name}</div>
-                        <div className="text-xs text-slate-400 font-mono">{item.sku}</div>
+                        <div className="flex items-center gap-3">
+                          {(() => {
+                            const img = item.image_url || item.image;
+                            return img ? (
+                              <img 
+                                src={img.startsWith('http') || img.startsWith('data:') ? img : `http://localhost:3000${img}`} 
+                                alt={item.name} 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-400 shrink-0 shadow-xs">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            );
+                          })()}
+                          <div>
+                            <div className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</div>
+                            <div className="text-xs text-slate-400 font-mono font-bold mt-0.5">{item.sku}</div>
+                          </div>
+                        </div>
                       </td>
 
                       <td className="py-3 px-3 text-xs font-semibold">{item.category}</td>
