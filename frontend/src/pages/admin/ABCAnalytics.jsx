@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import AdminHeader from './AdminHeader';
+import TablePagination from '../../components/TablePagination';
 import { 
   TrendingUp, 
   PieChart, 
@@ -38,6 +39,11 @@ export default function ABCAnalytics() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(8);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const loadABC = async () => {
     setLoading(true);
     try {
@@ -69,6 +75,18 @@ export default function ABCAnalytics() {
       return matchesSearch && matchesClass;
     });
   }, [items, searchQuery, selectedClass]);
+
+  // Reset page on search or class filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedClass]);
+
+  // Paginated items
+  const displayedItems = useMemo(() => {
+    if (isExpanded) return filteredItems;
+    const start = (currentPage - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, currentPage, pageSize, isExpanded]);
 
   // Top 8 Items for Bar Chart
   const topValuedItems = useMemo(() => {
@@ -351,100 +369,123 @@ export default function ABCAnalytics() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/40">
-                {filteredItems.map(item => {
-                  const isA = item.abc_class === 'A';
-                  const isB = item.abc_class === 'B';
+                {displayedItems.length > 0 ? (
+                  displayedItems.map(item => {
+                    const isA = item.abc_class === 'A';
+                    const isB = item.abc_class === 'B';
 
-                  return (
-                    <tr 
-                      key={item.id} 
-                      className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
-                      style={{ color: isDark ? '#f8fafc' : '#09090b' }}
-                    >
-                      <td className="py-3 px-3">
-                        <span className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center ${
-                          isA 
-                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' 
-                            : isB 
-                              ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-500/30'
-                              : 'bg-purple-500/20 text-purple-800 dark:text-purple-400 border border-purple-500/30'
-                        }`}>
-                          {item.abc_class}
-                        </span>
-                      </td>
+                    return (
+                      <tr 
+                        key={item.id} 
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
+                        style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                      >
+                        <td className="py-3 px-3">
+                          <span className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center ${
+                            isA 
+                              ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' 
+                              : isB 
+                                ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-500/30'
+                                : 'bg-purple-500/20 text-purple-800 dark:text-purple-400 border border-purple-500/30'
+                          }`}>
+                            {item.abc_class}
+                          </span>
+                        </td>
 
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-3">
-                          {(() => {
-                            const img = item.image_url || item.image;
-                            return img ? (
-                              <img 
-                                src={img.startsWith('http') || img.startsWith('data:') ? img : `http://localhost:3000${img}`} 
-                                alt={item.name} 
-                                className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700/80 shrink-0 shadow-xs" 
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 shadow-xs">
-                                <Package className="w-5 h-5" />
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-3">
+                            {(() => {
+                              const img = item.image_url || item.image;
+                              return img ? (
+                                <img 
+                                  src={img.startsWith('http') || img.startsWith('data:') ? img : `http://localhost:3000${img}`} 
+                                  alt={item.name} 
+                                  className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 shadow-xs">
+                                  <Package className="w-5 h-5" />
+                                </div>
+                              );
+                            })()}
+                            <div>
+                              <div className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                {item.name}
                               </div>
-                            );
-                          })()}
-                          <div>
-                            <div className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
-                              {item.name}
-                            </div>
-                            <div className="text-xs font-mono font-bold mt-0.5" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
-                              {item.sku}
+                              <div className="text-xs font-mono font-bold mt-0.5" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                                {item.sku}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="py-3 px-3 text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
-                        {item.category}
-                      </td>
+                        <td className="py-3 px-3 text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {item.category}
+                        </td>
 
-                      <td className="py-3 px-3 text-center font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
-                        {item.quantity} units
-                      </td>
+                        <td className="py-3 px-3 text-center font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                          {item.quantity} units
+                        </td>
 
-                      <td className="py-3 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
-                        ₱{item.cost_price.toFixed(2)}
-                      </td>
+                        <td className="py-3 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          ₱{item.cost_price.toFixed(2)}
+                        </td>
 
-                      <td className="py-3 px-3 font-mono font-black text-sm" style={{ color: isDark ? '#34d399' : '#00684a' }}>
-                        ₱{item.holding_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
+                        <td className="py-3 px-3 font-mono font-black text-sm" style={{ color: isDark ? '#34d399' : '#00684a' }}>
+                          ₱{item.holding_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
 
-                      <td className="py-3 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                            <div 
-                              className={`h-full ${isA ? 'bg-emerald-500' : isB ? 'bg-blue-500' : 'bg-purple-500'}`}
-                              style={{ width: `${Math.min(100, item.cumulative_pct)}%` }}
-                            ></div>
+                        <td className="py-3 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                              <div 
+                                className={`h-full ${isA ? 'bg-emerald-500' : isB ? 'bg-blue-500' : 'bg-purple-500'}`}
+                                style={{ width: `${Math.min(100, item.cumulative_pct)}%` }}
+                              ></div>
+                            </div>
+                            <span>{item.cumulative_pct}%</span>
                           </div>
-                          <span>{item.cumulative_pct}%</span>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="py-3 px-3 text-right">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                          isA 
-                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400' 
-                            : isB 
-                              ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400'
-                              : 'bg-purple-500/20 text-purple-800 dark:text-purple-400'
-                        }`}>
-                          {item.priority}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        <td className="py-3 px-3 text-right">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                            isA 
+                              ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400' 
+                              : isB 
+                                ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400'
+                                : 'bg-purple-500/20 text-purple-800 dark:text-purple-400'
+                          }`}>
+                            {item.priority}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="8" className="py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-wider">
+                      No matching ABC classified items found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* Table Pagination Component */}
+          {filteredItems.length > 0 && (
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+              <TablePagination 
+                currentPage={currentPage}
+                totalItems={filteredItems.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                isExpanded={isExpanded}
+                onToggleExpand={() => setIsExpanded(!isExpanded)}
+                itemLabel="SKUs"
+              />
+            </div>
+          )}
         </div>
 
       </div>

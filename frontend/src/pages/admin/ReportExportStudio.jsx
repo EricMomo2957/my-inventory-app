@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import AdminHeader from './AdminHeader';
+import TablePagination from '../../components/TablePagination';
 import { 
   FileSpreadsheet, 
   FileText, 
@@ -46,6 +47,42 @@ export default function ReportExportStudio() {
   const [loading, setLoading] = useState(true);
   const [activeReportTab, setActiveReportTab] = useState('valuation');
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(8);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setIsExpanded(false);
+  }, [activeReportTab]);
+
+  const varianceLogs = useMemo(() => stockHistory.filter(h => h.action_type === 'reconciliation'), [stockHistory]);
+
+  const displayedValuationProducts = useMemo(() => {
+    if (isExpanded) return products;
+    const start = (currentPage - 1) * pageSize;
+    return products.slice(start, start + pageSize);
+  }, [products, currentPage, pageSize, isExpanded]);
+
+  const displayedVarianceLogs = useMemo(() => {
+    if (isExpanded) return varianceLogs;
+    const start = (currentPage - 1) * pageSize;
+    return varianceLogs.slice(start, start + pageSize);
+  }, [varianceLogs, currentPage, pageSize, isExpanded]);
+
+  const displayedExpiryProducts = useMemo(() => {
+    if (isExpanded) return products;
+    const start = (currentPage - 1) * pageSize;
+    return products.slice(start, start + pageSize);
+  }, [products, currentPage, pageSize, isExpanded]);
+
+  const displayedMovements = useMemo(() => {
+    if (isExpanded) return stockHistory;
+    const start = (currentPage - 1) * pageSize;
+    return stockHistory.slice(start, start + pageSize);
+  }, [stockHistory, currentPage, pageSize, isExpanded]);
 
   const productsMap = useMemo(() => {
     const map = {};
@@ -521,7 +558,7 @@ export default function ReportExportStudio() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {products.map(p => {
+                  {displayedValuationProducts.map(p => {
                     const cost = parseFloat(p.cost_price) || Math.round((parseFloat(p.price) || 0) * 0.65 * 100) / 100;
                     const totalCost = (p.quantity || 0) * cost;
                     const totalRetail = (p.quantity || 0) * (parseFloat(p.price) || 0);
@@ -584,6 +621,21 @@ export default function ReportExportStudio() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination for Tab 1 */}
+            {products.length > 0 && (
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                <TablePagination 
+                  currentPage={currentPage}
+                  totalItems={products.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  isExpanded={isExpanded}
+                  onToggleExpand={() => setIsExpanded(!isExpanded)}
+                  itemLabel="products"
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -633,7 +685,7 @@ export default function ReportExportStudio() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {stockHistory.filter(h => h.action_type === 'reconciliation').map(l => {
+                  {displayedVarianceLogs.map(l => {
                     const matchedProd = l.product_id ? productsMap[l.product_id] : productsMap[l.product_name?.toLowerCase()];
                     const imgUrl = getProductImage(matchedProd || { name: l.product_name });
 
@@ -696,6 +748,21 @@ export default function ReportExportStudio() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination for Tab 2 */}
+            {varianceLogs.length > 0 && (
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                <TablePagination 
+                  currentPage={currentPage}
+                  totalItems={varianceLogs.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  isExpanded={isExpanded}
+                  onToggleExpand={() => setIsExpanded(!isExpanded)}
+                  itemLabel="variance logs"
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -754,7 +821,7 @@ export default function ReportExportStudio() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {products.map(p => {
+                  {displayedExpiryProducts.map(p => {
                     const cost = parseFloat(p.cost_price) || 0;
                     const holdingExposure = (p.quantity || 0) * cost;
                     const exp = p.expiry_date ? new Date(p.expiry_date) : null;
@@ -822,6 +889,21 @@ export default function ReportExportStudio() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination for Tab 3 */}
+            {products.length > 0 && (
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                <TablePagination 
+                  currentPage={currentPage}
+                  totalItems={products.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  isExpanded={isExpanded}
+                  onToggleExpand={() => setIsExpanded(!isExpanded)}
+                  itemLabel="batches"
+                />
+              </div>
+            )}
           </div>
         )}
 
@@ -880,7 +962,7 @@ export default function ReportExportStudio() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                  {stockHistory.slice(0, 30).map(h => {
+                  {displayedMovements.map(h => {
                     const matchedProd = h.product_id ? productsMap[h.product_id] : productsMap[h.product_name?.toLowerCase()];
                     const imgUrl = getProductImage(matchedProd || { name: h.product_name });
 
@@ -939,6 +1021,21 @@ export default function ReportExportStudio() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination for Tab 4 */}
+            {stockHistory.length > 0 && (
+              <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+                <TablePagination 
+                  currentPage={currentPage}
+                  totalItems={stockHistory.length}
+                  pageSize={pageSize}
+                  onPageChange={setCurrentPage}
+                  isExpanded={isExpanded}
+                  onToggleExpand={() => setIsExpanded(!isExpanded)}
+                  itemLabel="movements"
+                />
+              </div>
+            )}
           </div>
         )}
 
