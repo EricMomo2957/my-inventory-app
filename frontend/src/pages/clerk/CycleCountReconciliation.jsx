@@ -428,15 +428,20 @@ export default function CycleCountReconciliation() {
         {/* ========================================================= */}
         {/* 4. MASTER CYCLE COUNT AUDIT TABLE */}
         {/* ========================================================= */}
-        <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${
-          isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+        <div className={`rounded-2xl border overflow-hidden shadow-sm transition-colors ${
+          isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'
         }`}>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
               <thead>
-                <tr className={`text-[11px] font-bold uppercase tracking-wider border-b ${
-                  isDark ? 'bg-slate-900/60 text-slate-400 border-slate-800' : 'bg-[#fcfdfd] text-slate-500 border-slate-100'
-                }`}>
+                <tr 
+                  className="text-[11px] font-black uppercase tracking-wider border-b"
+                  style={{ 
+                    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                    color: isDark ? '#f8fafc' : '#09090b',
+                    borderColor: isDark ? '#334155' : '#cbd5e1'
+                  }}
+                >
                   <th className="py-4 px-5">Product Ref & SKU</th>
                   <th className="py-4 px-4">Batch / Lot</th>
                   <th className="py-4 px-4 text-center">System Recorded</th>
@@ -446,12 +451,10 @@ export default function CycleCountReconciliation() {
                   <th className="py-4 px-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y text-xs font-medium ${
-                isDark ? 'divide-slate-800/80' : 'divide-slate-100'
-              }`}>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 text-xs font-medium">
                 {loading ? (
                   <tr>
-                    <td colSpan="7" className="py-16 text-center text-slate-400 font-bold uppercase tracking-wider text-xs">
+                    <td colSpan="7" className="py-16 text-center font-bold uppercase tracking-wider text-xs" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                       Loading Inventory Audit Sheet...
                     </td>
                   </tr>
@@ -470,6 +473,7 @@ export default function CycleCountReconciliation() {
                             ? (isDark ? 'bg-amber-950/20 hover:bg-amber-950/30' : 'bg-amber-50/60 hover:bg-amber-50/80') 
                             : (isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70')
                         }`}
+                        style={{ color: isDark ? '#f8fafc' : '#09090b' }}
                       >
                         {/* Product Ref & SKU */}
                         <td className="py-3.5 px-5">
@@ -480,43 +484,43 @@ export default function CycleCountReconciliation() {
                                 <img 
                                   src={img.startsWith('http') || img.startsWith('data:') ? img : `http://localhost:3000${img}`} 
                                   alt={item.name} 
-                                  className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                                  className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700/80 shrink-0 shadow-xs" 
                                 />
                               ) : (
-                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold shrink-0 shadow-xs">
-                                  <Package className="w-5 h-5 text-slate-400" />
+                                <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold shrink-0 shadow-xs">
+                                  <Package className="w-5 h-5" />
                                 </div>
                               );
                             })()}
                             <div className="min-w-0">
-                              <p className={`font-bold text-sm leading-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              <p className="font-black text-sm leading-tight truncate" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                                 {item.name}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] font-mono font-bold text-slate-400">
+                                <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                                   {item.sku || `SKU-${(item.category || 'GEN').substring(0, 3).toUpperCase()}-${item.id}`}
                                 </span>
-                                <span className="text-[10px] text-slate-400">•</span>
-                                <span className="text-[10px] text-slate-400 font-semibold">{item.category || 'General'}</span>
+                                <span className="text-[10px] font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>•</span>
+                                <span className="text-[10px] font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>{item.category || 'General'}</span>
                               </div>
                             </div>
                           </div>
                         </td>
 
                         {/* Batch / Lot Code */}
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                        <td className="py-3.5 px-4 font-mono text-[11px]" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
                           {item.batch_number ? (
                             <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold">
                               {item.batch_number}
                             </span>
                           ) : (
-                            <span className="text-slate-400 italic text-[10px]">LOT-STANDARD</span>
+                            <span className="italic text-[10px] font-bold" style={{ color: isDark ? '#94a3b8' : '#64748b' }}>LOT-STANDARD</span>
                           )}
                         </td>
 
                         {/* System Recorded Stock */}
-                        <td className="py-3.5 px-4 text-center font-bold text-slate-500 dark:text-slate-400">
-                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-extrabold">
+                        <td className="py-3.5 px-4 text-center font-bold">
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                             {item.quantity} Units
                           </span>
                         </td>
@@ -527,7 +531,7 @@ export default function CycleCountReconciliation() {
                             <button 
                               onClick={() => adjustCount(item.id, -1)}
                               className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
-                                isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300' : 'border-slate-200 bg-white hover:bg-slate-100 text-slate-600'
+                                isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-900'
                               }`}
                               title="Decrease physical count"
                             >
@@ -544,14 +548,14 @@ export default function CycleCountReconciliation() {
                                   ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-50 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200'
                                   : isDark 
                                     ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' 
-                                    : 'bg-white border-slate-200 text-slate-900 focus:border-[#00684a]'
+                                    : 'bg-white border-slate-300 text-slate-950 focus:border-[#00684a]'
                               }`}
                             />
 
                             <button 
                               onClick={() => adjustCount(item.id, 1)}
                               className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
-                                isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300' : 'border-slate-200 bg-white hover:bg-slate-100 text-slate-600'
+                                isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300' : 'border-slate-300 bg-white hover:bg-slate-100 text-slate-900'
                               }`}
                               title="Increase physical count"
                             >
@@ -563,15 +567,15 @@ export default function CycleCountReconciliation() {
                         {/* Variance Indicator Badge */}
                         <td className="py-3.5 px-4 text-center">
                           {variance === 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
                               <Check className="w-3 h-3" /> Matched (0)
                             </span>
                           ) : variance > 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
                               <TrendingUp className="w-3 h-3" /> Surplus (+{variance})
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
                               <TrendingDown className="w-3 h-3" /> Shortage ({variance})
                             </span>
                           )}
@@ -583,8 +587,8 @@ export default function CycleCountReconciliation() {
                             <select 
                               value={reasons[item.id] || 'Periodic Cycle Count Verification'}
                               onChange={(e) => handleReasonChange(item.id, e.target.value)}
-                              className={`w-full px-2.5 py-1.5 rounded-xl border text-xs font-semibold outline-none focus:border-[#00684a] ${
-                                isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                              className={`w-full px-2.5 py-1.5 rounded-xl border text-xs font-bold outline-none focus:border-[#00684a] ${
+                                isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-950'
                               }`}
                             >
                               <option value="Periodic Cycle Count Verification">Periodic Cycle Count Verification</option>
@@ -596,7 +600,7 @@ export default function CycleCountReconciliation() {
                               <option value="Shrinkage / Unaccounted Loss">Shrinkage / Unaccounted Loss</option>
                             </select>
                           ) : (
-                            <span className="text-[11px] text-slate-400 italic">No discrepancy noted</span>
+                            <span className="text-[11px] font-bold" style={{ color: isDark ? '#94a3b8' : '#64748b' }}>No discrepancy noted</span>
                           )}
                         </td>
 
@@ -605,7 +609,7 @@ export default function CycleCountReconciliation() {
                           {isModified ? (
                             <button 
                               onClick={() => handleResetToRecorded(item.id, item.quantity)}
-                              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-50 transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 hover:text-slate-950 dark:hover:text-white hover:bg-slate-50 transition-colors cursor-pointer"
                               title="Reset to system recorded count"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />

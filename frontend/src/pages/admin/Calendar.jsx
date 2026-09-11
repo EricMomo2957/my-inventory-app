@@ -235,11 +235,11 @@ export default function Calendar() {
                 <input type="text" placeholder="Search..." className={`w-full rounded-xl px-4 py-2 text-sm outline-none ${isDark ? 'bg-[#0b1120] text-white border-slate-800' : 'bg-white text-slate-900 border-slate-200'}`} value={listSearch} onChange={(e) => setListSearch(e.target.value)} />
              </div>
              <table className="w-full text-left">
-                <tbody className={`divide-y ${isDark ? 'divide-slate-800/50' : 'divide-slate-100'}`}>
+                <tbody className={`divide-y ${isDark ? 'divide-slate-800/50' : 'divide-slate-200'}`}>
                     {filteredEvents.map(event => (
                         <tr key={event.id} className={`${isDark ? 'hover:bg-slate-800/30' : 'hover:bg-slate-50'}`}>
-                            <td className={`p-5 px-8 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{event.title}</td>
-                            <td className="p-5 px-8 text-right"><button onClick={() => handleDelete(event.id)}>🗑️</button></td>
+                            <td className="p-5 px-8 text-sm font-bold" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>{event.title}</td>
+                            <td className="p-5 px-8 text-right"><button onClick={() => handleDelete(event.id)} className="cursor-pointer">🗑️</button></td>
                         </tr>
                     ))}
                 </tbody>

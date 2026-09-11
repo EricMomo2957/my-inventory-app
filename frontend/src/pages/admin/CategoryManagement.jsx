@@ -310,17 +310,17 @@ export default function CategoryManagement() {
                 </div>
 
                 {/* Metrics Breakdown */}
-                <div className="my-4 p-3.5 rounded-2xl border bg-slate-50/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/80 space-y-2">
+                <div className="my-4 p-3.5 rounded-2xl border bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800/80 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-semibold">Assigned SKUs:</span>
-                    <span className={`font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>{skuCount} Products</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-400">Assigned SKUs:</span>
+                    <span className={`font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>{skuCount} Products</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-semibold">Available Units:</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">{units} Units</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-400">Available Units:</span>
+                    <span className="font-bold text-emerald-700 dark:text-emerald-400">{units} Units</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200/50 dark:border-slate-800">
-                    <span className="text-slate-400 font-semibold">Total Valuation:</span>
+                  <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200 dark:border-slate-800">
+                    <span className="font-bold text-slate-700 dark:text-slate-400">Total Valuation:</span>
                     <span className="font-black text-[#00684a] dark:text-emerald-400">₱{valuation.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>

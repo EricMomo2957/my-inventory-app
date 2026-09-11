@@ -304,13 +304,18 @@ export default function DamagedRTVManagement() {
 
         {/* Table Container */}
         <div className={`rounded-3xl border shadow-sm overflow-hidden transition-colors ${
-          isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'
+          isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'
         }`}>
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
             <thead>
-              <tr className={`border-b text-[10px] font-black uppercase tracking-wider ${
-                isDark ? 'border-slate-800 bg-slate-900/60 text-slate-400' : 'border-slate-100 bg-slate-50 text-slate-500'
-              }`}>
+              <tr 
+                className="border-b text-[10px] font-black uppercase tracking-wider"
+                style={{ 
+                  backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                  color: isDark ? '#f8fafc' : '#09090b',
+                  borderColor: isDark ? '#334155' : '#cbd5e1'
+                }}
+              >
                 <th className="py-4 px-6">Reference No</th>
                 <th className="py-4 px-6">Product / SKU</th>
                 <th className="py-4 px-6">Qty & Valuation</th>
@@ -320,15 +325,19 @@ export default function DamagedRTVManagement() {
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className={`divide-y text-xs font-medium ${
-              isDark ? 'divide-slate-800 text-slate-300' : 'divide-slate-100 text-slate-700'
-            }`}>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-xs font-medium">
               {displayedRecords.length > 0 ? (
                 displayedRecords.map(item => (
-                  <tr key={item.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
-                    <td className="py-4 px-6 font-mono font-bold text-[#00684a] dark:text-emerald-400">
+                  <tr 
+                    key={item.id} 
+                    className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                    style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                  >
+                    <td className="py-4 px-6 font-mono font-black text-[#00684a] dark:text-emerald-400">
                       {item.reference_no}
-                      <p className="text-[10px] font-sans text-slate-400 font-normal mt-0.5">{new Date(item.created_at).toLocaleDateString()}</p>
+                      <p className="text-[10px] font-sans font-bold mt-0.5" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </p>
                     </td>
 
                     <td className="py-4 px-6">
@@ -340,48 +349,60 @@ export default function DamagedRTVManagement() {
                             <img 
                               src={pImg.startsWith('http') || pImg.startsWith('data:') ? pImg : `http://localhost:3000${pImg}`} 
                               alt={item.product_name} 
-                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700/80 shrink-0 shadow-xs" 
                             />
                           ) : (
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-400 shrink-0 shadow-xs">
+                            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 shadow-xs">
                               <Package className="w-5 h-5" />
                             </div>
                           );
                         })()}
                         <div>
-                          <div className="font-extrabold text-slate-900 dark:text-white">{item.product_name}</div>
-                          <span className="text-[10px] text-slate-400 font-mono">ID: #{item.product_id}</span>
+                          <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                            {item.product_name}
+                          </div>
+                          <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                            ID: #{item.product_id}
+                          </span>
                         </div>
                       </div>
                     </td>
 
                     <td className="py-4 px-6">
-                      <span className="font-black text-red-500">-{item.quantity} Units</span>
-                      <p className="text-[11px] text-slate-400 font-bold">₱{parseFloat(item.total_loss || 0).toFixed(2)} Loss</p>
+                      <span className="font-black text-red-600 dark:text-red-400">-{item.quantity} Units</span>
+                      <p className="text-[11px] font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                        ₱{parseFloat(item.total_loss || 0).toFixed(2)} Loss
+                      </p>
                     </td>
 
                     <td className="py-4 px-6">
                       <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase mb-1 ${
-                        item.condition_type === 'expired' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-600' :
-                        item.condition_type === 'defective' ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-600' :
-                        'bg-red-100 dark:bg-red-950/40 text-red-600'
+                        item.condition_type === 'expired' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400' :
+                        item.condition_type === 'defective' ? 'bg-purple-100 dark:bg-purple-950/40 text-purple-800 dark:text-purple-400' :
+                        'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-400'
                       }`}>
                         {item.condition_type}
                       </span>
-                      <p className="text-xs text-slate-400 max-w-xs truncate">{item.reason}</p>
+                      <p className="text-xs font-bold max-w-xs truncate" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
+                        {item.reason}
+                      </p>
                     </td>
 
                     <td className="py-4 px-6">
-                      <div className="font-bold">{item.supplier_name || 'General Supplier'}</div>
-                      <span className="text-[10px] text-slate-400">Logged by: {item.logged_by}</span>
+                      <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                        {item.supplier_name || 'General Supplier'}
+                      </div>
+                      <span className="text-[10px] font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                        Logged by: {item.logged_by}
+                      </span>
                     </td>
 
                     <td className="py-4 px-6">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                        item.status === 'quarantined' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-600' :
-                        item.status === 'rtv_claimed' ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-600' :
-                        item.status === 'written_off' ? 'bg-red-100 dark:bg-red-950/40 text-red-600' :
-                        'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600'
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                        item.status === 'quarantined' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400' :
+                        item.status === 'rtv_claimed' ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-400' :
+                        item.status === 'written_off' ? 'bg-red-100 dark:bg-red-950/40 text-red-800 dark:text-red-400' :
+                        'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400'
                       }`}>
                         {item.status.replace('_', ' ')}
                       </span>
@@ -391,7 +412,7 @@ export default function DamagedRTVManagement() {
                       <button
                         onClick={() => { setSelectedRecord(item); setIsClaimModalOpen(true); }}
                         className={`p-2 rounded-xl border transition-colors ${
-                          isDark ? 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          isDark ? 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700' : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100'
                         }`}
                         title="Print RTV Claim Slip"
                       >

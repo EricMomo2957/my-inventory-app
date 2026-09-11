@@ -238,9 +238,9 @@ export default function AdminManagement() {
       }`}>
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className={`text-[11px] font-bold uppercase tracking-wider border-b ${
-              isDark ? 'bg-slate-900/60 text-slate-400 border-slate-800' : 'bg-[#fcfdfd] text-slate-500 border-slate-100'
-            }`}>
+            <tr className={`text-[11px] font-black uppercase tracking-wider border-b ${
+              isDark ? 'bg-slate-900/60 text-slate-300 border-slate-800' : 'bg-slate-100 text-slate-950 border-slate-200'
+            }`} style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
               <th className="py-4 px-6">User / Member</th>
               <th className="py-4 px-6">Access Role</th>
               <th className="py-4 px-6">Department</th>
@@ -248,17 +248,17 @@ export default function AdminManagement() {
             </tr>
           </thead>
           <tbody className={`divide-y text-xs font-medium ${
-            isDark ? 'divide-slate-800/80' : 'divide-slate-100'
+            isDark ? 'divide-slate-800/80' : 'divide-slate-200'
           }`}>
             {loading ? (
               <tr>
-                <td colSpan="4" className="py-16 text-center text-slate-400 font-bold uppercase tracking-wider text-xs">
+                <td colSpan="4" className="py-16 text-center text-slate-500 font-bold uppercase tracking-wider text-xs">
                   Loading User Directory...
                 </td>
               </tr>
             ) : displayedUsers.length > 0 ? (
               displayedUsers.map((u) => (
-                <tr key={u.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
+                <tr key={u.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'}`}>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3.5">
                       <div className="w-10 h-10 rounded-full bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center font-extrabold text-sm overflow-hidden shrink-0 border border-[#00684a]/20">
@@ -269,26 +269,26 @@ export default function AdminManagement() {
                         )}
                       </div>
                       <div>
-                        <p className={`font-bold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <p className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                           {u.full_name || u.username}
                         </p>
-                        <p className="text-[10px] text-slate-400 font-mono">
+                        <p className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                           @{u.username} • {u.email || `${u.username}@inventorypro.com`}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
-                      u.role === 'admin' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' :
-                      u.role === 'manager' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800' :
-                      u.role === 'clerk' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800' :
-                      'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                    <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                      u.role === 'admin' ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' :
+                      u.role === 'manager' ? 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800' :
+                      u.role === 'clerk' ? 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800' :
+                      'bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                     }`}>
                       {u.role}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-slate-400">
+                  <td className="py-4 px-6 font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
                     {u.department || 'General'}
                   </td>
                   <td className="py-4 px-6 text-right space-x-1.5">

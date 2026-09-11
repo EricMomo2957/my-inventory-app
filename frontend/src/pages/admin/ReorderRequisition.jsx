@@ -289,23 +289,28 @@ export default function ReorderRequisition() {
         </div>
 
         {/* DEFICIT RECOMMENDATIONS TABLE */}
-        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-800/60 gap-3">
+        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300 shadow-sm'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800/60 gap-3">
             <div>
-              <h2 className="text-base font-black">Stock Deficit & Reorder Breakdown</h2>
-              <p className="text-xs text-slate-400">Target safe holding quantities vs. current inventory on hand</p>
+              <h2 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Stock Deficit & Reorder Breakdown</h2>
+              <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Target safe holding quantities vs. current inventory on hand</p>
             </div>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
               {filteredRecs.length} SKU Deficits Detected
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
               <thead>
-                <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                  isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
-                }`}>
+                <tr 
+                  className="border-b text-[11px] font-black uppercase tracking-wider"
+                  style={{ 
+                    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                    color: isDark ? '#f8fafc' : '#09090b',
+                    borderColor: isDark ? '#334155' : '#cbd5e1'
+                  }}
+                >
                   <th className="pb-3 px-3">SKU & Item</th>
                   <th className="pb-3 px-3">Location</th>
                   <th className="pb-3 px-3 text-center">On Hand</th>
@@ -316,15 +321,17 @@ export default function ReorderRequisition() {
                   <th className="pb-3 px-3 text-right">Urgency</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/40">
                 {filteredRecs.map(r => {
                   const isCrit = r.urgency === 'CRITICAL';
                   const isHigh = r.urgency === 'HIGH';
 
                   return (
-                    <tr key={r.id} className={`hover:bg-slate-800/20 transition-colors ${
-                      isDark ? 'text-slate-200' : 'text-slate-700'
-                    }`}>
+                    <tr 
+                      key={r.id} 
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
+                      style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                    >
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-2.5">
                           {(() => {
@@ -333,40 +340,40 @@ export default function ReorderRequisition() {
                               <img 
                                 src={img.startsWith('http') || img.startsWith('data:') ? img : `http://localhost:3000${img}`} 
                                 alt={r.name} 
-                                className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
+                                className="w-9 h-9 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shrink-0 shadow-xs" 
                               />
                             ) : (
-                              <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0 shadow-xs">
+                              <div className="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 shadow-xs">
                                 <Package className="w-4 h-4" />
                               </div>
                             );
                           })()}
                           <div>
-                            <div className="font-bold text-sm text-slate-900 dark:text-white">{r.name}</div>
-                            <div className="text-xs text-slate-400 font-mono">{r.sku} • {r.category}</div>
+                            <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{r.name}</div>
+                            <div className="text-xs font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>{r.sku} • {r.category}</div>
                           </div>
                         </div>
                       </td>
 
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded bg-slate-500/10 text-slate-400 text-xs font-mono font-bold">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-mono font-bold border border-slate-200 dark:border-slate-700">
                           {r.location}
                         </span>
                       </td>
 
                       <td className="py-3 px-3 text-center font-black">
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${
-                          r.current_stock === 0 ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-black ${
+                          r.current_stock === 0 ? 'bg-red-500/20 text-red-800 dark:text-red-400' : 'bg-amber-500/20 text-amber-800 dark:text-amber-400'
                         }`}>
                           {r.current_stock}
                         </span>
                       </td>
 
-                      <td className="py-3 px-3 text-center text-xs text-slate-400 font-semibold">
+                      <td className="py-3 px-3 text-center text-xs font-bold" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                         {r.min_threshold}
                       </td>
 
-                      <td className="py-3 px-3 text-center text-xs font-bold text-emerald-400">
+                      <td className="py-3 px-3 text-center text-xs font-black text-emerald-600 dark:text-emerald-400">
                         {r.target_stock}
                       </td>
 
@@ -374,18 +381,18 @@ export default function ReorderRequisition() {
                         +{r.recommended_reorder} units
                       </td>
 
-                      <td className="py-3 px-3 font-mono font-extrabold text-xs">
+                      <td className="py-3 px-3 font-mono font-black text-xs" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                         ₱{r.estimated_cost.toFixed(2)}
-                        <span className="text-[10px] text-slate-400 block font-normal">@ ₱{r.unit_cost.toFixed(2)}/ea</span>
+                        <span className="text-[10px] font-bold block" style={{ color: isDark ? '#94a3b8' : '#334155' }}>@ ₱{r.unit_cost.toFixed(2)}/ea</span>
                       </td>
 
                       <td className="py-3 px-3 text-right">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                           isCrit
-                            ? 'bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse'
+                            ? 'bg-red-500/20 text-red-800 dark:text-red-400 border border-red-500/30'
                             : isHigh
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                              ? 'bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-500/30'
+                              : 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-500/30'
                         }`}>
                           {r.urgency}
                         </span>

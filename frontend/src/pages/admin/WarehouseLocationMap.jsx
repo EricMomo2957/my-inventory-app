@@ -461,52 +461,52 @@ export default function WarehouseLocationMap() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                  isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
-                }`}>
-                  <th className="pb-3 px-3">SKU / Item</th>
-                  <th className="pb-3 px-3">Category</th>
-                  <th className="pb-3 px-3">Current Stock</th>
-                  <th className="pb-3 px-3">Location Coordinate</th>
-                  <th className="pb-3 px-3 text-right">Actions</th>
+                <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
+                  isDark ? 'border-slate-800 text-slate-300 bg-slate-900/60' : 'border-slate-200 text-slate-950 bg-slate-100'
+                }`} style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                  <th className="py-3 px-3">SKU / Item</th>
+                  <th className="py-3 px-3">Category</th>
+                  <th className="py-3 px-3">Current Stock</th>
+                  <th className="py-3 px-3">Location Coordinate</th>
+                  <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40">
+              <tbody className={`divide-y ${isDark ? 'divide-slate-800/40' : 'divide-slate-200'}`}>
                 {searchedProducts.map(p => (
-                  <tr key={p.id} className={`hover:bg-slate-800/20 transition-colors ${
-                    isDark ? 'text-slate-200' : 'text-slate-700'
+                  <tr key={p.id} className={`transition-colors ${
+                    isDark ? 'hover:bg-slate-800/20 text-slate-200' : 'hover:bg-slate-50 text-slate-950'
                   }`}>
                     <td className="py-3 px-3">
-                      <div className="font-bold text-sm">{p.name}</div>
-                      <div className="text-xs text-slate-400 font-mono">{p.sku || `SKU-${p.id}`}</div>
+                      <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{p.name}</div>
+                      <div className="text-xs font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>{p.sku || `SKU-${p.id}`}</div>
                     </td>
-                    <td className="py-3 px-3 text-xs font-semibold">{p.category}</td>
+                    <td className="py-3 px-3 text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>{p.category}</td>
                     <td className="py-3 px-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
                         p.quantity === 0 
-                          ? 'bg-red-500/10 text-red-400 border border-red-500/20' 
+                          ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
                           : p.quantity <= (p.min_threshold || 5)
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                            : 'bg-emerald-500/10 text-[#00684a] dark:text-emerald-400 border border-emerald-500/20'
                       }`}>
                         {p.quantity} units
                       </span>
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1.5 font-mono text-xs">
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-[#00684a] dark:text-emerald-400 font-bold border border-emerald-500/30">
                           {p.location_zone || 'Zone A'}
                         </span>
                         <span className="text-slate-400">→</span>
-                        <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-400 font-bold border border-blue-500/30">
                           {p.location_aisle || 'Aisle 01'}
                         </span>
                         <span className="text-slate-400">→</span>
-                        <span className="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border border-purple-500/30">
                           {p.location_rack || 'Rack A'}
                         </span>
                         <span className="text-slate-400">→</span>
-                        <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">
                           {p.location_bin || 'Shelf 1'}
                         </span>
                       </div>

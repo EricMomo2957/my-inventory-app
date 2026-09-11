@@ -573,13 +573,13 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
 
           {/* Product Data Table */}
           <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${
-            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'
           }`}>
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className={`text-[11px] font-bold uppercase tracking-wider border-b ${
-                  isDark ? 'bg-slate-900/60 text-slate-400 border-slate-800' : 'bg-[#fcfdfd] text-slate-500 border-slate-100'
-                }`}>
+                <tr className={`text-[11px] font-black uppercase tracking-wider border-b ${
+                  isDark ? 'bg-slate-900/60 text-slate-300 border-slate-800' : 'bg-slate-100 text-slate-950 border-slate-200'
+                }`} style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                   <th className="py-4 px-5">Product & SKU</th>
                   <th className="py-4 px-4">Batch / Lot</th>
                   <th className="py-4 px-4">Cost Price</th>
@@ -591,7 +591,7 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                 </tr>
               </thead>
               <tbody className={`divide-y text-xs font-medium ${
-                isDark ? 'divide-slate-800/80' : 'divide-slate-100'
+                isDark ? 'divide-slate-800/80' : 'divide-slate-200'
               }`}>
                 {displayedProducts.length > 0 ? (
                   displayedProducts.map((item) => {
@@ -608,14 +608,14 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                       <tr 
                         key={item.id} 
                         className={`transition-colors ${
-                          isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'
+                          isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50'
                         }`}
                       >
                         {/* Product Name & SKU */}
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl overflow-hidden shrink-0 border flex items-center justify-center ${
-                              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-100'
+                              isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'
                             }`}>
                               {item.image_url ? (
                                 <img 
@@ -628,24 +628,24 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className={`font-bold text-sm leading-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              <p className="font-black text-sm leading-tight truncate" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                                 {item.name}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] font-mono font-bold text-slate-400">
+                                <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                                   {item.sku || `SKU-${(item.category || 'GEN').substring(0, 3).toUpperCase()}-${item.id}`}
                                 </span>
                                 <span className="text-[10px] text-slate-400">•</span>
-                                <span className="text-[10px] text-slate-400 font-semibold">{item.category || 'General'}</span>
+                                <span className="text-[10px] font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>{item.category || 'General'}</span>
                               </div>
                             </div>
                           </div>
                         </td>
 
                         {/* Batch / Lot */}
-                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                        <td className="py-3.5 px-4 font-mono text-[11px] font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
                           {item.batch_number ? (
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-[10px] font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                               {item.batch_number}
                             </span>
                           ) : (
@@ -654,28 +654,28 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                         </td>
 
                         {/* Cost Price */}
-                        <td className="py-3.5 px-4 font-semibold text-slate-500 dark:text-slate-400">
+                        <td className="py-3.5 px-4 font-black text-xs" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
                           ₱{costPrice.toFixed(2)}
                         </td>
 
                         {/* Selling Price */}
-                        <td className="py-3.5 px-4 font-bold text-slate-800 dark:text-white">
+                        <td className="py-3.5 px-4 font-black text-xs" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                           ₱{sellPrice.toFixed(2)}
                         </td>
 
                         {/* Margin % Badge */}
                         <td className="py-3.5 px-4 text-center">
                           <div className="inline-flex flex-col items-center">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${
                               marginPct >= 35 
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
                                 : marginPct >= 20 
-                                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
-                                  : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                                  ? 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
+                                  : 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
                             }`}>
                               +{marginPct.toFixed(1)}%
                             </span>
-                            <span className="text-[9px] text-slate-400 mt-0.5">
+                            <span className="text-[9px] font-bold mt-0.5" style={{ color: isDark ? '#94a3b8' : '#475569' }}>
                               ₱{unitProfit.toFixed(2)} / unit
                             </span>
                           </div>
@@ -684,7 +684,7 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                         {/* Expiry Badge */}
                         <td className="py-3.5 px-4">
                           {item.expiry_date ? (
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border ${expiry.badgeClass}`}>
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black border ${expiry.badgeClass}`}>
                               <Clock className="w-3 h-3" />
                               {expiry.label}
                             </span>
@@ -696,11 +696,11 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                         {/* Stock Level */}
                         <td className="py-3.5 px-4 text-center">
                           <div className="inline-flex flex-col items-center">
-                            <span className={`font-extrabold ${isLow ? 'text-red-500' : isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                            <span className="font-black text-xs" style={{ color: isLow ? '#ef4444' : isDark ? '#f8fafc' : '#09090b' }}>
                               {item.quantity} units
                             </span>
                             {isLow && (
-                              <span className="text-[9px] text-red-500 font-bold uppercase tracking-wider">Low Stock</span>
+                              <span className="text-[9px] text-red-600 dark:text-red-400 font-black uppercase tracking-wider">Low Stock</span>
                             )}
                           </div>
                         </td>

@@ -376,23 +376,28 @@ export default function PurchaseOrderManagement() {
         </div>
 
         {/* PO MASTER TABLE */}
-        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-800/60 gap-3">
+        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300 shadow-sm'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800/60 gap-3">
             <div>
-              <h2 className="text-base font-black">Purchase Order Registry</h2>
-              <p className="text-xs text-slate-400">Formal purchase orders and delivery check-offs</p>
+              <h2 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Purchase Order Registry</h2>
+              <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Formal purchase orders and delivery check-offs</p>
             </div>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
               Showing {filteredPOs.length} of {purchaseOrders.length} Orders
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
               <thead>
-                <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                  isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
-                }`}>
+                <tr 
+                  className="border-b text-[11px] font-black uppercase tracking-wider"
+                  style={{ 
+                    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                    color: isDark ? '#f8fafc' : '#09090b',
+                    borderColor: isDark ? '#334155' : '#cbd5e1'
+                  }}
+                >
                   <th className="pb-3 px-3">PO Number</th>
                   <th className="pb-3 px-3">Vendor Supplier</th>
                   <th className="pb-3 px-3">Items / Lines</th>
@@ -402,51 +407,53 @@ export default function PurchaseOrderManagement() {
                   <th className="pb-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/40">
                 {filteredPOs.map(po => {
                   const isReceived = po.status === 'received';
                   const isOrdered = po.status === 'ordered';
                   const isDraft = po.status === 'draft';
 
                   return (
-                    <tr key={po.id} className={`hover:bg-slate-800/20 transition-colors ${
-                      isDark ? 'text-slate-200' : 'text-slate-700'
-                    }`}>
+                    <tr 
+                      key={po.id} 
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
+                      style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                    >
                       <td className="py-3 px-3">
                         <div className="font-mono font-black text-sm text-[#00684a] dark:text-emerald-400">
                           {po.po_number}
                         </div>
-                        <div className="text-[11px] text-slate-400">Created by {po.created_by || 'Admin'}</div>
+                        <div className="text-[11px] font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>Created by {po.created_by || 'Admin'}</div>
                       </td>
 
                       <td className="py-3 px-3">
-                        <div className="font-bold text-sm">{po.supplier_name || 'General Supplier'}</div>
-                        <div className="text-xs text-slate-400">ID #{po.supplier_id}</div>
+                        <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{po.supplier_name || 'General Supplier'}</div>
+                        <div className="text-xs font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>ID #{po.supplier_id}</div>
                       </td>
 
                       <td className="py-3 px-3">
-                        <span className="px-2.5 py-1 rounded-md bg-slate-500/10 text-slate-400 font-bold text-xs">
+                        <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700">
                           {po.item_count || po.items?.length || 1} SKU Lines
                         </span>
                       </td>
 
-                      <td className="py-3 px-3 font-black text-sm">
+                      <td className="py-3 px-3 font-mono font-black text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                         ₱{parseFloat(po.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
 
                       <td className="py-3 px-3">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                           isReceived
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30'
                             : isOrdered
-                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 animate-pulse'
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-500/30 animate-pulse'
+                              : 'bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-500/30'
                         }`}>
                           {po.status}
                         </span>
                       </td>
 
-                      <td className="py-3 px-3 text-xs text-slate-400">
+                      <td className="py-3 px-3 text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
                         {po.expected_date ? new Date(po.expected_date).toLocaleDateString() : 'Immediate'}
                       </td>
 

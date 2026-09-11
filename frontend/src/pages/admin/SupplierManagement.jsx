@@ -335,33 +335,33 @@ export default function SupplierManagement() {
 
                 {/* Info List */}
                 <div className="space-y-2.5 text-xs">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate">{sup.email || 'N/A'}</span>
+                  <div className="flex items-center gap-2" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
+                    <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span className="truncate font-bold">{sup.email || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>{sup.phone || 'N/A'}</span>
+                  <div className="flex items-center gap-2" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
+                    <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span className="font-bold">{sup.phone || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="truncate">{sup.address || 'Central Distribution Center'}</span>
+                  <div className="flex items-center gap-2" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
+                    <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span className="truncate font-bold">{sup.address || 'Central Distribution Center'}</span>
                   </div>
                 </div>
 
                 {/* Metrics Pill Grid */}
-                <div className="grid grid-cols-2 gap-2 mt-5 pt-4 border-t border-slate-800/60">
+                <div className="grid grid-cols-2 gap-2 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800/60">
                   <div className={`p-2.5 rounded-xl border text-center ${
                     isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50 border-slate-200'
                   }`}>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Lead Time</span>
-                    <span className="text-xs font-black text-blue-500 mt-0.5 block">{sup.lead_time_days || 3} Days</span>
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Lead Time</span>
+                    <span className="text-xs font-black text-blue-600 dark:text-blue-400 mt-0.5 block">{sup.lead_time_days || 3} Days</span>
                   </div>
                   <div className={`p-2.5 rounded-xl border text-center ${
                     isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50 border-slate-200'
                   }`}>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Rating</span>
-                    <span className="text-xs font-black text-amber-500 mt-0.5 flex items-center justify-center gap-1">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Rating</span>
+                    <span className="text-xs font-black text-amber-600 dark:text-amber-400 mt-0.5 flex items-center justify-center gap-1">
                       <Star className="w-3 h-3 fill-amber-500" /> {sup.rating || '4.8'}
                     </span>
                   </div>

@@ -153,30 +153,30 @@ export default function ClerkCalendar() {
             isDark ? 'bg-[#111827]/40 border-slate-800' : 'bg-white border-slate-200'
           }`}>
             <table className="w-full text-left">
-              <thead className={`${isDark ? 'bg-[#0b1120]/50 border-slate-800' : 'bg-slate-50 border-slate-200'} border-b`}>
+              <thead className={`${isDark ? 'bg-[#0b1120]/60 border-slate-800 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-950'} border-b`} style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                 <tr>
-                  <th className="p-6 text-[10px] font-black uppercase text-slate-500 tracking-widest">Date</th>
-                  <th className="p-6 text-[10px] font-black uppercase text-slate-500 tracking-widest">Details</th>
-                  <th className="p-6 text-[10px] font-black uppercase text-slate-500 tracking-widest text-right">Action</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest">Date</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest">Details</th>
+                  <th className="p-6 text-[10px] font-black uppercase tracking-widest text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDark ? 'divide-slate-800/50' : 'divide-slate-100'}`}>
+              <tbody className={`divide-y ${isDark ? 'divide-slate-800/50' : 'divide-slate-200'}`}>
                 {events.map((event) => (
                   <tr key={event.id} className="hover:bg-blue-500/5 transition-colors">
-                    <td className={`p-6 text-sm font-mono ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <td className="p-6 text-sm font-mono font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
                       {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </td>
                     <td className="p-6">
-                      <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{event.title}</div>
-                      <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
-                        event.category === 'Delivery' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'
+                      <div className="text-sm font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{event.title}</div>
+                      <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1 inline-block ${
+                        event.category === 'Delivery' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30'
                       }`}>
                         {event.category}
                       </span>
                     </td>
                     <td className="p-6 text-right space-x-4">
-                      <button onClick={() => startEdit(event)} className="text-[#4361ee] font-black text-[10px] uppercase">Edit</button>
-                      <button onClick={() => handleDelete(event.id)} className="text-red-500/70 font-black text-[10px] uppercase">Remove</button>
+                      <button onClick={() => startEdit(event)} className="text-[#4361ee] hover:text-[#324ec7] font-black text-[11px] uppercase cursor-pointer">Edit</button>
+                      <button onClick={() => handleDelete(event.id)} className="text-red-600 hover:text-red-700 font-black text-[11px] uppercase cursor-pointer">Remove</button>
                     </td>
                   </tr>
                 ))}

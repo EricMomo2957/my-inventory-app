@@ -191,7 +191,7 @@ export default function AdminContactRequest() {
       <div className={`rounded-3xl border shadow-sm ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
-            <thead className={`${isDark ? 'bg-slate-900/50 text-slate-400' : 'bg-slate-50 text-slate-500'} font-black uppercase tracking-widest text-[10px]`}>
+            <thead className={`${isDark ? 'bg-slate-900/60 text-slate-300' : 'bg-slate-100 text-slate-950 font-black'} font-black uppercase tracking-widest text-[10px]`} style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
               <tr>
                 <th className="p-5">Timestamp</th>
                 <th className="p-5">Name</th>
@@ -200,19 +200,19 @@ export default function AdminContactRequest() {
                 <th className="p-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-100'}`}>
+            <tbody className={`divide-y ${isDark ? 'divide-slate-800' : 'divide-slate-200'}`}>
               {loading ? (
                 <tr><td colSpan="5" className="p-10 text-center font-bold animate-pulse text-slate-500">Retrieving Inquiries...</td></tr>
               ) : displayedRequests.length === 0 ? (
                 <tr><td colSpan="5" className="p-10 text-center text-slate-500 italic">No inquiries found.</td></tr>
               ) : (
                 displayedRequests.map((req) => (
-                  <tr key={req.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/50 text-slate-300' : 'hover:bg-slate-50 text-slate-600'}`}>
-                    <td className="p-5 text-[11px] font-mono">{new Date(req.created_at).toLocaleString()}</td>
-                    <td className="p-5 font-bold">{req.name}</td>
-                    <td className="p-5">{req.email}</td>
+                  <tr key={req.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/50 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
+                    <td className="p-5 text-[11px] font-mono font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>{new Date(req.created_at).toLocaleString()}</td>
+                    <td className="p-5 font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{req.name}</td>
+                    <td className="p-5 font-bold" style={{ color: isDark ? '#94a3b8' : '#0f172a' }}>{req.email}</td>
                     <td className="p-5 max-w-sm">
-                      <p className="truncate hover:text-clip hover:whitespace-normal cursor-help" title={req.message}>
+                      <p className="truncate hover:text-clip hover:whitespace-normal cursor-help font-medium" style={{ color: isDark ? '#e2e8f0' : '#09090b' }} title={req.message}>
                         {req.message}
                       </p>
                     </td>
@@ -220,7 +220,7 @@ export default function AdminContactRequest() {
                       <button 
                         onClick={() => handleDelete(req.id)}
                         disabled={deletingId === req.id}
-                        className={`font-bold uppercase text-[10px] ${deletingId === req.id ? 'text-slate-500 cursor-not-allowed' : 'text-red-500 hover:text-red-700'}`}
+                        className={`font-black uppercase text-[11px] cursor-pointer ${deletingId === req.id ? 'text-slate-500 cursor-not-allowed' : 'text-red-600 hover:text-red-700'}`}
                       >
                         {deletingId === req.id ? 'Deleting...' : 'Delete'}
                       </button>
