@@ -318,49 +318,56 @@ export default function ABCAnalytics() {
         </div>
 
         {/* ABC CLASSIFICATION MASTER TABLE */}
-        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-800/60 gap-3">
+        <div className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300 shadow-sm'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800/60 gap-3">
             <div>
-              <h2 className="text-base font-black">Pareto ABC Classification Matrix</h2>
-              <p className="text-xs text-slate-400">Inventory prioritized by cumulative holding valuation</p>
+              <h2 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Pareto ABC Classification Matrix</h2>
+              <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Inventory prioritized by cumulative holding valuation</p>
             </div>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
               Showing {filteredItems.length} of {items.length} SKUs
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
               <thead>
-                <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                  isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
-                }`}>
-                  <th className="pb-3 px-3">Class</th>
-                  <th className="pb-3 px-3">SKU & Item Name</th>
-                  <th className="pb-3 px-3">Category</th>
-                  <th className="pb-3 px-3 text-center">Units On Hand</th>
-                  <th className="pb-3 px-3">Unit Cost</th>
-                  <th className="pb-3 px-3">Total Holding Value</th>
-                  <th className="pb-3 px-3">Cumulative %</th>
-                  <th className="pb-3 px-3 text-right">Control Priority</th>
+                <tr 
+                  className="border-b text-[11px] font-black uppercase tracking-wider"
+                  style={{ 
+                    backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                    color: isDark ? '#f8fafc' : '#09090b',
+                    borderColor: isDark ? '#334155' : '#cbd5e1'
+                  }}
+                >
+                  <th className="py-3 px-3">Class</th>
+                  <th className="py-3 px-3">SKU & Item Name</th>
+                  <th className="py-3 px-3">Category</th>
+                  <th className="py-3 px-3 text-center">Units On Hand</th>
+                  <th className="py-3 px-3">Unit Cost</th>
+                  <th className="py-3 px-3">Total Holding Value</th>
+                  <th className="py-3 px-3">Cumulative %</th>
+                  <th className="py-3 px-3 text-right">Control Priority</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/40">
                 {filteredItems.map(item => {
                   const isA = item.abc_class === 'A';
                   const isB = item.abc_class === 'B';
 
                   return (
-                    <tr key={item.id} className={`hover:bg-slate-800/20 transition-colors ${
-                      isDark ? 'text-slate-200' : 'text-slate-700'
-                    }`}>
+                    <tr 
+                      key={item.id} 
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors"
+                      style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                    >
                       <td className="py-3 px-3">
                         <span className={`w-8 h-8 rounded-xl font-black text-xs flex items-center justify-center ${
                           isA 
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-500/30' 
                             : isB 
-                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                              : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                              ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400 border border-blue-500/30'
+                              : 'bg-purple-500/20 text-purple-800 dark:text-purple-400 border border-purple-500/30'
                         }`}>
                           {item.abc_class}
                         </span>
@@ -374,38 +381,44 @@ export default function ABCAnalytics() {
                               <img 
                                 src={img.startsWith('http') || img.startsWith('data:') ? img : `http://localhost:3000${img}`} 
                                 alt={item.name} 
-                                className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700/80 shrink-0 shadow-xs" 
                               />
                             ) : (
-                              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-400 shrink-0 shadow-xs">
+                              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 shadow-xs">
                                 <Package className="w-5 h-5" />
                               </div>
                             );
                           })()}
                           <div>
-                            <div className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</div>
-                            <div className="text-xs text-slate-400 font-mono font-bold mt-0.5">{item.sku}</div>
+                            <div className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                              {item.name}
+                            </div>
+                            <div className="text-xs font-mono font-bold mt-0.5" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                              {item.sku}
+                            </div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-3 px-3 text-xs font-semibold">{item.category}</td>
+                      <td className="py-3 px-3 text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                        {item.category}
+                      </td>
 
-                      <td className="py-3 px-3 text-center font-bold">
+                      <td className="py-3 px-3 text-center font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                         {item.quantity} units
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-xs">
+                      <td className="py-3 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                         ₱{item.cost_price.toFixed(2)}
                       </td>
 
-                      <td className="py-3 px-3 font-mono font-black text-sm text-[#00684a] dark:text-emerald-400">
+                      <td className="py-3 px-3 font-mono font-black text-sm" style={{ color: isDark ? '#34d399' : '#00684a' }}>
                         ₱{item.holding_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
 
-                      <td className="py-3 px-3 font-mono text-xs">
+                      <td className="py-3 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                          <div className="w-16 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
                             <div 
                               className={`h-full ${isA ? 'bg-emerald-500' : isB ? 'bg-blue-500' : 'bg-purple-500'}`}
                               style={{ width: `${Math.min(100, item.cumulative_pct)}%` }}
@@ -416,12 +429,12 @@ export default function ABCAnalytics() {
                       </td>
 
                       <td className="py-3 px-3 text-right">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
                           isA 
-                            ? 'bg-emerald-500/10 text-emerald-400' 
+                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400' 
                             : isB 
-                              ? 'bg-blue-500/10 text-blue-400'
-                              : 'bg-purple-500/10 text-purple-400'
+                              ? 'bg-blue-500/20 text-blue-800 dark:text-blue-400'
+                              : 'bg-purple-500/20 text-purple-800 dark:text-purple-400'
                         }`}>
                           {item.priority}
                         </span>

@@ -206,14 +206,19 @@ export default function AdminStockHistory() {
         </div>
 
       {/* Table Content */}
-      <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${
-        isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+      <div className={`rounded-2xl border overflow-hidden shadow-sm transition-colors ${
+        isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'
       }`}>
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
           <thead>
-            <tr className={`text-[11px] font-bold uppercase tracking-wider border-b ${
-              isDark ? 'bg-slate-900/60 text-slate-400 border-slate-800' : 'bg-[#fcfdfd] text-slate-500 border-slate-100'
-            }`}>
+            <tr 
+              className="text-[11px] font-black uppercase tracking-wider border-b"
+              style={{ 
+                backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                color: isDark ? '#f8fafc' : '#09090b',
+                borderColor: isDark ? '#334155' : '#cbd5e1'
+              }}
+            >
               <th className="py-4 px-6">Product Ref</th>
               <th className="py-4 px-6">Staff / Actor</th>
               <th className="py-4 px-6">Action Type</th>
@@ -221,12 +226,10 @@ export default function AdminStockHistory() {
               <th className="py-4 px-6 text-right">Timestamp</th>
             </tr>
           </thead>
-          <tbody className={`divide-y text-xs font-medium ${
-            isDark ? 'divide-slate-800/80' : 'divide-slate-100'
-          }`}>
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 text-xs font-medium">
             {loading ? (
               <tr>
-                <td colSpan="5" className="py-16 text-center text-slate-400 font-bold uppercase tracking-wider text-xs">
+                <td colSpan="5" className="py-16 text-center font-bold uppercase tracking-wider text-xs" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                   Loading Audit Logs...
                 </td>
               </tr>
@@ -239,27 +242,31 @@ export default function AdminStockHistory() {
                 const category = log.category || (log.product_id && productsMap[log.product_id]?.category);
 
                 return (
-                  <tr key={log.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
+                  <tr 
+                    key={log.id} 
+                    className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                    style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                  >
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         {prodImg ? (
                           <img 
                             src={prodImg.startsWith('http') || prodImg.startsWith('data:') ? prodImg : `http://localhost:3000${prodImg}`} 
                             alt={displayName} 
-                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                            className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700/80 shrink-0 shadow-xs" 
                             onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold shrink-0 shadow-xs">
-                            <Package className="w-5 h-5 text-slate-400" />
+                          <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-400 font-mono text-[11px] font-bold shrink-0 shadow-xs">
+                            <Package className="w-5 h-5" />
                           </div>
                         )}
                         <div className="flex flex-col min-w-0">
-                          <span className={`font-bold text-xs truncate max-w-[220px] ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                          <span className="font-black text-sm truncate max-w-[220px]" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
                             {displayName}
                           </span>
                           {category && (
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                            <span className="text-[11px] font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                               {category}
                             </span>
                           )}
@@ -271,31 +278,31 @@ export default function AdminStockHistory() {
                         <div className="w-7 h-7 rounded-full bg-[#00684a]/10 text-[#00684a] dark:text-emerald-400 flex items-center justify-center text-xs font-extrabold">
                           {log.user_name?.charAt(0).toUpperCase() || 'S'}
                         </div>
-                        <span className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                        <span className="font-bold text-xs" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                           {log.user_name || 'System / Staff'}
                         </span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
                         isRecon
-                          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800'
+                          ? 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800'
                           : isRestock 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' 
-                            : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800' 
+                            : 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800'
                       }`}>
                         {isRecon ? <Layers className="w-3 h-3" /> : (isRestock ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />)}
                         {isRecon ? 'Audit Reconciliation' : (isRestock ? 'Restock / Inflow' : 'Dispatch / Outflow')}
                       </span>
                     </td>
-                    <td className={`py-4 px-6 text-center font-extrabold ${
+                    <td className={`py-4 px-6 text-center font-black text-sm ${
                       isRecon
-                        ? (log.change_amount > 0 ? 'text-emerald-400' : log.change_amount < 0 ? 'text-amber-400' : 'text-slate-400')
-                        : (isRestock ? 'text-[#00684a] dark:text-emerald-400' : 'text-red-500')
+                        ? (log.change_amount > 0 ? 'text-emerald-600 dark:text-emerald-400' : log.change_amount < 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-slate-400')
+                        : (isRestock ? 'text-[#00684a] dark:text-emerald-400' : 'text-red-600 dark:text-red-400')
                     }`}>
                       {log.change_amount > 0 ? `+${log.change_amount}` : log.change_amount}
                     </td>
-                    <td className="py-4 px-6 text-right text-xs text-slate-400 font-medium">
+                    <td className="py-4 px-6 text-right text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
                       {new Date(log.created_at || Date.now()).toLocaleString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -309,7 +316,7 @@ export default function AdminStockHistory() {
               })
             ) : (
               <tr>
-                <td colSpan="5" className="py-16 text-center text-slate-400 text-xs">
+                <td colSpan="5" className="py-16 text-center text-xs font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                   No stock movement history recorded yet.
                 </td>
               </tr>

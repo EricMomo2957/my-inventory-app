@@ -399,11 +399,16 @@ export default function ReportExportStudio() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                 <thead>
-                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
-                  }`}>
+                  <tr 
+                    className="border-b text-[11px] font-black uppercase tracking-wider"
+                    style={{ 
+                      backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                      color: isDark ? '#f8fafc' : '#09090b',
+                      borderColor: isDark ? '#334155' : '#cbd5e1'
+                    }}
+                  >
                     <th className="py-3 px-3">SKU</th>
                     <th className="py-3 px-3">Product Name</th>
                     <th className="py-3 px-3">Category</th>
@@ -422,8 +427,14 @@ export default function ReportExportStudio() {
                     const imgUrl = getProductImage(p);
 
                     return (
-                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">{p.sku || `SKU-${p.id}`}</td>
+                      <tr 
+                        key={p.id} 
+                        className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                        style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                      >
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {p.sku || `SKU-${p.id}`}
+                        </td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
                             {imgUrl ? (
@@ -439,19 +450,31 @@ export default function ReportExportStudio() {
                               </div>
                             )}
                             <div>
-                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{p.name}</p>
-                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{p.id}</span>
+                              <p className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                {p.name}
+                              </p>
+                              <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                                ID: #{p.id}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-xs font-black text-slate-950 dark:text-slate-200">{p.category || 'General'}</td>
-                        <td className="py-3.5 px-3 text-center font-black text-slate-950 dark:text-white">{p.quantity}</td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">₱{cost.toFixed(2)}</td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">₱{(parseFloat(p.price) || 0).toFixed(2)}</td>
-                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400 text-sm">
+                        <td className="py-3.5 px-3 text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {p.category || 'General'}
+                        </td>
+                        <td className="py-3.5 px-3 text-center font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                          {p.quantity}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          ₱{cost.toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          ₱{(parseFloat(p.price) || 0).toFixed(2)}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono font-black text-sm" style={{ color: isDark ? '#34d399' : '#00684a' }}>
                           ₱{totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="py-3.5 px-3 font-mono font-black text-xs text-slate-950 dark:text-slate-100">
+                        <td className="py-3.5 px-3 font-mono font-black text-xs" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                           ₱{totalRetail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -468,8 +491,8 @@ export default function ReportExportStudio() {
           <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Physical Cycle Count Variance Log</h3>
-                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Differences between recorded theoretical counts vs. floor counts</p>
+                <h3 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Physical Cycle Count Variance Log</h3>
+                <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Differences between recorded theoretical counts vs. floor counts</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <button
@@ -490,11 +513,16 @@ export default function ReportExportStudio() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                 <thead>
-                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
-                  }`}>
+                  <tr 
+                    className="border-b text-[11px] font-black uppercase tracking-wider"
+                    style={{ 
+                      backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                      color: isDark ? '#f8fafc' : '#09090b',
+                      borderColor: isDark ? '#334155' : '#cbd5e1'
+                    }}
+                  >
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Product Name</th>
                     <th className="py-3 px-3">Auditor</th>
@@ -509,8 +537,12 @@ export default function ReportExportStudio() {
                     const imgUrl = getProductImage(matchedProd || { name: l.product_name });
 
                     return (
-                      <tr key={l.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
-                        <td className="py-3.5 px-3 text-xs text-slate-950 dark:text-slate-200 font-mono font-black">
+                      <tr 
+                        key={l.id} 
+                        className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                        style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                      >
+                        <td className="py-3.5 px-3 text-xs font-mono font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                           {new Date(l.created_at).toLocaleDateString()}
                         </td>
                         <td className="py-3.5 px-3">
@@ -528,12 +560,18 @@ export default function ReportExportStudio() {
                               </div>
                             )}
                             <div>
-                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{l.product_name}</p>
-                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{l.product_id || '—'}</span>
+                              <p className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                {l.product_name}
+                              </p>
+                              <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                                ID: #{l.product_id || '—'}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-xs font-black text-slate-950 dark:text-slate-200">{l.user_name || 'Staff'}</td>
+                        <td className="py-3.5 px-3 text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {l.user_name || 'Staff'}
+                        </td>
                         <td className="py-3.5 px-3 text-center font-black">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
                             l.change_amount > 0 
@@ -545,8 +583,12 @@ export default function ReportExportStudio() {
                             {l.change_amount > 0 ? `+${l.change_amount}` : l.change_amount}
                           </span>
                         </td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-200">{l.reference_no || 'N/A'}</td>
-                        <td className="py-3.5 px-3 text-xs font-bold text-slate-950 dark:text-slate-200">{l.notes || 'Cycle Count Audit'}</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {l.reference_no || 'N/A'}
+                        </td>
+                        <td className="py-3.5 px-3 text-xs font-bold" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {l.notes || 'Cycle Count Audit'}
+                        </td>
                       </tr>
                     );
                   })}
@@ -561,17 +603,22 @@ export default function ReportExportStudio() {
           <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Batch Expiry & Spoilage Liability Register</h3>
-                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Batches nearing shelf life limits requiring promotional priority or write-off</p>
+                <h3 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Batch Expiry & Spoilage Liability Register</h3>
+                <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Batches nearing shelf life limits requiring promotional priority or write-off</p>
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                 <thead>
-                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
-                  }`}>
+                  <tr 
+                    className="border-b text-[11px] font-black uppercase tracking-wider"
+                    style={{ 
+                      backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                      color: isDark ? '#f8fafc' : '#09090b',
+                      borderColor: isDark ? '#334155' : '#cbd5e1'
+                    }}
+                  >
                     <th className="py-3 px-3">Batch Number</th>
                     <th className="py-3 px-3">Product Name</th>
                     <th className="py-3 px-3">Quantity</th>
@@ -591,8 +638,14 @@ export default function ReportExportStudio() {
                     const imgUrl = getProductImage(p);
 
                     return (
-                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">{p.batch_number || `LOT-${p.id}`}</td>
+                      <tr 
+                        key={p.id} 
+                        className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                        style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                      >
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {p.batch_number || `LOT-${p.id}`}
+                        </td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
                             {imgUrl ? (
@@ -608,16 +661,22 @@ export default function ReportExportStudio() {
                               </div>
                             )}
                             <div>
-                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{p.name}</p>
-                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{p.id}</span>
+                              <p className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                {p.name}
+                              </p>
+                              <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                                ID: #{p.id}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 font-black text-slate-950 dark:text-white">{p.quantity} units</td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">
+                        <td className="py-3.5 px-3 font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                          {p.quantity} units
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                           {p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable'}
                         </td>
-                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400 text-sm">
+                        <td className="py-3.5 px-3 font-mono font-black text-sm" style={{ color: isDark ? '#34d399' : '#00684a' }}>
                           ₱{holdingExposure.toFixed(2)}
                         </td>
                         <td className="py-3.5 px-3 text-right">
@@ -645,17 +704,22 @@ export default function ReportExportStudio() {
           <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Stock Inbound & Outbound Movement Ledger</h3>
-                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Complete audit log of restocks, deliveries, and adjustments</p>
+                <h3 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Stock Inbound & Outbound Movement Ledger</h3>
+                <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Complete audit log of restocks, deliveries, and adjustments</p>
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
                 <thead>
-                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
-                  }`}>
+                  <tr 
+                    className="border-b text-[11px] font-black uppercase tracking-wider"
+                    style={{ 
+                      backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                      color: isDark ? '#f8fafc' : '#09090b',
+                      borderColor: isDark ? '#334155' : '#cbd5e1'
+                    }}
+                  >
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Product</th>
                     <th className="py-3 px-3">User</th>
@@ -670,8 +734,14 @@ export default function ReportExportStudio() {
                     const imgUrl = getProductImage(matchedProd || { name: h.product_name });
 
                     return (
-                      <tr key={h.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
-                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-200">{new Date(h.created_at).toLocaleString()}</td>
+                      <tr 
+                        key={h.id} 
+                        className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                        style={{ color: isDark ? '#f8fafc' : '#09090b' }}
+                      >
+                        <td className="py-3.5 px-3 font-mono text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {new Date(h.created_at).toLocaleString()}
+                        </td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
                             {imgUrl ? (
@@ -687,12 +757,18 @@ export default function ReportExportStudio() {
                               </div>
                             )}
                             <div>
-                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{h.product_name}</p>
-                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{h.product_id || '—'}</span>
+                              <p className="font-black text-sm leading-tight" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                {h.product_name}
+                              </p>
+                              <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                                ID: #{h.product_id || '—'}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-xs font-black text-slate-950 dark:text-slate-200">{h.user_name || 'Staff'}</td>
+                        <td className="py-3.5 px-3 text-xs font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {h.user_name || 'Staff'}
+                        </td>
                         <td className="py-3.5 px-3">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
                             h.action_type === 'stock_in' ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400' : 'bg-blue-500/15 text-blue-800 dark:text-blue-400'
@@ -700,8 +776,12 @@ export default function ReportExportStudio() {
                             {h.action_type}
                           </span>
                         </td>
-                        <td className="py-3.5 px-3 text-center font-black text-slate-950 dark:text-white">{h.change_amount}</td>
-                        <td className="py-3.5 px-3 text-xs font-bold text-slate-950 dark:text-slate-200">{h.notes || '-'}</td>
+                        <td className="py-3.5 px-3 text-center font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                          {h.change_amount}
+                        </td>
+                        <td className="py-3.5 px-3 text-xs font-bold" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
+                          {h.notes || '-'}
+                        </td>
                       </tr>
                     );
                   })}
