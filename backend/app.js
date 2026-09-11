@@ -20,6 +20,9 @@ const reportRoutes = require('./routes/reports');
 const supplierRoutes = require('./routes/suppliers');
 const poRoutes = require('./routes/purchaseOrders');
 const analyticsRoutes = require('./routes/analytics');
+const categoryRoutes = require('./routes/categories');
+const damagedRoutes = require('./routes/damagedItems');
+const variantRoutes = require('./routes/variants');
 
 const app = express();
 
@@ -48,6 +51,9 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/purchase-orders', poRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/damaged-items', damagedRoutes);
+app.use('/api/variants', variantRoutes);
 
 // --- COMPATIBILITY & ALIAS ENDPOINTS ---
 
