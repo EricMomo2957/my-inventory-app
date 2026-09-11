@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import axios from 'axios';
 import TablePagination from '../../components/TablePagination';
+import AdminHeader from '../admin/AdminHeader';
 import { 
   Scale, 
   Search, 
@@ -199,6 +200,13 @@ export default function CycleCountReconciliation() {
     <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
     }`}>
+      {/* Top Header Bar */}
+      <AdminHeader 
+        title="Cycle Count & Stock Audit"
+        subtitle="Physical Floor Reconciliation, Variance Tracking & Certificate Logs"
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       
       {/* ========================================================= */}
       {/* 1. TOP HEADER SECTION */}
