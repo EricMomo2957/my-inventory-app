@@ -254,20 +254,20 @@ export default function ReportExportStudio() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Card 1 */}
           <div className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden group shadow-sm ${
-            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-emerald-500/50' : 'bg-white border-slate-200/80 hover:border-[#00684a]/40'
+            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-emerald-500/50' : 'bg-white border-slate-300 hover:border-[#00684a]/60 shadow-sm'
           }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Inventory Asset Worth</p>
-                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Inventory Asset Worth</p>
+                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-950'}`}>
                   ₱{metrics.totalValuation.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
                 <Coins className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+            <div className="mt-3 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 font-bold">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Full Cost Basis Valuation</span>
             </div>
@@ -275,20 +275,20 @@ export default function ReportExportStudio() {
 
           {/* Card 2 */}
           <div className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden group shadow-sm ${
-            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-blue-500/50' : 'bg-white border-slate-200/80 hover:border-blue-500/40'
+            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-blue-500/50' : 'bg-white border-slate-300 hover:border-blue-500/60 shadow-sm'
           }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Variance Audits Logged</p>
-                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Variance Audits Logged</p>
+                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-950'}`}>
                   {metrics.reconciliationLogs}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
                 <Scale className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400 font-semibold">
+            <div className="mt-3 flex items-center gap-2 text-xs text-blue-700 dark:text-blue-400 font-bold">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Physical cycle counts verified</span>
             </div>
@@ -296,20 +296,20 @@ export default function ReportExportStudio() {
 
           {/* Card 3 */}
           <div className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden group shadow-sm ${
-            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-amber-500/50' : 'bg-white border-slate-200/80 hover:border-amber-500/40'
+            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-amber-500/50' : 'bg-white border-slate-300 hover:border-amber-500/60 shadow-sm'
           }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Near-Expiry Risk (90d)</p>
-                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Near-Expiry Risk (90d)</p>
+                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-950'}`}>
                   ₱{metrics.nearExpiryRiskValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <Clock className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400 font-semibold">
+            <div className="mt-3 flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 font-bold">
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>{metrics.nearExpiryCount} batches nearing expiry</span>
             </div>
@@ -317,20 +317,20 @@ export default function ReportExportStudio() {
 
           {/* Card 4 */}
           <div className={`p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden group shadow-sm ${
-            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-purple-500/50' : 'bg-white border-slate-200/80 hover:border-purple-500/40'
+            isDark ? 'bg-[#0f172a] border-slate-800 hover:border-purple-500/50' : 'bg-white border-slate-300 hover:border-purple-500/60 shadow-sm'
           }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Audit Ledger Entries</p>
-                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">Audit Ledger Entries</p>
+                <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-950'}`}>
                   {stockHistory.length}
                 </h3>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
                 <History className="w-6 h-6" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400 font-semibold">
+            <div className="mt-3 flex items-center gap-2 text-xs text-purple-700 dark:text-purple-400 font-bold">
               <span>Complete transactional audit trail</span>
             </div>
           </div>
@@ -353,7 +353,7 @@ export default function ReportExportStudio() {
                 className={`px-4 py-3 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                   isSelected
                     ? 'bg-[#00684a] text-white shadow-md shadow-[#00684a]/20'
-                    : isDark ? 'bg-[#0f172a] border border-slate-800 text-slate-400 hover:text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    : isDark ? 'bg-[#0f172a] border border-slate-800 text-slate-300 hover:text-white' : 'bg-white border border-slate-300 text-slate-800 hover:bg-slate-100'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -365,17 +365,17 @@ export default function ReportExportStudio() {
 
         {/* TAB 1: VALUATION & BALANCE SHEET */}
         {activeReportTab === 'valuation' && (
-          <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Monthly Inventory Valuation & Holding Worth</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Total cost assets vs. estimated retail value by category</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Monthly Inventory Valuation & Holding Worth</h3>
+                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Total cost assets vs. estimated retail value by category</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => window.print()}
                   className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-                    isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-900'
                   }`}
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -401,8 +401,8 @@ export default function ReportExportStudio() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
+                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
+                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
                   }`}>
                     <th className="py-3 px-3">SKU</th>
                     <th className="py-3 px-3">Product Name</th>
@@ -414,7 +414,7 @@ export default function ReportExportStudio() {
                     <th className="py-3 px-3">Retail Valuation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {products.map(p => {
                     const cost = parseFloat(p.cost_price) || Math.round((parseFloat(p.price) || 0) * 0.65 * 100) / 100;
                     const totalCost = (p.quantity || 0) * cost;
@@ -422,30 +422,36 @@ export default function ReportExportStudio() {
                     const imgUrl = getProductImage(p);
 
                     return (
-                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
-                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{p.sku || `SKU-${p.id}`}</td>
+                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">{p.sku || `SKU-${p.id}`}</td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={imgUrl} 
-                              alt={p.name} 
-                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
-                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
-                            />
+                            {imgUrl ? (
+                              <img 
+                                src={imgUrl} 
+                                alt={p.name} 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shrink-0 shadow-xs" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 border border-slate-300 dark:border-slate-700">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            )}
                             <div>
-                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.name}</p>
-                              <span className="text-[10px] text-slate-400 font-mono">ID: #{p.id}</span>
+                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{p.name}</p>
+                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{p.id}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300">{p.category || 'General'}</td>
-                        <td className="py-3.5 px-3 text-center font-black text-slate-900 dark:text-white">{p.quantity}</td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">₱{cost.toFixed(2)}</td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">₱{(parseFloat(p.price) || 0).toFixed(2)}</td>
-                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
+                        <td className="py-3.5 px-3 text-xs font-black text-slate-950 dark:text-slate-200">{p.category || 'General'}</td>
+                        <td className="py-3.5 px-3 text-center font-black text-slate-950 dark:text-white">{p.quantity}</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">₱{cost.toFixed(2)}</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">₱{(parseFloat(p.price) || 0).toFixed(2)}</td>
+                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400 text-sm">
                           ₱{totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="py-3.5 px-3 font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
+                        <td className="py-3.5 px-3 font-mono font-black text-xs text-slate-950 dark:text-slate-100">
                           ₱{totalRetail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -459,11 +465,11 @@ export default function ReportExportStudio() {
 
         {/* TAB 2: PHYSICAL STOCK VARIANCE & AUDIT LOGS */}
         {activeReportTab === 'variance' && (
-          <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Physical Cycle Count Variance Log</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Differences between recorded theoretical counts vs. floor counts</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Physical Cycle Count Variance Log</h3>
+                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Differences between recorded theoretical counts vs. floor counts</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <button
@@ -486,8 +492,8 @@ export default function ReportExportStudio() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
+                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
+                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
                   }`}>
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Product Name</th>
@@ -497,44 +503,50 @@ export default function ReportExportStudio() {
                     <th className="py-3 px-3">Reconciliation Reason</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {stockHistory.filter(h => h.action_type === 'reconciliation').map(l => {
                     const matchedProd = l.product_id ? productsMap[l.product_id] : productsMap[l.product_name?.toLowerCase()];
                     const imgUrl = getProductImage(matchedProd || { name: l.product_name });
 
                     return (
-                      <tr key={l.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
-                        <td className="py-3.5 px-3 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                      <tr key={l.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
+                        <td className="py-3.5 px-3 text-xs text-slate-950 dark:text-slate-200 font-mono font-black">
                           {new Date(l.created_at).toLocaleDateString()}
                         </td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={imgUrl} 
-                              alt={l.product_name} 
-                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
-                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
-                            />
+                            {imgUrl ? (
+                              <img 
+                                src={imgUrl} 
+                                alt={l.product_name} 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shrink-0 shadow-xs" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 border border-slate-300 dark:border-slate-700">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            )}
                             <div>
-                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{l.product_name}</p>
-                              <span className="text-[10px] text-slate-400 font-mono">ID: #{l.product_id || '—'}</span>
+                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{l.product_name}</p>
+                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{l.product_id || '—'}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300">{l.user_name || 'Staff'}</td>
+                        <td className="py-3.5 px-3 text-xs font-black text-slate-950 dark:text-slate-200">{l.user_name || 'Staff'}</td>
                         <td className="py-3.5 px-3 text-center font-black">
-                          <span className={`px-2.5 py-1 rounded-full text-xs ${
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
                             l.change_amount > 0 
-                              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold' 
+                              ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400' 
                               : l.change_amount < 0
-                                ? 'bg-red-500/20 text-red-600 dark:text-red-400 font-bold'
-                                : 'bg-slate-500/20 text-slate-600 dark:text-slate-400 font-bold'
+                                ? 'bg-red-500/20 text-red-800 dark:text-red-400'
+                                : 'bg-slate-500/20 text-slate-950 dark:text-slate-200'
                           }`}>
                             {l.change_amount > 0 ? `+${l.change_amount}` : l.change_amount}
                           </span>
                         </td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{l.reference_no || 'N/A'}</td>
-                        <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{l.notes || 'Cycle Count Audit'}</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-200">{l.reference_no || 'N/A'}</td>
+                        <td className="py-3.5 px-3 text-xs font-bold text-slate-950 dark:text-slate-200">{l.notes || 'Cycle Count Audit'}</td>
                       </tr>
                     );
                   })}
@@ -546,19 +558,19 @@ export default function ReportExportStudio() {
 
         {/* TAB 3: EXPIRY & SPOILAGE */}
         {activeReportTab === 'expiry' && (
-          <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Batch Expiry & Spoilage Liability Register</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Batches nearing shelf life limits requiring promotional priority or write-off</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Batch Expiry & Spoilage Liability Register</h3>
+                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Batches nearing shelf life limits requiring promotional priority or write-off</p>
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
+                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
+                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
                   }`}>
                     <th className="py-3 px-3">Batch Number</th>
                     <th className="py-3 px-3">Product Name</th>
@@ -568,7 +580,7 @@ export default function ReportExportStudio() {
                     <th className="py-3 px-3 text-right">Risk Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {products.map(p => {
                     const cost = parseFloat(p.cost_price) || 0;
                     const holdingExposure = (p.quantity || 0) * cost;
@@ -579,36 +591,42 @@ export default function ReportExportStudio() {
                     const imgUrl = getProductImage(p);
 
                     return (
-                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
-                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{p.batch_number || `LOT-${p.id}`}</td>
+                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">{p.batch_number || `LOT-${p.id}`}</td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={imgUrl} 
-                              alt={p.name} 
-                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
-                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
-                            />
+                            {imgUrl ? (
+                              <img 
+                                src={imgUrl} 
+                                alt={p.name} 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shrink-0 shadow-xs" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 border border-slate-300 dark:border-slate-700">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            )}
                             <div>
-                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.name}</p>
-                              <span className="text-[10px] text-slate-400 font-mono">ID: #{p.id}</span>
+                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{p.name}</p>
+                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{p.id}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 font-bold text-slate-900 dark:text-white">{p.quantity} units</td>
-                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                        <td className="py-3.5 px-3 font-black text-slate-950 dark:text-white">{p.quantity} units</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-100">
                           {p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable'}
                         </td>
-                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
+                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400 text-sm">
                           ₱{holdingExposure.toFixed(2)}
                         </td>
                         <td className="py-3.5 px-3 text-right">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
                             isExpired
-                              ? 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30'
+                              ? 'bg-red-500/20 text-red-800 dark:text-red-400 border border-red-500/30'
                               : isWarning
-                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                                : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                ? 'bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-500/30'
+                                : 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-400'
                           }`}>
                             {isExpired ? 'EXPIRED' : (isWarning ? `${daysLeft} Days Left` : 'HEALTHY')}
                           </span>
@@ -624,19 +642,19 @@ export default function ReportExportStudio() {
 
         {/* TAB 4: STOCK MOVEMENTS */}
         {activeReportTab === 'movement' && (
-          <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`p-6 rounded-2xl border space-y-4 shadow-sm ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-300'}`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Stock Inbound & Outbound Movement Ledger</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Complete audit log of restocks, deliveries, and adjustments</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-950'}`}>Stock Inbound & Outbound Movement Ledger</h3>
+                <p className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Complete audit log of restocks, deliveries, and adjustments</p>
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
+                  <tr className={`border-b text-[11px] font-black uppercase tracking-wider ${
+                    isDark ? 'border-slate-800 text-slate-200 bg-slate-900/60' : 'border-slate-300 text-slate-950 bg-slate-100'
                   }`}>
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Product</th>
@@ -646,38 +664,44 @@ export default function ReportExportStudio() {
                     <th className="py-3 px-3">Notes</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {stockHistory.slice(0, 30).map(h => {
                     const matchedProd = h.product_id ? productsMap[h.product_id] : productsMap[h.product_name?.toLowerCase()];
                     const imgUrl = getProductImage(matchedProd || { name: h.product_name });
 
                     return (
-                      <tr key={h.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
-                        <td className="py-3.5 px-3 font-mono text-xs text-slate-500 dark:text-slate-400">{new Date(h.created_at).toLocaleString()}</td>
+                      <tr key={h.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50 text-slate-950'}`}>
+                        <td className="py-3.5 px-3 font-mono text-xs font-black text-slate-950 dark:text-slate-200">{new Date(h.created_at).toLocaleString()}</td>
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={imgUrl} 
-                              alt={h.product_name} 
-                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
-                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
-                            />
+                            {imgUrl ? (
+                              <img 
+                                src={imgUrl} 
+                                alt={h.product_name} 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shrink-0 shadow-xs" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shrink-0 border border-slate-300 dark:border-slate-700">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            )}
                             <div>
-                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{h.product_name}</p>
-                              <span className="text-[10px] text-slate-400 font-mono">ID: #{h.product_id || '—'}</span>
+                              <p className={`font-black text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-950'}`}>{h.product_name}</p>
+                              <span className="text-[10px] text-slate-700 dark:text-slate-400 font-mono font-bold">ID: #{h.product_id || '—'}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300">{h.user_name || 'Staff'}</td>
+                        <td className="py-3.5 px-3 text-xs font-black text-slate-950 dark:text-slate-200">{h.user_name || 'Staff'}</td>
                         <td className="py-3.5 px-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                            h.action_type === 'stock_in' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                            h.action_type === 'stock_in' ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-400' : 'bg-blue-500/15 text-blue-800 dark:text-blue-400'
                           }`}>
                             {h.action_type}
                           </span>
                         </td>
-                        <td className="py-3.5 px-3 text-center font-black text-slate-900 dark:text-white">{h.change_amount}</td>
-                        <td className="py-3.5 px-3 text-xs text-slate-500 dark:text-slate-400">{h.notes || '-'}</td>
+                        <td className="py-3.5 px-3 text-center font-black text-slate-950 dark:text-white">{h.change_amount}</td>
+                        <td className="py-3.5 px-3 text-xs font-bold text-slate-950 dark:text-slate-200">{h.notes || '-'}</td>
                       </tr>
                     );
                   })}
