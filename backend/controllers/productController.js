@@ -37,7 +37,10 @@ exports.getProductById = async (req, res) => {
 // 3. CREATE PRODUCT
 exports.createProduct = async (req, res) => {
     try {
-        const { name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold } = req.body;
+        const { 
+            name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold,
+            location_zone, location_aisle, location_rack, location_bin 
+        } = req.body;
         const uploadedFile = (req.files?.image && req.files.image[0]) || (req.files?.productImage && req.files.productImage[0]);
         const imageUrl = uploadedFile ? `/uploads/${uploadedFile.filename}` : null;
 
@@ -46,9 +49,13 @@ exports.createProduct = async (req, res) => {
         const generatedBatch = batch_number || `LOT-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(10 + Math.random() * 90)}`;
         const expiry = expiry_date || null;
         const threshold = min_threshold !== undefined ? parseInt(min_threshold) : 5;
+        const zone = location_zone || 'Zone A';
+        const aisle = location_aisle || 'Aisle 01';
+        const rack = location_rack || 'Rack A';
+        const bin = location_bin || 'Shelf 1';
 
-        const sql = `INSERT INTO products (name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold, image_url) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO products (name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold, location_zone, location_aisle, location_rack, location_bin, image_url) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const [result] = await db.query(sql, [
             name, 
             category || 'General', 
@@ -58,7 +65,11 @@ exports.createProduct = async (req, res) => {
             generatedSku, 
             generatedBatch, 
             expiry, 
-            threshold, 
+            threshold,
+            zone,
+            aisle,
+            rack,
+            bin, 
             imageUrl
         ]);
 
@@ -76,7 +87,7 @@ exports.createProduct = async (req, res) => {
         
         res.status(201).json({ 
             success: true, 
-            message: "Product added successfully with Cost and Batch details", 
+            message: "Product added successfully with Coordinates, Cost, and Batch details", 
             id: result.insertId,
             imageUrl: imageUrl 
         });
@@ -89,7 +100,11 @@ exports.createProduct = async (req, res) => {
 // 4. UPDATE PRODUCT (With image upload and audit logging)
 exports.updateProduct = async (req, res) => {
     const productId = req.params.id;
-    const { name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold, adjustment, clerk_name } = req.body;
+    const { 
+        name, category, quantity, price, cost_price, sku, batch_number, expiry_date, min_threshold, 
+        location_zone, location_aisle, location_rack, location_bin,
+        adjustment, clerk_name 
+    } = req.body;
 
     let connection;
     try {
@@ -113,6 +128,10 @@ exports.updateProduct = async (req, res) => {
         const newBatch = batch_number !== undefined ? batch_number : existing.batch_number;
         const newExpiry = expiry_date !== undefined ? expiry_date : existing.expiry_date;
         const newThreshold = min_threshold !== undefined ? parseInt(min_threshold) : existing.min_threshold;
+        const newZone = location_zone !== undefined ? location_zone : (existing.location_zone || 'Zone A');
+        const newAisle = location_aisle !== undefined ? location_aisle : (existing.location_aisle || 'Aisle 01');
+        const newRack = location_rack !== undefined ? location_rack : (existing.location_rack || 'Rack A');
+        const newBin = location_bin !== undefined ? location_bin : (existing.location_bin || 'Shelf 1');
 
         const uploadedFile = (req.files?.image && req.files.image[0]) || (req.files?.productImage && req.files.productImage[0]);
         let newImageUrl = existing.image_url;
@@ -121,7 +140,7 @@ exports.updateProduct = async (req, res) => {
         }
 
         const updateSql = `UPDATE products 
-                           SET name = ?, category = ?, quantity = ?, price = ?, cost_price = ?, sku = ?, batch_number = ?, expiry_date = ?, min_threshold = ?, image_url = ? 
+                           SET name = ?, category = ?, quantity = ?, price = ?, cost_price = ?, sku = ?, batch_number = ?, expiry_date = ?, min_threshold = ?, location_zone = ?, location_aisle = ?, location_rack = ?, location_bin = ?, image_url = ? 
                            WHERE id = ?`;
         await connection.query(updateSql, [
             newName, 
@@ -132,7 +151,11 @@ exports.updateProduct = async (req, res) => {
             newSku, 
             newBatch, 
             newExpiry, 
-            newThreshold, 
+            newThreshold,
+            newZone,
+            newAisle,
+            newRack,
+            newBin, 
             newImageUrl, 
             productId
         ]);
@@ -350,4 +373,66 @@ exports.batchReconciliation = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+// 9. UPDATE SINGLE PRODUCT LOCATION COORDINATES
+exports.updateProductLocation = async (req, res) => {
+    const { id } = req.params;
+    const { location_zone, location_aisle, location_rack, location_bin } = req.body;
+
+    try {
+        const [result] = await db.query(`
+            UPDATE products 
+            SET location_zone = ?, location_aisle = ?, location_rack = ?, location_bin = ? 
+            WHERE id = ?
+        `, [location_zone || 'Zone A', location_aisle || 'Aisle 01', location_rack || 'Rack A', location_bin || 'Shelf 1', id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        res.json({ 
+            success: true, 
+            message: 'Warehouse coordinates updated successfully',
+            coordinates: { location_zone, location_aisle, location_rack, location_bin }
+        });
+    } catch (err) {
+        console.error("Update Location Error:", err);
+        res.status(500).json({ success: false, message: "Failed to update location: " + err.message });
+    }
+};
+
+// 10. BATCH RELOCATE MULTIPLE PRODUCTS
+exports.batchUpdateLocations = async (req, res) => {
+    const { product_ids, location_zone, location_aisle, location_rack, location_bin } = req.body;
+
+    if (!Array.isArray(product_ids) || product_ids.length === 0) {
+        return res.status(400).json({ success: false, message: "No product IDs provided" });
+    }
+
+    try {
+        const placeholders = product_ids.map(() => '?').join(',');
+        const queryParams = [
+            location_zone || 'Zone A', 
+            location_aisle || 'Aisle 01', 
+            location_rack || 'Rack A', 
+            location_bin || 'Shelf 1',
+            ...product_ids
+        ];
+
+        await db.query(`
+            UPDATE products 
+            SET location_zone = ?, location_aisle = ?, location_rack = ?, location_bin = ? 
+            WHERE id IN (${placeholders})
+        `, queryParams);
+
+        res.json({
+            success: true,
+            message: `Successfully relocated ${product_ids.length} products to ${location_zone} / ${location_aisle} / ${location_rack} / ${location_bin}`
+        });
+    } catch (err) {
+        console.error("Batch Location Error:", err);
+        res.status(500).json({ success: false, message: "Failed to batch relocate: " + err.message });
+    }
+};
+
 

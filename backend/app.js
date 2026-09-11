@@ -5,6 +5,10 @@ const fs = require('fs');
 require('dotenv').config({ quiet: true });
 
 const db = require('./config/db'); 
+const { initDatabase } = require('./config/initDatabase');
+
+// Run automatic schema upgrade & migrations
+initDatabase().catch(err => console.error("Database migration notice:", err.message));
 
 // Import Modular Routers
 const authRoutes = require('./routes/auth');
@@ -13,6 +17,9 @@ const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const scheduleRoutes = require('./routes/schedules'); 
 const reportRoutes = require('./routes/reports');
+const supplierRoutes = require('./routes/suppliers');
+const poRoutes = require('./routes/purchaseOrders');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 
@@ -38,6 +45,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/schedules', scheduleRoutes); 
 app.use('/api/reports', reportRoutes);
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/purchase-orders', poRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // --- COMPATIBILITY & ALIAS ENDPOINTS ---
 
