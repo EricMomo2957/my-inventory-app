@@ -1,12 +1,39 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { 
+  Warehouse, 
+  ShieldCheck, 
+  Mail, 
+  ArrowLeft, 
+  Sun, 
+  Moon, 
+  CheckCircle2, 
+  AlertCircle,
+  KeyRound
+} from 'lucide-react';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('landingTheme') === 'dark');
   const navigate = useNavigate();
+
+  // Sync theme with document root
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('landingTheme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('landingTheme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(prev => !prev);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,81 +51,164 @@ export default function ForgotPassword() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage("Check your inbox! Reset instructions have been sent.");
+        setMessage("Check your inbox! Reset instructions have been dispatched.");
       } else {
-        setError(data.message || "No account found with that email.");
+        setError(data.message || "No authorized account registered with that email.");
       }
     } catch { 
-      // LINT FIX: No variable defined here, so no "unused-vars" error
-      setError("Failed to connect to the server. Please try again later.");
+      setError("Failed to connect to the server. Please verify network connection.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1120] flex items-center justify-center p-6 font-sans text-slate-300">
-      <div className="w-full max-w-md bg-[#111827] rounded-3xl border border-slate-800 p-8 shadow-2xl relative overflow-hidden">
+    <div className={`min-h-screen flex flex-col justify-between p-6 font-sans transition-colors duration-500 relative overflow-hidden ${
+      isDarkMode ? 'bg-[#070c18] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
+    }`}>
+      
+      {/* Background Decorative Emerald Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[140px] opacity-25 ${
+          isDarkMode ? 'bg-[#00684a]' : 'bg-emerald-300'
+        }`}></div>
+      </div>
+
+      {/* Top Bar: Back to Home & Theme Toggle */}
+      <div className="w-full max-w-5xl mx-auto flex items-center justify-between relative z-10">
+        <Link
+          to="/login"
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-black uppercase tracking-wider transition-all ${
+            isDarkMode 
+              ? 'border-slate-800 bg-[#0f172a]/80 hover:bg-slate-800 text-slate-300 hover:text-white' 
+              : 'border-slate-200 bg-white/80 hover:bg-slate-100 text-slate-700 shadow-xs'
+          }`}
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Login</span>
+        </Link>
+
+        <button
+          onClick={toggleTheme}
+          className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+            isDarkMode 
+              ? 'border-slate-800 bg-[#0f172a]/80 text-amber-400 hover:bg-slate-800' 
+              : 'border-slate-200 bg-white/80 text-slate-600 hover:bg-slate-100 shadow-xs'
+          }`}
+          title="Toggle Light / Dark Mode"
+        >
+          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-slate-700" />}
+        </button>
+      </div>
+
+      {/* Center Auth Area */}
+      <div className="w-full max-w-md mx-auto my-auto relative z-10 flex flex-col items-center">
         
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/10 blur-3xl rounded-full"></div>
-
-        <div className="relative z-10">
-          <button 
-            onClick={() => navigate('/login')}
-            className="text-[10px] font-black text-indigo-400 hover:text-white uppercase tracking-widest transition-colors mb-6 flex items-center gap-2"
-          >
-            <span className="text-sm">←</span> Back to Login
-          </button>
-          
-          <h1 className="text-3xl font-black text-white tracking-tight mb-2">Password Recovery</h1>
-          <p className="text-slate-400 text-xs leading-relaxed mb-8">
-            Enter your registered email below. We will verify your account and provide reset instructions.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-3">
-                Email Address
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="clerk@inventorypro.com"
-                className="w-full bg-[#1e293b] border border-slate-700 rounded-xl px-4 py-3.5 text-white text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-600"
-              />
+        {/* Brand Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2.5 mb-2">
+            <div className="w-10 h-10 rounded-2xl bg-[#00684a] text-white flex items-center justify-center font-black text-xl shadow-lg shadow-[#00684a]/30">
+              <Warehouse className="w-5 h-5" />
             </div>
+            <span className={`text-2xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              Mind<span className="text-[#00684a] dark:text-emerald-400">Stock</span>
+            </span>
+          </div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">
+            Precision Control. Enterprise Warehouse Management
+          </p>
+        </div>
 
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-bold p-4 rounded-xl flex items-center gap-3 animate-pulse">
-                <span>⚠️</span> {error}
-              </div>
-            )}
-
-            {message && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-bold p-4 rounded-xl flex items-center gap-3">
-                <span>✅</span> {message}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              // LINT FIX: Updated to 'bg-gradient-to-r' to match canonical suggestions
-              className="w-full bg-linear-to-r from-[#4338ca] to-[#6d28d9] hover:from-[#4f46e5] hover:to-[#7c3aed] text-white text-xs font-black py-4 rounded-xl shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 tracking-widest"
-            >
-              {isLoading ? "VERIFYING..." : "SEND RECOVERY LINK"}
-            </button>
-          </form>
+        {/* Main Glassmorphic Card */}
+        <div className={`w-full p-8 sm:p-10 rounded-[2.5rem] border shadow-2xl backdrop-blur-xl relative transition-all duration-300 ${
+          isDarkMode 
+            ? 'bg-[#0f172a]/95 border-slate-800/90 shadow-black/70' 
+            : 'bg-white border-slate-200 shadow-xl shadow-slate-200/70'
+        }`}>
           
-          <div className="mt-8 pt-8 border-t border-slate-800 text-center">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest">
-              Need more help? <span className="text-indigo-400 cursor-pointer hover:underline">Contact Admin</span>
+          {/* Top Emerald Glowing Accent Halo */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-[2px] bg-linear-to-r from-transparent via-[#00684a] dark:via-emerald-400 to-transparent blur-[1px]"></div>
+
+          {/* Card Title & Subtitle */}
+          <div className="text-center mb-6">
+            <h2 className={`text-2xl sm:text-3xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              Password Recovery
+            </h2>
+            <p className="text-xs font-medium text-slate-400 dark:text-slate-400 mt-1">
+              Enter your registered staff email to receive recovery instructions.
             </p>
           </div>
+
+          {error && (
+            <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-5 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-[#00684a] dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Email Field */}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 pl-1">
+                REGISTERED WORK EMAIL
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="staff@mindstock.com"
+                  required
+                  className={`w-full pl-11 pr-4 py-3.5 rounded-2xl border text-sm font-medium outline-none transition-all ${
+                    isDarkMode 
+                      ? 'bg-[#070c18] border-slate-800 text-white focus:border-[#00684a]' 
+                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-[#00684a]'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full mt-2 bg-[#00684a] hover:bg-[#00583e] text-white py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-[#00684a]/25 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
+            >
+              {isLoading ? "Verifying..." : "Send Recovery Link"}
+            </button>
+          </form>
+
+          {/* Switch to Login */}
+          <div className="mt-6 text-center text-xs font-medium text-slate-400">
+            Remembered your password?{' '}
+            <Link to="/login" className="text-[#00684a] dark:text-emerald-400 font-bold hover:underline">
+              Back to Sign in
+            </Link>
+          </div>
+
         </div>
       </div>
+
+      {/* Bottom Security Footer */}
+      <footer className="w-full text-center space-y-1 relative z-10 pt-6">
+        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 font-medium">
+          <ShieldCheck className="w-4 h-4 text-[#00684a] dark:text-emerald-400" />
+          <span>Protected by MindStock Automated Multi-Key Encryption protocol.</span>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          For support, contact <span className="underline text-slate-400">support@mindstock.com</span>
+        </p>
+      </footer>
+
     </div>
   );
 }
