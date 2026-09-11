@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import AdminHeader from './AdminHeader';
 import { 
   Building2, 
   Shield, 
@@ -126,6 +127,11 @@ export default function AdminSetting() {
     <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 font-sans ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
     }`}>
+      {/* Top Header Bar */}
+      <AdminHeader 
+        title="System & Store Settings"
+        subtitle="Warehouse Policies, Operating Hours & Security Parameters"
+      />
       
       <div className="flex-1 overflow-y-auto p-8 space-y-8 max-w-[1400px] mx-auto w-full">
         
