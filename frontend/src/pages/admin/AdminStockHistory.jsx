@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { History, ArrowUpRight, ArrowDownRight, RefreshCw, Layers } from 'lucide-react';
+import { History, ArrowUpRight, ArrowDownRight, RefreshCw, Layers, Package } from 'lucide-react';
 import AdminHeader from './AdminHeader';
 import TablePagination from '../../components/TablePagination';
 
@@ -235,15 +235,25 @@ export default function AdminStockHistory() {
                 const isRestock = log.action_type === 'restock' || log.action_type === 'stock_in' || (log.change_amount > 0);
                 const isRecon = log.action_type === 'reconciliation';
                 const displayName = getProductName(log);
+                const prodImg = log.product_id && productsMap[log.product_id]?.image;
                 const category = log.category || (log.product_id && productsMap[log.product_id]?.category);
 
                 return (
                   <tr key={log.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40' : 'hover:bg-slate-50/70'}`}>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold shrink-0">
-                          #{log.product_id || '—'}
-                        </div>
+                        {prodImg ? (
+                          <img 
+                            src={prodImg.startsWith('http') || prodImg.startsWith('data:') ? prodImg : `http://localhost:3000${prodImg}`} 
+                            alt={displayName} 
+                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold shrink-0 shadow-xs">
+                            <Package className="w-5 h-5 text-slate-400" />
+                          </div>
+                        )}
                         <div className="flex flex-col min-w-0">
                           <span className={`font-bold text-xs truncate max-w-[220px] ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                             {displayName}

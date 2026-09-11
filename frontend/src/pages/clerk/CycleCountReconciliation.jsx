@@ -23,7 +23,8 @@ import {
   Clock,
   ShieldCheck,
   Sliders,
-  Tag
+  Tag,
+  Package
 } from 'lucide-react';
 
 export default function CycleCountReconciliation() {
@@ -473,9 +474,18 @@ export default function CycleCountReconciliation() {
                         {/* Product Ref & SKU */}
                         <td className="py-3.5 px-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold shrink-0">
-                              #{item.id}
-                            </div>
+                            {item.image ? (
+                              <img 
+                                src={item.image.startsWith('http') || item.image.startsWith('data:') ? item.image : `http://localhost:3000${item.image}`} 
+                                alt={item.name} 
+                                className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold shrink-0 shadow-xs">
+                                <Package className="w-5 h-5 text-slate-400" />
+                              </div>
+                            )}
                             <div className="min-w-0">
                               <p className={`font-bold text-sm leading-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 {item.name}

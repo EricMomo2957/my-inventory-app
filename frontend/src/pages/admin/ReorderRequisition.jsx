@@ -326,8 +326,24 @@ export default function ReorderRequisition() {
                       isDark ? 'text-slate-200' : 'text-slate-700'
                     }`}>
                       <td className="py-3 px-3">
-                        <div className="font-bold text-sm">{r.name}</div>
-                        <div className="text-xs text-slate-400 font-mono">{r.sku} • {r.category}</div>
+                        <div className="flex items-center gap-2.5">
+                          {r.image ? (
+                            <img 
+                              src={r.image.startsWith('http') || r.image.startsWith('data:') ? r.image : `http://localhost:3000${r.image}`} 
+                              alt={r.name} 
+                              className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                              <Package className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-bold text-sm text-slate-900 dark:text-white">{r.name}</div>
+                            <div className="text-xs text-slate-400 font-mono">{r.sku} • {r.category}</div>
+                          </div>
+                        </div>
                       </td>
 
                       <td className="py-3 px-3">

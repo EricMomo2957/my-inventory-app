@@ -29,6 +29,15 @@ export default function ReportExportStudio() {
   const [activeReportTab, setActiveReportTab] = useState('valuation');
   const [toastMessage, setToastMessage] = useState(null);
 
+  const productsMap = useMemo(() => {
+    const map = {};
+    products.forEach(p => {
+      map[p.id] = p;
+      if (p.name) map[p.name.toLowerCase()] = p;
+    });
+    return map;
+  }, [products]);
+
   const loadReportData = async () => {
     setLoading(true);
     try {
@@ -405,7 +414,23 @@ export default function ReportExportStudio() {
                     return (
                       <tr key={p.id} className="hover:bg-slate-800/20 transition-colors">
                         <td className="py-3 px-3 font-mono text-xs text-slate-400">{p.sku || `SKU-${p.id}`}</td>
-                        <td className="py-3 px-3 font-bold text-sm">{p.name}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2.5">
+                            {p.image ? (
+                              <img 
+                                src={p.image.startsWith('http') || p.image.startsWith('data:') ? p.image : `http://localhost:3000${p.image}`} 
+                                alt={p.name} 
+                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                                <Package className="w-4 h-4" />
+                              </div>
+                            )}
+                            <span className="font-bold text-sm text-slate-900 dark:text-white">{p.name}</span>
+                          </div>
+                        </td>
                         <td className="py-3 px-3 text-xs">{p.category}</td>
                         <td className="py-3 px-3 text-center font-black">{p.quantity}</td>
                         <td className="py-3 px-3 font-mono text-xs">₱{cost.toFixed(2)}</td>
@@ -471,7 +496,26 @@ export default function ReportExportStudio() {
                       <td className="py-3 px-3 text-xs text-slate-400 font-mono">
                         {new Date(l.created_at).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-3 font-bold text-sm">{l.product_name}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5">
+                          {(() => {
+                            const pImg = l.product_id ? productsMap[l.product_id]?.image : productsMap[l.product_name?.toLowerCase()]?.image;
+                            return pImg ? (
+                              <img 
+                                src={pImg.startsWith('http') || pImg.startsWith('data:') ? pImg : `http://localhost:3000${pImg}`} 
+                                alt={l.product_name} 
+                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                                <Package className="w-4 h-4" />
+                              </div>
+                            );
+                          })()}
+                          <span className="font-bold text-sm text-slate-900 dark:text-white">{l.product_name}</span>
+                        </div>
+                      </td>
                       <td className="py-3 px-3 text-xs font-semibold">{l.user_name || 'Staff'}</td>
                       <td className="py-3 px-3 text-center font-black">
                         <span className={`px-2.5 py-1 rounded-full text-xs ${
@@ -530,7 +574,23 @@ export default function ReportExportStudio() {
                     return (
                       <tr key={p.id} className="hover:bg-slate-800/20 transition-colors">
                         <td className="py-3 px-3 font-mono text-xs font-bold text-slate-400">{p.batch_number || `LOT-${p.id}`}</td>
-                        <td className="py-3 px-3 font-bold text-sm">{p.name}</td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2.5">
+                            {p.image ? (
+                              <img 
+                                src={p.image.startsWith('http') || p.image.startsWith('data:') ? p.image : `http://localhost:3000${p.image}`} 
+                                alt={p.name} 
+                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                                <Package className="w-4 h-4" />
+                              </div>
+                            )}
+                            <span className="font-bold text-sm text-slate-900 dark:text-white">{p.name}</span>
+                          </div>
+                        </td>
                         <td className="py-3 px-3 font-bold">{p.quantity} units</td>
                         <td className="py-3 px-3 font-mono text-xs">
                           {p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable'}
@@ -586,7 +646,26 @@ export default function ReportExportStudio() {
                   {stockHistory.slice(0, 30).map(h => (
                     <tr key={h.id} className="hover:bg-slate-800/20 transition-colors">
                       <td className="py-3 px-3 font-mono text-xs text-slate-400">{new Date(h.created_at).toLocaleString()}</td>
-                      <td className="py-3 px-3 font-bold text-sm">{h.product_name}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2.5">
+                          {(() => {
+                            const hImg = h.product_id ? productsMap[h.product_id]?.image : productsMap[h.product_name?.toLowerCase()]?.image;
+                            return hImg ? (
+                              <img 
+                                src={hImg.startsWith('http') || hImg.startsWith('data:') ? hImg : `http://localhost:3000${hImg}`} 
+                                alt={h.product_name} 
+                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                                <Package className="w-4 h-4" />
+                              </div>
+                            );
+                          })()}
+                          <span className="font-bold text-sm text-slate-900 dark:text-white">{h.product_name}</span>
+                        </div>
+                      </td>
                       <td className="py-3 px-3 text-xs">{h.user_name || 'Staff'}</td>
                       <td className="py-3 px-3">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
