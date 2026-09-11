@@ -67,7 +67,76 @@ async function initDatabase() {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
         `);
 
-        // 5. Seed default suppliers if empty
+        // 5. Categories Table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS categories (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) UNIQUE NOT NULL,
+                description TEXT,
+                icon VARCHAR(50) DEFAULT 'Folder',
+                color_code VARCHAR(30) DEFAULT '#00684a',
+                status ENUM('active', 'inactive') DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        `);
+
+        // 6. Damaged Items & RTV Claims Table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS damaged_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                product_id INT,
+                product_name VARCHAR(255) NOT NULL,
+                quantity INT NOT NULL,
+                cost_price DECIMAL(10,2) DEFAULT 0.00,
+                total_loss DECIMAL(12,2) DEFAULT 0.00,
+                reason VARCHAR(255) NOT NULL,
+                condition_type ENUM('damaged', 'expired', 'lost', 'defective') DEFAULT 'damaged',
+                supplier_id INT,
+                supplier_name VARCHAR(255),
+                status ENUM('quarantined', 'rtv_claimed', 'written_off', 'resolved') DEFAULT 'quarantined',
+                reference_no VARCHAR(100),
+                logged_by VARCHAR(100) DEFAULT 'Warehouse Clerk',
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (product_id),
+                INDEX (supplier_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        `);
+
+        // 7. Product Variants & UOM Table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS product_variants (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                product_id INT NOT NULL,
+                variant_name VARCHAR(150) NOT NULL,
+                sku VARCHAR(100),
+                price DECIMAL(10,2) DEFAULT 0.00,
+                cost_price DECIMAL(10,2) DEFAULT 0.00,
+                quantity INT DEFAULT 0,
+                uom_type VARCHAR(50) DEFAULT 'Piece',
+                multiplier INT DEFAULT 1,
+                barcode VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX (product_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        `);
+
+        // 8. Seed default categories if empty
+        const [existingCategories] = await db.query('SELECT COUNT(*) as count FROM categories');
+        if (existingCategories[0].count === 0) {
+            await db.query(`
+                INSERT INTO categories (name, description, icon, color_code) VALUES
+                ('Vegetables', 'Fresh agricultural farm harvest and perishable produce', 'Salad', '#10b981'),
+                ('Fruits', 'Seasonal organic fruits and citrus supplies', 'Apple', '#f59e0b'),
+                ('Supplies', 'Warehouse operations packaging and hardware consumables', 'Package', '#3b82f6'),
+                ('Canned Goods', 'Non-perishable preserved and canned inventory items', 'Box', '#8b5cf6'),
+                ('Raw Materials', 'Industrial base stock and manufacturing inputs', 'Layers', '#00684a'),
+                ('Cold Storage', 'Frozen logistics and refrigerated meat/dairy items', 'Snowflake', '#06b6d4'),
+                ('Beverages', 'Bottled refreshments, water cartons and juices', 'Coffee', '#ec4899');
+            `);
+        }
+
+        // 9. Seed default suppliers if empty
         const [existingSuppliers] = await db.query('SELECT COUNT(*) as count FROM suppliers');
         if (existingSuppliers[0].count === 0) {
             await db.query(`
@@ -79,7 +148,7 @@ async function initDatabase() {
             `);
         }
 
-        // 6. Seed sample Purchase Orders if empty
+        // 10. Seed sample Purchase Orders if empty
         const [existingPOs] = await db.query('SELECT COUNT(*) as count FROM purchase_orders');
         if (existingPOs[0].count === 0) {
             await db.query(`
@@ -90,7 +159,18 @@ async function initDatabase() {
             `);
         }
 
-        console.log("✅ MindStock Enhanced Database schema successfully initialized.");
+        // 11. Seed sample Damaged/RTV items if empty
+        const [existingDamaged] = await db.query('SELECT COUNT(*) as count FROM damaged_items');
+        if (existingDamaged[0].count === 0) {
+            await db.query(`
+                INSERT INTO damaged_items (product_id, product_name, quantity, cost_price, total_loss, reason, condition_type, supplier_id, supplier_name, status, reference_no, logged_by, notes) VALUES
+                (1, 'Premium Red Onions', 12, 85.00, 1020.00, 'Moisture decay during unsealed cold transport', 'expired', 2, 'AgriFresh Harvest Co.', 'rtv_claimed', 'RTV-2026-0101', 'Warehouse Clerk', 'Replacement credit requested on next PO delivery.'),
+                (2, 'Organic Hass Avocados', 8, 120.00, 960.00, 'Crushed carton during pallet forklift movement', 'damaged', 2, 'AgriFresh Harvest Co.', 'quarantined', 'DMG-2026-0102', 'Warehouse Clerk', 'Segregated in Zone C quarantine bin.'),
+                (3, 'Industrial Packing Tape 48mm', 5, 45.00, 225.00, 'Adhesive defect / non-stick backing', 'defective', 3, 'Universal Packaging & Tools Corp.', 'written_off', 'WRT-2026-0103', 'System Administrator', 'Approved for monthly operational loss write-off.');
+            `);
+        }
+
+        console.log("✅ MindStock Enterprise Schema (Categories, Damaged/RTV, Variants) successfully initialized.");
     } catch (err) {
         console.error("Database initialization notice:", err.message);
     }
