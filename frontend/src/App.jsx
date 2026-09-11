@@ -141,7 +141,8 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />  
             <Route path="/shop" element={<Navigate to="/clerk/order" replace />} />
 
-            <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
+            {/* 1. Common & Clerk Operations Routes (Clerks & Admins) */}
+            <Route element={<ProtectedRoute allowedRoles={['clerk', 'staff', 'admin', 'administrator', 'manager']} />}>
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
               <Route path="/clerk/location-map" element={<WarehouseLocationMap />} />
               <Route path="/clerk/stock-in" element={<InboundReceiving />} />
@@ -150,7 +151,10 @@ export default function App() {
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
               <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
               <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
-              
+            </Route>
+
+            {/* 2. Strictly Admin-Only Protected Routes (Restricted from Clerks) */}
+            <Route element={<ProtectedRoute allowedRoles={['admin', 'administrator', 'manager']} />}>
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/admin/location-map" element={<WarehouseLocationMap />} />
               <Route path="/admin/stock-in" element={<InboundReceiving />} />
@@ -168,13 +172,12 @@ export default function App() {
               <Route path="/admin/history" element={<AdminStockHistory />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/inquiries" element={<AdminContactRequest />} />
-              
-              {/* Backward compatibility / Staff aliases */}
-              <Route path="/user_dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
-              <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/clerk-dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
             </Route>
 
+            {/* Backward compatibility / Staff aliases */}
+            <Route path="/user_dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
+            <Route path="/admin" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/clerk-dashboard" element={<Navigate to="/clerk/ClerkDashboard" replace />} />
             <Route path="/LandingPage" element={<Navigate to="/" replace />} />
 
             <Route path="*" element={
