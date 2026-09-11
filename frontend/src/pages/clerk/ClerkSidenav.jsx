@@ -25,6 +25,7 @@ const ClerkSidenav = ({ user, onLogout }) => {
     { name: 'Warehouse Map', path: '/clerk/location-map', icon: MapPin },
     { name: 'Stock In (Receive)', path: '/clerk/stock-in', icon: PackagePlus },
     { name: 'Stock Dispatch', path: '/clerk/order', icon: Truck },
+    { name: 'Damaged & Spoilage', path: '/clerk/damaged-items', icon: PackageCheck },
     { name: 'Cycle Count Audit', path: '/clerk/cycle-count', icon: Scale },
     { name: 'Calendar', path: '/clerk/clerkCalendar', icon: CalendarDays },
     { name: 'Profile', path: '/clerk/clerkProfile', icon: User },
