@@ -23,7 +23,8 @@ import {
   DollarSign,
   Percent,
   Clock,
-  Tag
+  Tag,
+  Boxes
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -31,6 +32,7 @@ import {
 } from 'recharts';
 import AdminHeader from './AdminHeader';
 import TablePagination from '../../components/TablePagination';
+import ProductVariantModal from '../../components/ProductVariantModal';
 
 // Helper to compute FIFO expiry status
 const getExpiryStatus = (expiryDateStr) => {
@@ -86,9 +88,11 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
   
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [variantProduct, setVariantProduct] = useState(null);
 
   const [analyticsData, setAnalyticsData] = useState({
     categoryData: [],
@@ -704,6 +708,15 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                         {/* Actions */}
                         <td className="py-3.5 px-5 text-right space-x-1.5">
                           <button 
+                            onClick={() => { setVariantProduct(item); setIsVariantModalOpen(true); }} 
+                            className={`p-2 rounded-lg border transition-colors ${
+                              isDark ? 'border-purple-800 bg-purple-950/30 hover:bg-purple-900/50 text-purple-300' : 'border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-600'
+                            }`}
+                            title="Manage Variants & Packaging UOM"
+                          >
+                            <Boxes className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
                             onClick={() => { setSelectedProduct(item); setIsEditModalOpen(true); }} 
                             className={`p-2 rounded-lg border transition-colors ${
                               isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
@@ -1158,6 +1171,14 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
           </div>
         </div>
       )}
+
+      {/* PRODUCT VARIANT & UOM CONVERSION MODAL */}
+      <ProductVariantModal 
+        product={variantProduct}
+        isOpen={isVariantModalOpen}
+        onClose={() => setIsVariantModalOpen(false)}
+        onVariantsUpdated={fetchProducts}
+      />
 
     </div>
   );
