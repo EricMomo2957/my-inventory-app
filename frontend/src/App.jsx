@@ -43,6 +43,8 @@ import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
 import ReorderRequisition from './pages/admin/ReorderRequisition';
 import ABCAnalytics from './pages/admin/ABCAnalytics';
 import ReportExportStudio from './pages/admin/ReportExportStudio';
+import CategoryManagement from './pages/admin/CategoryManagement';
+import DamagedRTVManagement from './pages/admin/DamagedRTVManagement';
 
 export default function App() {
   const { isDark } = useTheme(); 
@@ -147,6 +149,7 @@ export default function App() {
               <Route path="/clerk/location-map" element={<WarehouseLocationMap />} />
               <Route path="/clerk/stock-in" element={<InboundReceiving />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
+              <Route path="/clerk/damaged-items" element={<DamagedRTVManagement />} />
               <Route path="/clerk/cycle-count" element={<CycleCountReconciliation />} />
               <Route path="/clerk/clerkCalendar" element={<ClerkCalendar />} />
               <Route path="/clerk/clerkSetting" element={<ClerkSetting />} />
@@ -157,9 +160,11 @@ export default function App() {
             <Route element={<ProtectedRoute allowedRoles={['admin', 'administrator', 'manager']} />}>
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
               <Route path="/admin/location-map" element={<WarehouseLocationMap />} />
+              <Route path="/admin/categories" element={<CategoryManagement />} />
               <Route path="/admin/stock-in" element={<InboundReceiving />} />
               <Route path="/admin/purchase-orders" element={<PurchaseOrderManagement />} />
               <Route path="/admin/suppliers" element={<SupplierManagement />} />
+              <Route path="/admin/damaged-items" element={<DamagedRTVManagement />} />
               <Route path="/admin/reorder-requisition" element={<ReorderRequisition />} />
               <Route path="/admin/abc-analytics" element={<ABCAnalytics />} />
               <Route path="/admin/cycle-count" element={<CycleCountReconciliation />} />
