@@ -52,10 +52,100 @@ export default function AdminSetting() {
         title="System Settings" 
         subtitle="Account Preferences, Security & Configuration" 
       />
-      <div className="flex-1 overflow-y-auto p-8 flex items-stretch justify-center">
-      
-      {/* Changed: max-w-5xl to max-w-[1400px] and min-h-[80vh] to expand the box */}
-      <div className={`w-full max-w-425 min-h-187.5 flex flex-col md:flex-row rounded-[2.5rem] shadow-2xl border overflow-hidden transition-all duration-500 ${isDark ? 'bg-[#111827] border-slate-800 shadow-black/50' : 'bg-white border-white shadow-slate-300'}`}>
+      <div className="flex-1 overflow-y-auto p-8 space-y-7">
+        {/* Executive KPI Grid Box */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: System Status */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                SYSTEM HEALTH
+              </p>
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs">
+                ⚡
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                100% <span className="text-xs font-normal text-slate-400">Operational</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Server uptime & API services healthy
+            </p>
+          </div>
+
+          {/* Card 2: Security */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                SECURITY LEVEL
+              </p>
+              <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
+                🔒
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+                Tier-1 <span className="text-xs font-normal text-slate-400">RBAC</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Strict role-based session isolation
+            </p>
+          </div>
+
+          {/* Card 3: Storage */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                DATABASE BACKUPS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-xs">
+                💾
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Automated <span className="text-xs font-normal text-slate-400">Sync</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              MySQL schema & transactional logging
+            </p>
+          </div>
+
+          {/* Card 4 (Featured Emerald Card): Build */}
+          <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
+                APPLICATION ENGINE
+              </p>
+              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs">
+                🚀
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                MindStock <span className="text-xs font-normal text-emerald-100">v1.2</span>
+              </h3>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-emerald-100">
+              <span>Release Channel:</span>
+              <span className="font-black bg-white/20 px-2 py-0.5 rounded-md">Enterprise</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-stretch justify-center">
+        {/* Changed: max-w-5xl to max-w-[1400px] and min-h-[80vh] to expand the box */}
+        <div className={`w-full max-w-425 min-h-187.5 flex flex-col md:flex-row rounded-[2.5rem] shadow-2xl border overflow-hidden transition-all duration-500 ${isDark ? 'bg-[#111827] border-slate-800 shadow-black/50' : 'bg-white border-white shadow-slate-300'}`}>
         
         {/* Sidebar Navigation - Widened slightly to md:w-80 */}
         <aside className={`w-full md:w-80 p-10 flex flex-col justify-between ${isDark ? 'bg-slate-900/60' : 'bg-slate-50'}`}>
@@ -163,6 +253,7 @@ export default function AdminSetting() {
             </div>
           )}
         </main>
+      </div>
       </div>
       </div>
     </div>

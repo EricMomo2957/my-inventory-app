@@ -79,6 +79,96 @@ export default function AdminProfile() {
           </div>
         </div>
 
+        {/* Executive KPI Grid Box */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: Security Role */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                SECURITY CLEARANCE
+              </p>
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs">
+                🛡️
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Level 5 <span className="text-xs font-normal text-slate-400">Root</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Full catalog & database permissions
+            </p>
+          </div>
+
+          {/* Card 2: Tenure */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                ACTIVE TENURE
+              </p>
+              <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
+                📅
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+                Active <span className="text-xs font-normal text-slate-400">Since {adminData.joined}</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Standing credentials verified
+            </p>
+          </div>
+
+          {/* Card 3: Actions */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                AUDITED ACTIONS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-xs">
+                ⚡
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                1,284 <span className="text-xs font-normal text-slate-400">Logs</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              System transactions & audit events
+            </p>
+          </div>
+
+          {/* Card 4 (Featured Emerald Card): Status */}
+          <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
+                ACCOUNT STATUS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs">
+                ✨
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                Verified <span className="text-xs font-normal text-emerald-100">Supervisor</span>
+              </h3>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-emerald-100">
+              <span>Session Isolation:</span>
+              <span className="font-black bg-white/20 px-2 py-0.5 rounded-md">Encrypted</span>
+            </div>
+          </div>
+        </div>
+
         {/* Stats and Activity Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">

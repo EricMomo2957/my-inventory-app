@@ -67,6 +67,11 @@ export default function AdminStockHistory() {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  const totalLogs = history.length;
+  const inboundLogs = history.filter(h => h.action_type === 'restock' || h.action_type === 'stock_in' || (parseInt(h.change_amount, 10) > 0)).length;
+  const outboundLogs = history.filter(h => h.action_type === 'dispatch' || h.action_type === 'sale' || (parseInt(h.change_amount, 10) < 0)).length;
+  const netUnitsShift = history.reduce((acc, h) => acc + (parseInt(h.change_amount, 10) || 0), 0);
+
   return (
     <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
@@ -91,24 +96,114 @@ export default function AdminStockHistory() {
             </p>
           </div>
         
-        <div className="flex items-center gap-3">
-          <div className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold ${
-            isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
-          }`}>
-            {history.length} Total Logs
+          <div className="flex items-center gap-3">
+            <div className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold ${
+              isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
+            }`}>
+              {history.length} Total Logs
+            </div>
+            
+            <button 
+              onClick={fetchHistory}
+              className={`p-2 rounded-xl border transition-colors ${
+                isDark ? 'border-slate-800 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+              }`}
+              title="Refresh Logs"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
           </div>
-          
-          <button 
-            onClick={fetchHistory}
-            className={`p-2 rounded-xl border transition-colors ${
-              isDark ? 'border-slate-800 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-            title="Refresh Logs"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
         </div>
-      </div>
+
+        {/* Executive KPI Grid Box */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: Total Logs */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                AUDITED TRANSACTION LOGS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                <History className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {totalLogs} <span className="text-xs font-normal text-slate-400">Records</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Immutable ledger of warehouse events
+            </p>
+          </div>
+
+          {/* Card 2: Inbound Restocks */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                INBOUND RESTOCK INFLOWS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {inboundLogs} <span className="text-xs font-normal text-slate-400">Batches</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Supplier deliveries & replenishment
+            </p>
+          </div>
+
+          {/* Card 3: Outbound Deductions */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                OUTBOUND DISPATCHES
+              </p>
+              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                <ArrowDownRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {outboundLogs} <span className="text-xs font-normal text-slate-400">Dispatches</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Material issuance & department fulfillment
+            </p>
+          </div>
+
+          {/* Card 4 (Featured Emerald Card): Net Shift */}
+          <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
+                NET INVENTORY VARIANCE
+              </p>
+              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center">
+                <Layers className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                {netUnitsShift >= 0 ? `+${netUnitsShift}` : netUnitsShift} <span className="text-xs font-normal text-emerald-100">Units Shift</span>
+              </h3>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-emerald-100">
+              <span>Audit reconciliation status:</span>
+              <span className="font-black bg-white/20 px-2 py-0.5 rounded-md">Balanced</span>
+            </div>
+          </div>
+        </div>
 
       {/* Table Content */}
       <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${

@@ -92,6 +92,11 @@ export default function AdminManagement() {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  const totalStaff = users.length;
+  const adminCount = users.filter(u => (u.role || '').toLowerCase() === 'admin' || (u.role || '').toLowerCase() === 'manager' || (u.role || '').toLowerCase() === 'administrator').length;
+  const clerkCount = users.filter(u => (u.role || '').toLowerCase() === 'clerk' || (u.role || '').toLowerCase() === 'staff' || (u.role || '').toLowerCase() === 'auditor').length;
+  const departmentCount = new Set(users.map(u => u.department).filter(Boolean)).size || 1;
+
   return (
     <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
@@ -116,26 +121,116 @@ export default function AdminManagement() {
             </p>
           </div>
 
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={fetchUsers}
-            className={`p-2.5 rounded-xl border transition-colors ${
-              isDark ? 'border-slate-800 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
-            }`}
-            title="Refresh Users"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={fetchUsers}
+              className={`p-2.5 rounded-xl border transition-colors ${
+                isDark ? 'border-slate-800 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
+              }`}
+              title="Refresh Users"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
 
-          <button 
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Add Member</span>
-          </button>
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#00684a] hover:bg-[#00563b] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Add Member</span>
+            </button>
+          </div>
         </div>
-      </div>
+
+        {/* Executive KPI Grid Box */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: Total Users */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                ACTIVE STAFF MEMBERS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                <Users className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {totalStaff} <span className="text-xs font-normal text-slate-400">Accounts</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Internal personnel roster
+            </p>
+          </div>
+
+          {/* Card 2: Administrators */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                SYSTEM ADMINISTRATORS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <Shield className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {adminCount} <span className="text-xs font-normal text-slate-400">Supervisors</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Full catalog & security privileges
+            </p>
+          </div>
+
+          {/* Card 3: Clerks */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                WAREHOUSE CLERKS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                <Users className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {clerkCount} <span className="text-xs font-normal text-slate-400">Operators</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Receiving & dispatch floor personnel
+            </p>
+          </div>
+
+          {/* Card 4 (Featured Emerald Card): Departments */}
+          <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
+                DEPARTMENT DIVISIONS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center">
+                <Building className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                {departmentCount} <span className="text-xs font-normal text-emerald-100">Divisions</span>
+              </h3>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-emerald-100">
+              <span>Security Access Mode:</span>
+              <span className="font-black bg-white/20 px-2 py-0.5 rounded-md">Strict Role-Based</span>
+            </div>
+          </div>
+        </div>
 
       {/* Table Section */}
       <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${

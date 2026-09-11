@@ -98,6 +98,96 @@ export default function AdminContactRequest() {
           </button>
         </div>
 
+        {/* Executive KPI Grid Box */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* Card 1: Total Inquiries */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                TOTAL INBOUND MESSAGES
+              </p>
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                <MessageSquare className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {requests.length} <span className="text-xs font-normal text-slate-400">Inquiries</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              System tickets & contact requests
+            </p>
+          </div>
+
+          {/* Card 2: Contact Leads */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                VERIFIED EMAIL SENDERS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <Mail className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {requests.filter(r => r.email).length} <span className="text-xs font-normal text-slate-400">Senders</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Direct communication channels
+            </p>
+          </div>
+
+          {/* Card 3: Actionable Items */}
+          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
+            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+                PENDING REVIEW QUEUE
+              </p>
+              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                <MessageSquare className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {requests.length} <span className="text-xs font-normal text-slate-400">Tickets</span>
+              </h3>
+            </div>
+            <p className="text-[10px] text-slate-400">
+              Awaiting administrator response
+            </p>
+          </div>
+
+          {/* Card 4 (Featured Emerald Card): Desk Status */}
+          <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
+                SUPPORT DESK STATUS
+              </p>
+              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center">
+                <MessageSquare className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="my-3">
+              <h3 className="text-2xl font-extrabold tracking-tight text-white">
+                100% <span className="text-xs font-normal text-emerald-100">Operational</span>
+              </h3>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-emerald-100">
+              <span>Inbox response SLA:</span>
+              <span className="font-black bg-white/20 px-2 py-0.5 rounded-md">Active</span>
+            </div>
+          </div>
+        </div>
+
       <div className={`rounded-3xl border shadow-sm ${isDark ? 'bg-[#111827] border-slate-800' : 'bg-white border-slate-200'}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-collapse">
