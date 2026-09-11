@@ -74,7 +74,7 @@ export default function CustomerOrder() {
 
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(14);
-    doc.text(`Total Amount: P${orderData.total.toLocaleString()}`, 140, finalY);
+    doc.text(`Total Amount: PHP ${orderData.total.toLocaleString()}`, 130, finalY);
 
     doc.save(`Receipt_${orderData.customer.name.replace(/\s+/g, '_')}.pdf`);
   };

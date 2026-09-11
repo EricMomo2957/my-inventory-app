@@ -7,7 +7,7 @@ import {
   Printer, 
   Download, 
   Calendar, 
-  DollarSign, 
+  Coins, 
   Layers, 
   AlertTriangle, 
   CheckCircle2, 
@@ -156,10 +156,10 @@ export default function ReportExportStudio() {
         ProductName: p.name,
         Category: p.category,
         Quantity: p.quantity,
-        UnitCost: cost.toFixed(2),
-        UnitPrice: (p.price || 0).toFixed(2),
-        TotalHoldingValuation: totalCost.toFixed(2),
-        RetailValuation: retailVal.toFixed(2),
+        UnitCost_PHP: cost.toFixed(2),
+        UnitPrice_PHP: (p.price || 0).toFixed(2),
+        TotalHoldingValuation_PHP: totalCost.toFixed(2),
+        RetailValuation_PHP: retailVal.toFixed(2),
         Location: `${p.location_zone || 'Zone A'}-${p.location_aisle || 'Aisle 01'}`
       };
     });
@@ -167,7 +167,7 @@ export default function ReportExportStudio() {
   };
 
   const handleExportValuationPDF = () => {
-    const columns = ['SKU', 'Product Name', 'Category', 'Stock', 'Unit Cost', 'Unit Price', 'Total Valuation', 'Location'];
+    const columns = ['SKU', 'Product Name', 'Category', 'Stock', 'Unit Cost (PHP)', 'Unit Price (PHP)', 'Total Valuation', 'Location'];
     const rows = products.map(p => {
       const cost = parseFloat(p.cost_price) || Math.round((parseFloat(p.price) || 0) * 0.65 * 100) / 100;
       const totalCost = (p.quantity || 0) * cost;
@@ -176,9 +176,9 @@ export default function ReportExportStudio() {
         p.name,
         p.category,
         p.quantity.toString(),
-        `$${cost.toFixed(2)}`,
-        `$${(p.price || 0).toFixed(2)}`,
-        `$${totalCost.toFixed(2)}`,
+        `PHP ${cost.toFixed(2)}`,
+        `PHP ${(p.price || 0).toFixed(2)}`,
+        `PHP ${totalCost.toFixed(2)}`,
         `${p.location_zone || 'Zone A'}-${p.location_aisle || 'Aisle 01'}`
       ];
     });
@@ -242,11 +242,11 @@ export default function ReportExportStudio() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Inventory Asset Worth</p>
                 <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ${metrics.totalValuation.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₱{metrics.totalValuation.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                <DollarSign className="w-6 h-6" />
+                <Coins className="w-6 h-6" />
               </div>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -284,7 +284,7 @@ export default function ReportExportStudio() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Near-Expiry Risk (90d)</p>
                 <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ${metrics.nearExpiryRiskValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₱{metrics.nearExpiryRiskValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
               <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
@@ -321,7 +321,7 @@ export default function ReportExportStudio() {
         {/* REPORT MODULE SELECTOR TABS */}
         <div className="flex items-center gap-3 overflow-x-auto pb-1">
           {[
-            { id: 'valuation', name: '1. Monthly Valuation & Balance Sheet', icon: DollarSign },
+            { id: 'valuation', name: '1. Monthly Valuation & Balance Sheet', icon: Coins },
             { id: 'variance', name: '2. Stock Variance & Discrepancies', icon: Scale },
             { id: 'expiry', name: '3. Expiry & Spoilage Liabilities', icon: Clock },
             { id: 'movement', name: '4. Stock Movements & Receiving Ledger', icon: History }
@@ -408,13 +408,13 @@ export default function ReportExportStudio() {
                         <td className="py-3 px-3 font-bold text-sm">{p.name}</td>
                         <td className="py-3 px-3 text-xs">{p.category}</td>
                         <td className="py-3 px-3 text-center font-black">{p.quantity}</td>
-                        <td className="py-3 px-3 font-mono text-xs">${cost.toFixed(2)}</td>
-                        <td className="py-3 px-3 font-mono text-xs">${(parseFloat(p.price) || 0).toFixed(2)}</td>
+                        <td className="py-3 px-3 font-mono text-xs">₱{cost.toFixed(2)}</td>
+                        <td className="py-3 px-3 font-mono text-xs">₱{(parseFloat(p.price) || 0).toFixed(2)}</td>
                         <td className="py-3 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
-                          ${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ₱{totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="py-3 px-3 font-mono font-bold text-xs text-slate-400">
-                          ${totalRetail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ₱{totalRetail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
                     );
@@ -536,7 +536,7 @@ export default function ReportExportStudio() {
                           {p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable'}
                         </td>
                         <td className="py-3 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
-                          ${holdingExposure.toFixed(2)}
+                          ₱{holdingExposure.toFixed(2)}
                         </td>
                         <td className="py-3 px-3 text-right">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${

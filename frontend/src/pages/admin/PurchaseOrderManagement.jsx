@@ -12,7 +12,7 @@ import {
   Trash2, 
   Eye, 
   RefreshCw, 
-  DollarSign, 
+  Coins, 
   Package, 
   Calendar,
   Building2,
@@ -270,7 +270,7 @@ export default function PurchaseOrderManagement() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">In-Transit Value</p>
                 <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ${metrics.inTransitValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ₱{metrics.inTransitValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </h3>
               </div>
               <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
@@ -431,7 +431,7 @@ export default function PurchaseOrderManagement() {
                       </td>
 
                       <td className="py-3 px-3 font-black text-sm">
-                        ${parseFloat(po.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        ₱{parseFloat(po.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
 
                       <td className="py-3 px-3">
@@ -620,7 +620,7 @@ export default function PurchaseOrderManagement() {
                           step="0.01"
                           min="0"
                           required
-                          placeholder="Cost ($)"
+                          placeholder="Cost (₱)"
                           value={item.unit_cost}
                           onChange={(e) => handleItemChange(idx, 'unit_cost', e.target.value)}
                           className={`w-full p-2 rounded-lg border text-xs text-right focus:outline-none ${
@@ -631,7 +631,7 @@ export default function PurchaseOrderManagement() {
 
                       {/* Line Total */}
                       <div className="w-full md:w-28 text-right font-black text-xs">
-                        ${((item.quantity_ordered || 0) * (item.unit_cost || 0)).toFixed(2)}
+                        ₱{((item.quantity_ordered || 0) * (item.unit_cost || 0)).toFixed(2)}
                       </div>
 
                       {/* Remove line */}
@@ -653,7 +653,7 @@ export default function PurchaseOrderManagement() {
               <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-between font-extrabold text-sm">
                 <span>Total PO Procurement Amount:</span>
                 <span className="font-mono text-base font-black">
-                  ${calculatedTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ₱{calculatedTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
@@ -730,7 +730,7 @@ export default function PurchaseOrderManagement() {
               <div className="flex justify-between py-1.5 border-b border-slate-800/40">
                 <span className="text-slate-400">Total Valuation:</span>
                 <span className="font-black text-sm font-mono text-[#00684a] dark:text-emerald-400">
-                  ${parseFloat(viewingPO.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ₱{parseFloat(viewingPO.total_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
               </div>
               {viewingPO.notes && (

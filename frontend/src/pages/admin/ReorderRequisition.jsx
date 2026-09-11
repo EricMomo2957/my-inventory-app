@@ -5,7 +5,7 @@ import AdminHeader from './AdminHeader';
 import { 
   Zap, 
   AlertTriangle, 
-  DollarSign, 
+  Coins, 
   ShoppingCart, 
   CheckCircle2, 
   RefreshCw, 
@@ -59,7 +59,7 @@ export default function ReorderRequisition() {
       return;
     }
 
-    if (!window.confirm(`Generate automated Purchase Order for ${data.recommendations.length} items with estimated budget $${(data.summary.total_estimated_budget || 0).toFixed(2)}?`)) {
+    if (!window.confirm(`Generate automated Purchase Order for ${data.recommendations.length} items with estimated budget ₱${(data.summary.total_estimated_budget || 0).toFixed(2)}?`)) {
       return;
     }
 
@@ -178,11 +178,11 @@ export default function ReorderRequisition() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Estimated Budget Needed</p>
                 <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ${(summary.total_estimated_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₱{(summary.total_estimated_budget || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                <DollarSign className="w-6 h-6" />
+                <Coins className="w-6 h-6" />
               </div>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -199,7 +199,7 @@ export default function ReorderRequisition() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Avg. Unit Cost</p>
                 <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ${(summary.average_unit_cost || 0).toFixed(2)}
+                  ₱{(summary.average_unit_cost || 0).toFixed(2)}
                 </h3>
               </div>
               <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
@@ -357,8 +357,8 @@ export default function ReorderRequisition() {
                       </td>
 
                       <td className="py-3 px-3 font-mono font-extrabold text-xs">
-                        ${r.estimated_cost.toFixed(2)}
-                        <span className="text-[10px] text-slate-400 block font-normal">@ ${r.unit_cost.toFixed(2)}/ea</span>
+                        ₱{r.estimated_cost.toFixed(2)}
+                        <span className="text-[10px] text-slate-400 block font-normal">@ ₱{r.unit_cost.toFixed(2)}/ea</span>
                       </td>
 
                       <td className="py-3 px-3 text-right">

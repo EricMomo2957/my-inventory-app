@@ -9,7 +9,7 @@ import {
   AlertCircle, 
   RefreshCw, 
   Search, 
-  DollarSign, 
+  Coins, 
   Boxes, 
   Layers, 
   Sparkles,
@@ -106,11 +106,11 @@ export default function ABCAnalytics() {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Asset Valuation</p>
                 <h3 className={`text-2xl font-black mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  ${(summary.total_valuation || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₱{(summary.total_valuation || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </h3>
               </div>
               <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                <DollarSign className="w-6 h-6" />
+                <Coins className="w-6 h-6" />
               </div>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -205,7 +205,7 @@ export default function ABCAnalytics() {
                       borderRadius: '12px',
                       border: '1px solid #334155'
                     }} 
-                    formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Holding Value']}
+                    formatter={(value) => [`₱${Number(value).toFixed(2)}`, 'Holding Value']}
                   />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                     {topValuedItems.map((entry, index) => (
@@ -245,7 +245,7 @@ export default function ABCAnalytics() {
                       <Cell key={`pie-cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Valuation']} />
+                  <Tooltip formatter={(value) => [`₱${Number(value).toFixed(2)}`, 'Valuation']} />
                 </RechartsPieChart>
               </ResponsiveContainer>
             </div>
@@ -255,17 +255,17 @@ export default function ABCAnalytics() {
               <div>
                 <span className="w-2.5 h-2.5 rounded-full bg-[#00684a] inline-block mb-1"></span>
                 <p className="text-[10px] font-bold text-slate-400">Class A (70%)</p>
-                <p className="text-xs font-black text-emerald-400">${(summary.class_a?.value || 0).toLocaleString()}</p>
+                <p className="text-xs font-black text-emerald-400">₱{(summary.class_a?.value || 0).toLocaleString()}</p>
               </div>
               <div>
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block mb-1"></span>
                 <p className="text-[10px] font-bold text-slate-400">Class B (20%)</p>
-                <p className="text-xs font-black text-blue-400">${(summary.class_b?.value || 0).toLocaleString()}</p>
+                <p className="text-xs font-black text-blue-400">₱{(summary.class_b?.value || 0).toLocaleString()}</p>
               </div>
               <div>
                 <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block mb-1"></span>
                 <p className="text-[10px] font-bold text-slate-400">Class C (10%)</p>
-                <p className="text-xs font-black text-purple-400">${(summary.class_c?.value || 0).toLocaleString()}</p>
+                <p className="text-xs font-black text-purple-400">₱{(summary.class_c?.value || 0).toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -377,11 +377,11 @@ export default function ABCAnalytics() {
                       </td>
 
                       <td className="py-3 px-3 font-mono text-xs">
-                        ${item.cost_price.toFixed(2)}
+                        ₱{item.cost_price.toFixed(2)}
                       </td>
 
                       <td className="py-3 px-3 font-mono font-black text-sm text-[#00684a] dark:text-emerald-400">
-                        ${item.holding_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        ₱{item.holding_value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
 
                       <td className="py-3 px-3 font-mono text-xs">
