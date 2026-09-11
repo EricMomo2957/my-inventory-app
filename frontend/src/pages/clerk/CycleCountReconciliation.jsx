@@ -397,8 +397,8 @@ export default function CycleCountReconciliation() {
                     activeCategory === c 
                     ? 'bg-[#00684a] text-white border-[#00684a] shadow-xs' 
                     : isDark 
-                      ? 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700' 
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 font-bold' 
+                      : 'bg-white text-slate-950 border-slate-300 hover:bg-slate-100 font-black shadow-2xs'
                   }`}
                 >
                   {c}
@@ -505,30 +505,40 @@ export default function CycleCountReconciliation() {
                                 {item.name}
                               </p>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
+                                <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#475569' }}>
                                   {item.sku || `SKU-${(item.category || 'GEN').substring(0, 3).toUpperCase()}-${item.id}`}
                                 </span>
-                                <span className="text-[10px] font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>•</span>
-                                <span className="text-[10px] font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>{item.category || 'General'}</span>
+                                <span className="text-[10px] font-bold" style={{ color: isDark ? '#94a3b8' : '#64748b' }}>•</span>
+                                <span className="text-[10px] font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>{item.category || 'General'}</span>
                               </div>
                             </div>
                           </div>
                         </td>
 
                         {/* Batch / Lot Code */}
-                        <td className="py-3.5 px-4 font-mono text-[11px]" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>
-                          {item.batch_number ? (
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold">
-                              {item.batch_number}
-                            </span>
-                          ) : (
-                            <span className="italic text-[10px] font-bold" style={{ color: isDark ? '#94a3b8' : '#64748b' }}>LOT-STANDARD</span>
-                          )}
+                        <td className="py-3.5 px-4 font-mono text-[11px]">
+                          <span 
+                            className="px-2.5 py-1 rounded-md border text-[10px] font-mono font-black inline-block shadow-xs"
+                            style={{
+                              backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                              color: isDark ? '#f8fafc' : '#09090b',
+                              borderColor: isDark ? '#334155' : '#cbd5e1'
+                            }}
+                          >
+                            {item.batch_number || 'LOT-STANDARD'}
+                          </span>
                         </td>
 
                         {/* System Recorded Stock */}
-                        <td className="py-3.5 px-4 text-center font-bold">
-                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                        <td className="py-3.5 px-4 text-center">
+                          <span 
+                            className="px-3 py-1 rounded-lg border text-xs font-black inline-block shadow-xs"
+                            style={{
+                              backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                              color: isDark ? '#ffffff' : '#09090b',
+                              borderColor: isDark ? '#334155' : '#cbd5e1'
+                            }}
+                          >
                             {item.quantity} Units
                           </span>
                         </td>
