@@ -1,260 +1,751 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import AdminHeader from './AdminHeader';
+import { 
+  Building2, 
+  Shield, 
+  Truck, 
+  Bell, 
+  RotateCcw, 
+  Save, 
+  Send, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Lock, 
+  User, 
+  KeyRound, 
+  Clock, 
+  Mail, 
+  MessageSquare, 
+  Database, 
+  Sparkles, 
+  Sliders, 
+  Check,
+  Warehouse,
+  Moon,
+  Sun,
+  Layers,
+  MapPin,
+  Calendar,
+  Globe
+} from 'lucide-react';
 
 export default function AdminSetting() {
   const { isDark, toggleTheme } = useTheme();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('alerts'); // 'store', 'security', 'orders', 'alerts'
+  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [testNotificationSent, setTestNotificationSent] = useState(false);
 
-  const [profile, setProfile] = useState({
-    fullName: localStorage.getItem('fullName') || 'Administrator',
-    email: localStorage.getItem('userEmail') || 'admin@pro.com',
-    adminId: localStorage.getItem('adminId') || 'ADM-1029',
-    department: localStorage.getItem('department') || 'Main Management',
-    profileImage: localStorage.getItem('profileImage') || null,
+  // --- Form & Config States ---
+  const [configs, setConfigs] = useState({
+    // Store & Operating Hours
+    storeName: localStorage.getItem('storeName') || 'MindStock Central Warehouse',
+    storeCode: 'MS-WMS-01',
+    operatingHours: '08:00 AM - 08:00 PM',
+    prepTime: '15 mins',
+    timezone: 'UTC+08:00 (Asia/Manila)',
+    currency: 'PHP (₱)',
+    address: 'Warehouse Hub 4, Industrial Blvd, Metro Center',
+    
+    // Security & Access Control
+    twoFactorAuth: false,
+    sessionTimeout: '60 mins',
+    strictIpLock: true,
+    requireAuditNotes: true,
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+
+    // Orders, Delivery & Fees
+    reorderThreshold: 5,
+    fifoEnforced: true,
+    autoGenerateSku: true,
+    defaultSupplierLeadDays: 3,
+    allowNegativeStock: false,
+    autoPrintVouchers: true,
+
+    // Alerts & System
+    emailNotifications: true,
+    smsTriggers: false,
+    maintenanceMode: false,
+    maintenanceNotice: 'MindStock is currently undergoing scheduled system maintenance. Ordering, support, and dispatch are temporarily paused.'
   });
 
-  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
-
-  const handleProfileUpdate = (e) => {
-    e.preventDefault();
-    localStorage.setItem('fullName', profile.fullName);
-    localStorage.setItem('department', profile.department);
-    alert('Profile updated successfully!');
+  const handleToggle = (key) => {
+    setConfigs(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handlePasswordUpdate = (e) => {
-    e.preventDefault();
-    if (passwords.new !== passwords.confirm) {
-      alert("New passwords don't match!");
-      return;
+  const handleChange = (key, value) => {
+    setConfigs(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = (e) => {
+    if (e) e.preventDefault();
+    localStorage.setItem('storeName', configs.storeName);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
+  const handleResetDefaults = () => {
+    if (window.confirm("Reset all configurations to factory system defaults?")) {
+      setConfigs({
+        storeName: 'MindStock Central Warehouse',
+        storeCode: 'MS-WMS-01',
+        operatingHours: '08:00 AM - 08:00 PM',
+        prepTime: '15 mins',
+        timezone: 'UTC+08:00 (Asia/Manila)',
+        currency: 'PHP (₱)',
+        address: 'Warehouse Hub 4, Industrial Blvd, Metro Center',
+        twoFactorAuth: false,
+        sessionTimeout: '60 mins',
+        strictIpLock: true,
+        requireAuditNotes: true,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+        reorderThreshold: 5,
+        fifoEnforced: true,
+        autoGenerateSku: true,
+        defaultSupplierLeadDays: 3,
+        allowNegativeStock: false,
+        autoPrintVouchers: true,
+        emailNotifications: true,
+        smsTriggers: false,
+        maintenanceMode: false,
+        maintenanceNotice: 'MindStock is currently undergoing scheduled system maintenance. Ordering, support, and dispatch are temporarily paused.'
+      });
+      alert("Settings restored to system defaults.");
     }
-    alert('Password updated successfully!');
-    setPasswords({ current: '', new: '' , confirm: '' });
   };
 
-  const handleDeleteAccount = () => {
-    if (window.confirm("Are you sure? This action cannot be undone.")) {
-      localStorage.clear();
-      window.location.href = '/login';
-    }
+  const handleSendTestNotification = () => {
+    setTestNotificationSent(true);
+    setTimeout(() => setTestNotificationSent(false), 3000);
   };
-
-  const tabs = [
-    { id: 'profile', label: 'General Profile', icon: '👤' },
-    { id: 'security', label: 'Security & Privacy', icon: '🔒' },
-    { id: 'appearance', label: 'Interface Settings', icon: '🎨' },
-  ];
 
   return (
-    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 ${isDark ? 'bg-[#0b1120]' : 'bg-[#f8fafc]'}`}>
-      <AdminHeader 
-        title="System Settings" 
-        subtitle="Account Preferences, Security & Configuration" 
-      />
-      <div className="flex-1 overflow-y-auto p-8 space-y-7">
-        {/* Executive KPI Grid Box */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {/* Card 1: System Status */}
-          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
-            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
-          }`}>
-            <div className="flex items-center justify-between">
-              <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                SYSTEM HEALTH
-              </p>
-              <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs">
-                ⚡
-              </div>
-            </div>
-            <div className="my-3">
-              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                100% <span className="text-xs font-normal text-slate-400">Operational</span>
-              </h3>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              Server uptime & API services healthy
+    <div className={`flex-1 flex flex-col min-w-0 transition-colors duration-300 font-sans ${
+      isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
+    }`}>
+      
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 max-w-[1400px] mx-auto w-full">
+        
+        {/* Top Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className={`text-2xl sm:text-3xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              System & Store Configurations
+            </h1>
+            <p className={`text-xs font-medium mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Configure store operation rules, delivery parameters, security keys, and alert notifications
             </p>
           </div>
 
-          {/* Card 2: Security */}
-          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
-            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
-          }`}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                SECURITY LEVEL
-              </p>
-              <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs">
-                🔒
-              </div>
-            </div>
-            <div className="my-3">
-              <h3 className="text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-                Tier-1 <span className="text-xs font-normal text-slate-400">RBAC</span>
-              </h3>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              Strict role-based session isolation
-            </p>
-          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleResetDefaults}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                isDark 
+                  ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' 
+                  : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-xs'
+              }`}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Defaults</span>
+            </button>
 
-          {/* Card 3: Storage */}
-          <div className={`p-5 rounded-2xl border shadow-xs transition-colors flex flex-col justify-between ${
-            isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-100'
-          }`}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
-                DATABASE BACKUPS
-              </p>
-              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-xs">
-                💾
-              </div>
-            </div>
-            <div className="my-3">
-              <h3 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Automated <span className="text-xs font-normal text-slate-400">Sync</span>
-              </h3>
-            </div>
-            <p className="text-[10px] text-slate-400">
-              MySQL schema & transactional logging
-            </p>
-          </div>
-
-          {/* Card 4 (Featured Emerald Card): Build */}
-          <div className="p-5 rounded-2xl bg-[#00684a] text-white flex flex-col justify-between shadow-md shadow-[#00684a]/20">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-100">
-                APPLICATION ENGINE
-              </p>
-              <div className="w-7 h-7 rounded-full bg-white/20 text-white flex items-center justify-center text-xs">
-                🚀
-              </div>
-            </div>
-            <div className="my-3">
-              <h3 className="text-2xl font-extrabold tracking-tight text-white">
-                MindStock <span className="text-xs font-normal text-emerald-100">v1.2</span>
-              </h3>
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-emerald-100">
-              <span>Release Channel:</span>
-              <span className="font-black bg-white/20 px-2 py-0.5 rounded-md">Enterprise</span>
-            </div>
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00684a] hover:bg-[#00583e] text-white text-xs font-bold shadow-md shadow-[#00684a]/20 transition-all cursor-pointer"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Save Changes</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex items-stretch justify-center">
-        {/* Changed: max-w-5xl to max-w-[1400px] and min-h-[80vh] to expand the box */}
-        <div className={`w-full max-w-425 min-h-187.5 flex flex-col md:flex-row rounded-[2.5rem] shadow-2xl border overflow-hidden transition-all duration-500 ${isDark ? 'bg-[#111827] border-slate-800 shadow-black/50' : 'bg-white border-white shadow-slate-300'}`}>
-        
-        {/* Sidebar Navigation - Widened slightly to md:w-80 */}
-        <aside className={`w-full md:w-80 p-10 flex flex-col justify-between ${isDark ? 'bg-slate-900/60' : 'bg-slate-50'}`}>
-          <div>
-            <div className="flex items-center gap-5 mb-12">
-              <div className="w-16 h-16 rounded-3xl bg-orange-500 flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-orange-500/20">
-                {profile.fullName.charAt(0)}
+        {savedSuccess && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-[#00684a] dark:text-emerald-400 flex items-center justify-between text-xs font-bold animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Configuration changes committed and active across MindStock engine!</span>
+            </div>
+            <span className="text-[10px] uppercase font-mono">Synced</span>
+          </div>
+        )}
+
+        {/* 4 Interactive Category Tab Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          
+          {/* Card 1: Store & Operating Hours */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('store')}
+            className={`p-5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+              activeTab === 'store'
+                ? isDark 
+                  ? 'bg-blue-950/30 border-blue-500 ring-2 ring-blue-500 shadow-lg shadow-blue-500/10' 
+                  : 'bg-blue-50/60 border-blue-500 ring-2 ring-blue-500 shadow-md shadow-blue-500/10'
+                : isDark
+                  ? 'bg-[#0f172a] border-slate-800 hover:border-slate-700 text-slate-300'
+                  : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Store & Operating Hours
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Hours, prep time & regional info
+              </p>
+            </div>
+          </button>
+
+          {/* Card 2: Security & Access Control */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('security')}
+            className={`p-5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+              activeTab === 'security'
+                ? isDark 
+                  ? 'bg-rose-950/30 border-rose-500 ring-2 ring-rose-500 shadow-lg shadow-rose-500/10' 
+                  : 'bg-rose-50/60 border-rose-500 ring-2 ring-rose-500 shadow-md shadow-rose-500/10'
+                : isDark
+                  ? 'bg-[#0f172a] border-slate-800 hover:border-slate-700 text-slate-300'
+                  : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Security & Access Control
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Credentials, 2FA & sessions
+              </p>
+            </div>
+          </button>
+
+          {/* Card 3: Orders, Delivery & Fees */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('orders')}
+            className={`p-5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+              activeTab === 'orders'
+                ? isDark 
+                  ? 'bg-emerald-950/30 border-emerald-500 ring-2 ring-emerald-500 shadow-lg shadow-emerald-500/10' 
+                  : 'bg-emerald-50/60 border-emerald-500 ring-2 ring-emerald-500 shadow-md shadow-emerald-500/10'
+                : isDark
+                  ? 'bg-[#0f172a] border-slate-800 hover:border-slate-700 text-slate-300'
+                  : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4">
+              <Truck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Orders, Delivery & Fees
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Delivery fees, free thresholds
+              </p>
+            </div>
+          </button>
+
+          {/* Card 4: Alerts & System */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('alerts')}
+            className={`p-5 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+              activeTab === 'alerts'
+                ? isDark 
+                  ? 'bg-purple-950/30 border-purple-500 ring-2 ring-purple-500 shadow-lg shadow-purple-500/10' 
+                  : 'bg-purple-50/60 border-purple-500 ring-2 ring-purple-500 shadow-md shadow-purple-500/10'
+                : isDark
+                  ? 'bg-[#0f172a] border-slate-800 hover:border-slate-700 text-slate-300'
+                  : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
+            }`}
+          >
+            <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mb-4">
+              <Bell className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Alerts & System
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Notifications & maintenance
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {/* Dynamic Config Area Container */}
+        <div className={`p-6 sm:p-8 rounded-3xl border shadow-xs transition-colors ${
+          isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'
+        }`}>
+
+          {/* --- TAB 1: STORE & OPERATING HOURS --- */}
+          {activeTab === 'store' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+                <div>
+                  <h2 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Facility & Operating Parameters
+                  </h2>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Manage operational shift hours, address, and localized regional data
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className={`font-black text-lg leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{profile.fullName}</h2>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-orange-500 font-bold mt-1">{profile.department}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Warehouse / Facility Name
+                    </label>
+                    <input 
+                      type="text"
+                      value={configs.storeName}
+                      onChange={(e) => handleChange('storeName', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Facility Branch Code
+                    </label>
+                    <input 
+                      type="text"
+                      value={configs.storeCode}
+                      onChange={(e) => handleChange('storeCode', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Standard Operating Shift
+                    </label>
+                    <input 
+                      type="text"
+                      value={configs.operatingHours}
+                      onChange={(e) => handleChange('operatingHours', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      System Timezone
+                    </label>
+                    <input 
+                      type="text"
+                      value={configs.timezone}
+                      onChange={(e) => handleChange('timezone', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Default Currency Format
+                    </label>
+                    <input 
+                      type="text"
+                      value={configs.currency}
+                      onChange={(e) => handleChange('currency', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Physical Location & Address
+                    </label>
+                    <input 
+                      type="text"
+                      value={configs.address}
+                      onChange={(e) => handleChange('address', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
+          )}
 
-            <nav className="space-y-3">
-              {tabs.map((tab) => (
+          {/* --- TAB 2: SECURITY & ACCESS CONTROL --- */}
+          {activeTab === 'security' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+                <div>
+                  <h2 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Security, Authentication & Sessions
+                  </h2>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Configure staff authorization policies, password updates, and session governance
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left Card: Security Toggles */}
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-slate-50/50 border-slate-100'} space-y-4`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Two-Factor Authentication</h4>
+                      <p className="text-[11px] text-slate-400">Require 2FA one-time code on supervisor login</p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.twoFactorAuth}
+                      onChange={() => handleToggle('twoFactorAuth')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Strict Session IP Lock</h4>
+                      <p className="text-[11px] text-slate-400">Terminate sessions if IP origin changes during active shift</p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.strictIpLock}
+                      onChange={() => handleToggle('strictIpLock')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Mandatory Audit Reasons</h4>
+                      <p className="text-[11px] text-slate-400">Enforce justification reason on every inventory adjustment</p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.requireAuditNotes}
+                      onChange={() => handleToggle('requireAuditNotes')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Right Card: Password Management */}
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-slate-50/50 border-slate-100'} space-y-3`}>
+                  <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Admin Password Update</h4>
+                  
+                  <input 
+                    type="password"
+                    placeholder="Current Password"
+                    value={configs.currentPassword}
+                    onChange={(e) => handleChange('currentPassword', e.target.value)}
+                    className={`w-full p-3 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-[#0f172a] border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800'
+                    }`}
+                  />
+                  <input 
+                    type="password"
+                    placeholder="New Password"
+                    value={configs.newPassword}
+                    onChange={(e) => handleChange('newPassword', e.target.value)}
+                    className={`w-full p-3 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-[#0f172a] border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800'
+                    }`}
+                  />
+                  <input 
+                    type="password"
+                    placeholder="Confirm New Password"
+                    value={configs.confirmPassword}
+                    onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                    className={`w-full p-3 rounded-xl border text-xs font-semibold outline-none ${
+                      isDark ? 'bg-[#0f172a] border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-800'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- TAB 3: ORDERS, DELIVERY & FEES --- */}
+          {activeTab === 'orders' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+                <div>
+                  <h2 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Orders, Delivery & Inventory Parameters
+                  </h2>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Configure safety stock thresholds, FIFO rules, and dispatch voucher defaults
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-slate-50/50 border-slate-100'} space-y-4`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>FIFO Lot Dispatch</h4>
+                      <p className="text-[11px] text-slate-400">Strictly prioritize earliest batch lots to prevent spoilage</p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.fifoEnforced}
+                      onChange={() => handleToggle('fifoEnforced')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Auto-Generate SKU Tags</h4>
+                      <p className="text-[11px] text-slate-400">Automatically generate sequential barcodes on new SKU creation</p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.autoGenerateSku}
+                      onChange={() => handleToggle('autoGenerateSku')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Print Dispatch Vouchers</h4>
+                      <p className="text-[11px] text-slate-400">Prompt printable voucher window upon dispatch completion</p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.autoPrintVouchers}
+                      onChange={() => handleToggle('autoPrintVouchers')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Global Low Stock Reorder Threshold
+                    </label>
+                    <input 
+                      type="number"
+                      value={configs.reorderThreshold}
+                      onChange={(e) => handleChange('reorderThreshold', parseInt(e.target.value, 10))}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Triggers emergency low-stock alerts when inventory dips below this count</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Default Supplier Lead Time (Days)
+                    </label>
+                    <input 
+                      type="number"
+                      value={configs.defaultSupplierLeadDays}
+                      onChange={(e) => handleChange('defaultSupplierLeadDays', parseInt(e.target.value, 10))}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-semibold outline-none transition-all ${
+                        isDark ? 'bg-[#0b1120] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- TAB 4: ALERTS & SYSTEM (EXACT MATCH TO SAMPLE PHOTO) --- */}
+          {activeTab === 'alerts' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80 gap-3">
+                <div>
+                  <h2 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Notifications & Maintenance Mode
+                  </h2>
+                  <p className="text-xs text-slate-400 font-medium">
+                    Configure real-time notifications and temporary platform access locks
+                  </p>
+                </div>
+
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-3xl text-sm font-black transition-all duration-300 ${
-                    activeTab === tab.id 
-                      ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/40 translate-x-2' 
-                      : `hover:bg-slate-200/50 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`
+                  type="button"
+                  onClick={handleSendTestNotification}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all ${
+                    testNotificationSent
+                      ? 'bg-emerald-500 text-white border-emerald-500 shadow-md'
+                      : isDark
+                        ? 'border-emerald-500/40 text-emerald-400 bg-emerald-950/20 hover:bg-emerald-950/40'
+                        : 'border-emerald-200 text-[#00684a] bg-emerald-50 hover:bg-emerald-100/70'
                   }`}
                 >
-                  <span className="text-lg">{tab.icon}</span>
-                  {tab.label}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{testNotificationSent ? 'Test Dispatched!' : 'Test Notification'}</span>
                 </button>
-              ))}
-            </nav>
-          </div>
+              </div>
 
-          <div className="pt-10">
-            <button onClick={handleDeleteAccount} className="w-full py-4 rounded-2xl border-2 border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all">
-              Delete Account
-            </button>
-          </div>
-        </aside>
-
-        {/* Dynamic Content Area - Expanded padding for a "spacious" feel */}
-        <main className="flex-1 p-10 md:p-20 overflow-y-auto">
-          {activeTab === 'profile' && (
-            <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h3 className={`text-4xl font-black mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>General Profile</h3>
-              <p className="text-slate-500 font-medium mb-12">Manage your administrative identity and profile details.</p>
-              
-              <form onSubmit={handleProfileUpdate} className="space-y-8">
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 ml-1">Display Name</label>
-                  <input type="text" className="w-full bg-slate-50 dark:bg-[#0b1120] border-2 border-slate-200 dark:border-slate-800 focus:border-orange-500 rounded-2xl p-5 text-slate-900 dark:text-white outline-none transition-all shadow-sm" value={profile.fullName} onChange={(e) => setProfile({...profile, fullName: e.target.value})} />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 ml-1">Email Address (Fixed)</label>
-                  <input type="email" disabled className="w-full bg-slate-100/50 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-slate-400 cursor-not-allowed italic font-medium" value={profile.email} />
-                </div>
-                <button type="submit" className="px-12 py-5 bg-orange-500 text-white rounded-2xl font-black shadow-2xl shadow-orange-500/30 hover:bg-orange-600 hover:-translate-y-1 active:translate-y-0 transition-all">Save Profile Changes</button>
-              </form>
-            </div>
-          )}
-
-          {activeTab === 'security' && (
-            <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h3 className={`text-4xl font-black mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Security Settings</h3>
-              <p className="text-slate-500 font-medium mb-12">Update your password to keep your administrative account secure.</p>
-              
-              <form onSubmit={handlePasswordUpdate} className="space-y-6">
-                <div className="space-y-2">
-                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">Verification</label>
-                   <input type="password" placeholder="Current Password" className="w-full bg-slate-50 dark:bg-[#0b1120] border-2 border-slate-200 dark:border-slate-800 focus:border-orange-500 rounded-2xl p-5 text-slate-900 dark:text-white outline-none transition-all" value={passwords.current} onChange={(e) => setPasswords({...passwords, current: e.target.value})} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">New Password</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-slate-50 dark:bg-[#0b1120] border-2 border-slate-200 dark:border-slate-800 focus:border-orange-500 rounded-2xl p-5 text-slate-900 dark:text-white outline-none transition-all" value={passwords.new} onChange={(e) => setPasswords({...passwords, new: e.target.value})} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Left Card: Notifications */}
+                <div className={`p-6 rounded-2xl border ${
+                  isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                } space-y-5`}>
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                    <Bell className="w-4 h-4" />
+                    <span>Notifications</span>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-black uppercase tracking-widest text-slate-500 ml-1">Confirm</label>
-                    <input type="password" placeholder="••••••••" className="w-full bg-slate-50 dark:bg-[#0b1120] border-2 border-slate-200 dark:border-slate-800 focus:border-orange-500 rounded-2xl p-5 text-slate-900 dark:text-white outline-none transition-all" value={passwords.confirm} onChange={(e) => setPasswords({...passwords, confirm: e.target.value})} />
+
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Email Notifications
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Automated emails for orders and support
+                      </p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.emailNotifications}
+                      onChange={() => handleToggle('emailNotifications')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        SMS System Triggers
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Receive SMS for critical store events
+                      </p>
+                    </div>
+                    <input 
+                      type="checkbox"
+                      checked={configs.smsTriggers}
+                      onChange={() => handleToggle('smsTriggers')}
+                      className="w-4 h-4 accent-[#00684a] rounded cursor-pointer"
+                    />
+                  </div>
+
+                  {/* UI Theme Toggle */}
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                        {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                      </div>
+                      <div>
+                        <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                          Interface Dark Theme
+                        </h4>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Toggle between sleek SaaS dark mode and high-contrast light
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${
+                        isDark ? 'bg-[#00684a]' : 'bg-slate-300'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
+                        isDark ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
                   </div>
                 </div>
-                <button type="submit" className={`mt-4 px-12 py-5 rounded-2xl font-black shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 ${isDark ? 'bg-white text-slate-900 shadow-white/10' : 'bg-slate-900 text-white shadow-slate-900/20'}`}>Update Security Access</button>
-              </form>
-            </div>
-          )}
 
-          {activeTab === 'appearance' && (
-            <div className="max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h3 className={`text-4xl font-black mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Appearance</h3>
-              <p className="text-slate-500 font-medium mb-12">Customize the visual interface of the Inventory Pro system.</p>
-              
-              <div className={`p-10 rounded-[2.5rem] border flex items-center justify-between transition-all ${isDark ? 'bg-[#0b1120] border-slate-800 shadow-inner' : 'bg-slate-50 border-slate-200'}`}>
-                <div className="flex items-center gap-6">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${isDark ? 'bg-slate-800 text-yellow-400' : 'bg-white text-blue-600 shadow-sm'}`}>
-                    {isDark ? '🌙' : '☀️'}
+                {/* Right Card: Maintenance Mode */}
+                <div className={`p-6 rounded-2xl border ${
+                  isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+                } space-y-5`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-500 font-bold text-xs uppercase tracking-wider">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>Maintenance Mode</span>
+                    </div>
+                    <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider ${
+                      configs.maintenanceMode
+                        ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                        : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                    }`}>
+                      {configs.maintenanceMode ? 'LOCKED / RESTRICTED' : 'OPERATIONAL / LIVE'}
+                    </span>
                   </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
+                    <div>
+                      <h4 className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        Lock Store Operations
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Toggle on to temporarily restrict customer orders and support submissions.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleToggle('maintenanceMode')}
+                      className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${
+                        configs.maintenanceMode ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
+                        configs.maintenanceMode ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </button>
+                  </div>
+
                   <div>
-                    <h4 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Dark Theme</h4>
-                    <p className="text-sm text-slate-500 font-medium">Toggle between light and dark UI</p>
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
+                      MAINTENANCE NOTICE MESSAGE
+                    </label>
+                    <textarea 
+                      rows="3"
+                      value={configs.maintenanceNotice}
+                      onChange={(e) => handleChange('maintenanceNotice', e.target.value)}
+                      className={`w-full p-3.5 rounded-xl border text-xs font-medium outline-none transition-all ${
+                        isDark ? 'bg-[#0f172a] border-slate-700 text-white focus:border-[#00684a]' : 'bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-[#00684a]'
+                      }`}
+                    />
+                    <p className="text-[10px] text-slate-400 italic mt-1">
+                      This notice is immediately broadcasted and displayed across the store for all visitors and customers.
+                    </p>
                   </div>
                 </div>
-                <button onClick={toggleTheme} className={`w-20 h-10 rounded-full transition-all flex items-center px-2 ${isDark ? 'bg-orange-500 shadow-lg shadow-orange-500/40' : 'bg-slate-300'}`}>
-                  <div className={`w-7 h-7 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isDark ? 'translate-x-9' : 'translate-x-0'}`} />
-                </button>
+
               </div>
             </div>
           )}
-        </main>
-      </div>
-      </div>
+
+        </div>
+
       </div>
     </div>
   );
