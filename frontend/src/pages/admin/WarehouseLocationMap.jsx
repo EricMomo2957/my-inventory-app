@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import AdminHeader from './AdminHeader';
+import TablePagination from '../../components/TablePagination';
 import { 
   MapPin, 
   Layers, 
@@ -40,6 +41,11 @@ export default function WarehouseLocationMap() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('Zone A');
   const [selectedAisle, setSelectedAisle] = useState('Aisle 01');
+
+  // Table Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(8);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // Coordinate Editor Modal
   const [editingProduct, setEditingProduct] = useState(null);
@@ -86,6 +92,18 @@ export default function WarehouseLocationMap() {
       p.location_aisle?.toLowerCase().includes(q)
     );
   }, [products, searchQuery]);
+
+  // Reset pagination when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Paginated products for the Warehouse Master Coordinate Index table
+  const displayedProducts = useMemo(() => {
+    if (isExpanded) return searchedProducts;
+    const start = (currentPage - 1) * pageSize;
+    return searchedProducts.slice(start, start + pageSize);
+  }, [searchedProducts, currentPage, pageSize, isExpanded]);
 
   // Warehouse Metrics
   const metrics = useMemo(() => {
@@ -472,59 +490,82 @@ export default function WarehouseLocationMap() {
                 </tr>
               </thead>
               <tbody className={`divide-y ${isDark ? 'divide-slate-800/40' : 'divide-slate-200'}`}>
-                {searchedProducts.map(p => (
-                  <tr key={p.id} className={`transition-colors ${
-                    isDark ? 'hover:bg-slate-800/20 text-slate-200' : 'hover:bg-slate-50 text-slate-950'
-                  }`}>
-                    <td className="py-3 px-3">
-                      <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{p.name}</div>
-                      <div className="text-xs font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>{p.sku || `SKU-${p.id}`}</div>
-                    </td>
-                    <td className="py-3 px-3 text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>{p.category}</td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
-                        p.quantity === 0 
-                          ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
-                          : p.quantity <= (p.min_threshold || 5)
-                            ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                            : 'bg-emerald-500/10 text-[#00684a] dark:text-emerald-400 border border-emerald-500/20'
-                      }`}>
-                        {p.quantity} units
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-1.5 font-mono text-xs">
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-[#00684a] dark:text-emerald-400 font-bold border border-emerald-500/30">
-                          {p.location_zone || 'Zone A'}
+                {displayedProducts.length > 0 ? (
+                  displayedProducts.map(p => (
+                    <tr key={p.id} className={`transition-colors ${
+                      isDark ? 'hover:bg-slate-800/20 text-slate-200' : 'hover:bg-slate-50 text-slate-950'
+                    }`}>
+                      <td className="py-3 px-3">
+                        <div className="font-black text-sm" style={{ color: isDark ? '#ffffff' : '#09090b' }}>{p.name}</div>
+                        <div className="text-xs font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>{p.sku || `SKU-${p.id}`}</div>
+                      </td>
+                      <td className="py-3 px-3 text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>{p.category}</td>
+                      <td className="py-3 px-3">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
+                          p.quantity === 0 
+                            ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
+                            : p.quantity <= (p.min_threshold || 5)
+                              ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                              : 'bg-emerald-500/10 text-[#00684a] dark:text-emerald-400 border border-emerald-500/20'
+                        }`}>
+                          {p.quantity} units
                         </span>
-                        <span className="text-slate-400">→</span>
-                        <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-400 font-bold border border-blue-500/30">
-                          {p.location_aisle || 'Aisle 01'}
-                        </span>
-                        <span className="text-slate-400">→</span>
-                        <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border border-purple-500/30">
-                          {p.location_rack || 'Rack A'}
-                        </span>
-                        <span className="text-slate-400">→</span>
-                        <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">
-                          {p.location_bin || 'Shelf 1'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => handleOpenEdit(p)}
-                        className="px-3 py-1.5 rounded-lg bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 ml-auto cursor-pointer"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Relocate</span>
-                      </button>
+                      </td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5 font-mono text-xs">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-[#00684a] dark:text-emerald-400 font-bold border border-emerald-500/30">
+                            {p.location_zone || 'Zone A'}
+                          </span>
+                          <span className="text-slate-400">→</span>
+                          <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-400 font-bold border border-blue-500/30">
+                            {p.location_aisle || 'Aisle 01'}
+                          </span>
+                          <span className="text-slate-400">→</span>
+                          <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border border-purple-500/30">
+                            {p.location_rack || 'Rack A'}
+                          </span>
+                          <span className="text-slate-400">→</span>
+                          <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">
+                            {p.location_bin || 'Shelf 1'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <button
+                          onClick={() => handleOpenEdit(p)}
+                          className="px-3 py-1.5 rounded-lg bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 ml-auto cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Relocate</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-wider">
+                      No matching products found in warehouse coordinate index.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* Table Pagination Component */}
+          {searchedProducts.length > 0 && (
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+              <TablePagination 
+                currentPage={currentPage}
+                totalItems={searchedProducts.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                isExpanded={isExpanded}
+                onToggleExpand={() => setIsExpanded(!isExpanded)}
+                itemLabel="products"
+              />
+            </div>
+          )}
         </div>
 
       </div>
