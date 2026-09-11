@@ -38,9 +38,11 @@ export default function AdminSideNav() {
   const menuItems = [
     { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Warehouse Map', path: '/admin/location-map', icon: MapPin },
+    { name: 'Categories', path: '/admin/categories', icon: Building2 },
     { name: 'Stock In (Receive)', path: '/admin/stock-in', icon: PackagePlus },
     { name: 'Purchase Orders', path: '/admin/purchase-orders', icon: FileText },
     { name: 'Suppliers', path: '/admin/suppliers', icon: Building2 },
+    { name: 'Damaged & RTV', path: '/admin/damaged-items', icon: Zap },
     { name: 'Reorder Desk', path: '/admin/reorder-requisition', icon: Zap },
     { name: 'ABC Analytics', path: '/admin/abc-analytics', icon: TrendingUp },
     { name: 'Cycle Count Audit', path: '/admin/cycle-count', icon: Scale },
