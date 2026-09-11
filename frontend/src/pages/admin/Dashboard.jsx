@@ -643,14 +643,17 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                         </td>
 
                         {/* Batch / Lot */}
-                        <td className="py-3.5 px-4 font-mono text-[11px] font-bold" style={{ color: isDark ? '#cbd5e1' : '#09090b' }}>
-                          {item.batch_number ? (
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-[10px] font-black" style={{ color: isDark ? '#f8fafc' : '#09090b' }}>
-                              {item.batch_number}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 italic text-[10px]">LOT-DEFAULT</span>
-                          )}
+                        <td className="py-3.5 px-4 font-mono text-[11px] font-bold">
+                          <span 
+                            className="px-2.5 py-1 rounded-md border text-[10px] font-mono font-black inline-block shadow-xs"
+                            style={{
+                              backgroundColor: isDark ? '#1e293b' : '#f1f5f9',
+                              color: isDark ? '#f8fafc' : '#09090b',
+                              borderColor: isDark ? '#334155' : '#cbd5e1'
+                            }}
+                          >
+                            {item.batch_number || 'LOT-DEFAULT'}
+                          </span>
                         </td>
 
                         {/* Cost Price */}
@@ -666,12 +669,12 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                         {/* Margin % Badge */}
                         <td className="py-3.5 px-4 text-center">
                           <div className="inline-flex flex-col items-center">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
                               marginPct >= 35 
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
+                                ? 'bg-emerald-100 text-emerald-950 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
                                 : marginPct >= 20 
-                                  ? 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
-                                  : 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                                  ? 'bg-blue-100 text-blue-950 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
+                                  : 'bg-amber-100 text-amber-950 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
                             }`}>
                               +{marginPct.toFixed(1)}%
                             </span>
