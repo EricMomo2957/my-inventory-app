@@ -335,13 +335,12 @@ export default function DamagedRTVManagement() {
                       <div className="flex items-center gap-3">
                         {(() => {
                           const matchedProduct = products.find(p => p.id === item.product_id);
-                          const pImg = matchedProduct?.image;
+                          const pImg = matchedProduct?.image_url || matchedProduct?.image;
                           return pImg ? (
                             <img 
                               src={pImg.startsWith('http') || pImg.startsWith('data:') ? pImg : `http://localhost:3000${pImg}`} 
                               alt={item.product_name} 
                               className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700/80 shrink-0 shadow-xs" 
-                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
                             />
                           ) : (
                             <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-400 shrink-0 shadow-xs">

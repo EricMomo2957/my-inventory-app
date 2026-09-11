@@ -235,7 +235,7 @@ export default function AdminStockHistory() {
                 const isRestock = log.action_type === 'restock' || log.action_type === 'stock_in' || (log.change_amount > 0);
                 const isRecon = log.action_type === 'reconciliation';
                 const displayName = getProductName(log);
-                const prodImg = log.product_id && productsMap[log.product_id]?.image;
+                const prodImg = log.product_id && (productsMap[log.product_id]?.image_url || productsMap[log.product_id]?.image);
                 const category = log.category || (log.product_id && productsMap[log.product_id]?.category);
 
                 return (

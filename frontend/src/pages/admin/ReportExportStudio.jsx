@@ -21,6 +21,15 @@ import {
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Helper to resolve exact product image_url from database matching Overview Dashboard
+const getProductImage = (p) => {
+  const rawImg = p?.image_url || p?.image;
+  if (rawImg) {
+    return rawImg.startsWith('http') || rawImg.startsWith('data:') ? rawImg : `http://localhost:3000${rawImg}`;
+  }
+  return null;
+};
+
 export default function ReportExportStudio() {
   const { isDark } = useTheme();
   const [products, setProducts] = useState([]);
@@ -357,16 +366,16 @@ export default function ReportExportStudio() {
         {/* TAB 1: VALUATION & BALANCE SHEET */}
         {activeReportTab === 'valuation' && (
           <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/60 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className="text-base font-black">Monthly Inventory Valuation & Holding Worth</h3>
-                <p className="text-xs text-slate-400">Total cost assets vs. estimated retail value by category</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Monthly Inventory Valuation & Holding Worth</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Total cost assets vs. estimated retail value by category</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => window.print()}
                   className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-                    isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'border-slate-200 bg-slate-100 hover:bg-slate-200'
+                    isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -393,52 +402,50 @@ export default function ReportExportStudio() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
+                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
                   }`}>
-                    <th className="pb-3 px-3">SKU</th>
-                    <th className="pb-3 px-3">Product Name</th>
-                    <th className="pb-3 px-3">Category</th>
-                    <th className="pb-3 px-3 text-center">Stock</th>
-                    <th className="pb-3 px-3">Cost Price</th>
-                    <th className="pb-3 px-3">Retail Price</th>
-                    <th className="pb-3 px-3">Total Holding Cost</th>
-                    <th className="pb-3 px-3">Retail Valuation</th>
+                    <th className="py-3 px-3">SKU</th>
+                    <th className="py-3 px-3">Product Name</th>
+                    <th className="py-3 px-3">Category</th>
+                    <th className="py-3 px-3 text-center">Stock</th>
+                    <th className="py-3 px-3">Cost Price</th>
+                    <th className="py-3 px-3">Retail Price</th>
+                    <th className="py-3 px-3">Total Holding Cost</th>
+                    <th className="py-3 px-3">Retail Valuation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {products.map(p => {
                     const cost = parseFloat(p.cost_price) || Math.round((parseFloat(p.price) || 0) * 0.65 * 100) / 100;
                     const totalCost = (p.quantity || 0) * cost;
                     const totalRetail = (p.quantity || 0) * (parseFloat(p.price) || 0);
+                    const imgUrl = getProductImage(p);
 
                     return (
-                      <tr key={p.id} className="hover:bg-slate-800/20 transition-colors">
-                        <td className="py-3 px-3 font-mono text-xs text-slate-400">{p.sku || `SKU-${p.id}`}</td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2.5">
-                            {p.image ? (
-                              <img 
-                                src={p.image.startsWith('http') || p.image.startsWith('data:') ? p.image : `http://localhost:3000${p.image}`} 
-                                alt={p.name} 
-                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
-                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
-                                <Package className="w-4 h-4" />
-                              </div>
-                            )}
-                            <span className="font-bold text-sm text-slate-900 dark:text-white">{p.name}</span>
+                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
+                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{p.sku || `SKU-${p.id}`}</td>
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={imgUrl} 
+                              alt={p.name} 
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                            />
+                            <div>
+                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.name}</p>
+                              <span className="text-[10px] text-slate-400 font-mono">ID: #{p.id}</span>
+                            </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 text-xs">{p.category}</td>
-                        <td className="py-3 px-3 text-center font-black">{p.quantity}</td>
-                        <td className="py-3 px-3 font-mono text-xs">₱{cost.toFixed(2)}</td>
-                        <td className="py-3 px-3 font-mono text-xs">₱{(parseFloat(p.price) || 0).toFixed(2)}</td>
-                        <td className="py-3 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
+                        <td className="py-3.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300">{p.category || 'General'}</td>
+                        <td className="py-3.5 px-3 text-center font-black text-slate-900 dark:text-white">{p.quantity}</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">₱{cost.toFixed(2)}</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-800 dark:text-slate-200">₱{(parseFloat(p.price) || 0).toFixed(2)}</td>
+                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
                           ₱{totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="py-3 px-3 font-mono font-bold text-xs text-slate-400">
+                        <td className="py-3.5 px-3 font-mono font-bold text-xs text-slate-800 dark:text-slate-200">
                           ₱{totalRetail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -453,10 +460,10 @@ export default function ReportExportStudio() {
         {/* TAB 2: PHYSICAL STOCK VARIANCE & AUDIT LOGS */}
         {activeReportTab === 'variance' && (
           <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/60 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className="text-base font-black">Physical Cycle Count Variance Log</h3>
-                <p className="text-xs text-slate-400">Differences between recorded theoretical counts vs. floor counts</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Physical Cycle Count Variance Log</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Differences between recorded theoretical counts vs. floor counts</p>
               </div>
               <div className="flex items-center gap-2.5">
                 <button
@@ -480,58 +487,57 @@ export default function ReportExportStudio() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
+                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
                   }`}>
-                    <th className="pb-3 px-3">Date</th>
-                    <th className="pb-3 px-3">Product Name</th>
-                    <th className="pb-3 px-3">Auditor</th>
-                    <th className="pb-3 px-3 text-center">Variance Adjustment</th>
-                    <th className="pb-3 px-3">Reference No</th>
-                    <th className="pb-3 px-3">Reconciliation Reason</th>
+                    <th className="py-3 px-3">Date</th>
+                    <th className="py-3 px-3">Product Name</th>
+                    <th className="py-3 px-3">Auditor</th>
+                    <th className="py-3 px-3 text-center">Variance Adjustment</th>
+                    <th className="py-3 px-3">Reference No</th>
+                    <th className="py-3 px-3">Reconciliation Reason</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
-                  {stockHistory.filter(h => h.action_type === 'reconciliation').map(l => (
-                    <tr key={l.id} className="hover:bg-slate-800/20 transition-colors">
-                      <td className="py-3 px-3 text-xs text-slate-400 font-mono">
-                        {new Date(l.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2.5">
-                          {(() => {
-                            const pImg = l.product_id ? productsMap[l.product_id]?.image : productsMap[l.product_name?.toLowerCase()]?.image;
-                            return pImg ? (
-                              <img 
-                                src={pImg.startsWith('http') || pImg.startsWith('data:') ? pImg : `http://localhost:3000${pImg}`} 
-                                alt={l.product_name} 
-                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
-                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
-                                <Package className="w-4 h-4" />
-                              </div>
-                            );
-                          })()}
-                          <span className="font-bold text-sm text-slate-900 dark:text-white">{l.product_name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-xs font-semibold">{l.user_name || 'Staff'}</td>
-                      <td className="py-3 px-3 text-center font-black">
-                        <span className={`px-2.5 py-1 rounded-full text-xs ${
-                          l.change_amount > 0 
-                            ? 'bg-emerald-500/20 text-emerald-400' 
-                            : l.change_amount < 0
-                              ? 'bg-red-500/20 text-red-400'
-                              : 'bg-slate-500/20 text-slate-400'
-                        }`}>
-                          {l.change_amount > 0 ? `+${l.change_amount}` : l.change_amount}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-mono text-xs text-slate-400">{l.reference_no || 'N/A'}</td>
-                      <td className="py-3 px-3 text-xs text-slate-300">{l.notes || 'Cycle Count Audit'}</td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {stockHistory.filter(h => h.action_type === 'reconciliation').map(l => {
+                    const matchedProd = l.product_id ? productsMap[l.product_id] : productsMap[l.product_name?.toLowerCase()];
+                    const imgUrl = getProductImage(matchedProd || { name: l.product_name });
+
+                    return (
+                      <tr key={l.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
+                        <td className="py-3.5 px-3 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          {new Date(l.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={imgUrl} 
+                              alt={l.product_name} 
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                            />
+                            <div>
+                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{l.product_name}</p>
+                              <span className="text-[10px] text-slate-400 font-mono">ID: #{l.product_id || '—'}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300">{l.user_name || 'Staff'}</td>
+                        <td className="py-3.5 px-3 text-center font-black">
+                          <span className={`px-2.5 py-1 rounded-full text-xs ${
+                            l.change_amount > 0 
+                              ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold' 
+                              : l.change_amount < 0
+                                ? 'bg-red-500/20 text-red-600 dark:text-red-400 font-bold'
+                                : 'bg-slate-500/20 text-slate-600 dark:text-slate-400 font-bold'
+                          }`}>
+                            {l.change_amount > 0 ? `+${l.change_amount}` : l.change_amount}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{l.reference_no || 'N/A'}</td>
+                        <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{l.notes || 'Cycle Count Audit'}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -541,10 +547,10 @@ export default function ReportExportStudio() {
         {/* TAB 3: EXPIRY & SPOILAGE */}
         {activeReportTab === 'expiry' && (
           <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/60 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className="text-base font-black">Batch Expiry & Spoilage Liability Register</h3>
-                <p className="text-xs text-slate-400">Batches nearing shelf life limits requiring promotional priority or write-off</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Batch Expiry & Spoilage Liability Register</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Batches nearing shelf life limits requiring promotional priority or write-off</p>
               </div>
             </div>
 
@@ -552,17 +558,17 @@ export default function ReportExportStudio() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
+                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
                   }`}>
-                    <th className="pb-3 px-3">Batch Number</th>
-                    <th className="pb-3 px-3">Product Name</th>
-                    <th className="pb-3 px-3">Quantity</th>
-                    <th className="pb-3 px-3">Expiry Date</th>
-                    <th className="pb-3 px-3">Holding Exposure</th>
-                    <th className="pb-3 px-3 text-right">Risk Status</th>
+                    <th className="py-3 px-3">Batch Number</th>
+                    <th className="py-3 px-3">Product Name</th>
+                    <th className="py-3 px-3">Quantity</th>
+                    <th className="py-3 px-3">Expiry Date</th>
+                    <th className="py-3 px-3">Holding Exposure</th>
+                    <th className="py-3 px-3 text-right">Risk Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {products.map(p => {
                     const cost = parseFloat(p.cost_price) || 0;
                     const holdingExposure = (p.quantity || 0) * cost;
@@ -570,41 +576,39 @@ export default function ReportExportStudio() {
                     const daysLeft = exp ? Math.ceil((exp - new Date()) / (1000 * 60 * 60 * 24)) : 999;
                     const isExpired = daysLeft <= 0;
                     const isWarning = daysLeft > 0 && daysLeft <= 60;
+                    const imgUrl = getProductImage(p);
 
                     return (
-                      <tr key={p.id} className="hover:bg-slate-800/20 transition-colors">
-                        <td className="py-3 px-3 font-mono text-xs font-bold text-slate-400">{p.batch_number || `LOT-${p.id}`}</td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2.5">
-                            {p.image ? (
-                              <img 
-                                src={p.image.startsWith('http') || p.image.startsWith('data:') ? p.image : `http://localhost:3000${p.image}`} 
-                                alt={p.name} 
-                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
-                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
-                                <Package className="w-4 h-4" />
-                              </div>
-                            )}
-                            <span className="font-bold text-sm text-slate-900 dark:text-white">{p.name}</span>
+                      <tr key={p.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
+                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">{p.batch_number || `LOT-${p.id}`}</td>
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={imgUrl} 
+                              alt={p.name} 
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                            />
+                            <div>
+                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{p.name}</p>
+                              <span className="text-[10px] text-slate-400 font-mono">ID: #{p.id}</span>
+                            </div>
                           </div>
                         </td>
-                        <td className="py-3 px-3 font-bold">{p.quantity} units</td>
-                        <td className="py-3 px-3 font-mono text-xs">
+                        <td className="py-3.5 px-3 font-bold text-slate-900 dark:text-white">{p.quantity} units</td>
+                        <td className="py-3.5 px-3 font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
                           {p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable'}
                         </td>
-                        <td className="py-3 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
+                        <td className="py-3.5 px-3 font-mono font-black text-[#00684a] dark:text-emerald-400">
                           ₱{holdingExposure.toFixed(2)}
                         </td>
-                        <td className="py-3 px-3 text-right">
+                        <td className="py-3.5 px-3 text-right">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
                             isExpired
-                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              ? 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30'
                               : isWarning
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                : 'bg-emerald-500/20 text-emerald-400'
+                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                           }`}>
                             {isExpired ? 'EXPIRED' : (isWarning ? `${daysLeft} Days Left` : 'HEALTHY')}
                           </span>
@@ -621,10 +625,10 @@ export default function ReportExportStudio() {
         {/* TAB 4: STOCK MOVEMENTS */}
         {activeReportTab === 'movement' && (
           <div className={`p-6 rounded-2xl border space-y-4 ${isDark ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/60 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800/60 gap-4">
               <div>
-                <h3 className="text-base font-black">Stock Inbound & Outbound Movement Ledger</h3>
-                <p className="text-xs text-slate-400">Complete audit log of restocks, deliveries, and adjustments</p>
+                <h3 className={`text-base font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>Stock Inbound & Outbound Movement Ledger</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Complete audit log of restocks, deliveries, and adjustments</p>
               </div>
             </div>
 
@@ -632,52 +636,51 @@ export default function ReportExportStudio() {
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className={`border-b text-[11px] font-extrabold uppercase tracking-wider ${
-                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'
+                    isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500 bg-slate-50/50'
                   }`}>
-                    <th className="pb-3 px-3">Date</th>
-                    <th className="pb-3 px-3">Product</th>
-                    <th className="pb-3 px-3">User</th>
-                    <th className="pb-3 px-3">Action Type</th>
-                    <th className="pb-3 px-3 text-center">Amount</th>
-                    <th className="pb-3 px-3">Notes</th>
+                    <th className="py-3 px-3">Date</th>
+                    <th className="py-3 px-3">Product</th>
+                    <th className="py-3 px-3">User</th>
+                    <th className="py-3 px-3">Action Type</th>
+                    <th className="py-3 px-3 text-center">Amount</th>
+                    <th className="py-3 px-3">Notes</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
-                  {stockHistory.slice(0, 30).map(h => (
-                    <tr key={h.id} className="hover:bg-slate-800/20 transition-colors">
-                      <td className="py-3 px-3 font-mono text-xs text-slate-400">{new Date(h.created_at).toLocaleString()}</td>
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2.5">
-                          {(() => {
-                            const hImg = h.product_id ? productsMap[h.product_id]?.image : productsMap[h.product_name?.toLowerCase()]?.image;
-                            return hImg ? (
-                              <img 
-                                src={hImg.startsWith('http') || hImg.startsWith('data:') ? hImg : `http://localhost:3000${hImg}`} 
-                                alt={h.product_name} 
-                                className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" 
-                                onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=100&auto=format&fit=crop&q=60"; }}
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 shrink-0">
-                                <Package className="w-4 h-4" />
-                              </div>
-                            );
-                          })()}
-                          <span className="font-bold text-sm text-slate-900 dark:text-white">{h.product_name}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-xs">{h.user_name || 'Staff'}</td>
-                      <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                          h.action_type === 'stock_in' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-blue-500/15 text-blue-400'
-                        }`}>
-                          {h.action_type}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-center font-bold">{h.change_amount}</td>
-                      <td className="py-3 px-3 text-xs text-slate-400">{h.notes || '-'}</td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {stockHistory.slice(0, 30).map(h => {
+                    const matchedProd = h.product_id ? productsMap[h.product_id] : productsMap[h.product_name?.toLowerCase()];
+                    const imgUrl = getProductImage(matchedProd || { name: h.product_name });
+
+                    return (
+                      <tr key={h.id} className={`transition-colors ${isDark ? 'hover:bg-slate-800/40 text-slate-200' : 'hover:bg-slate-50/80 text-slate-800'}`}>
+                        <td className="py-3.5 px-3 font-mono text-xs text-slate-500 dark:text-slate-400">{new Date(h.created_at).toLocaleString()}</td>
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={imgUrl} 
+                              alt={h.product_name} 
+                              className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs" 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=80"; }}
+                            />
+                            <div>
+                              <p className={`font-extrabold text-sm leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{h.product_name}</p>
+                              <span className="text-[10px] text-slate-400 font-mono">ID: #{h.product_id || '—'}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300">{h.user_name || 'Staff'}</td>
+                        <td className="py-3.5 px-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                            h.action_type === 'stock_in' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                          }`}>
+                            {h.action_type}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-center font-black text-slate-900 dark:text-white">{h.change_amount}</td>
+                        <td className="py-3.5 px-3 text-xs text-slate-500 dark:text-slate-400">{h.notes || '-'}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
