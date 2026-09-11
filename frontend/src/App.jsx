@@ -36,6 +36,14 @@ import AdminStockHistory from './pages/admin/AdminStockHistory';
 import AdminReports from './pages/admin/AdminReports';
 import AdminContactRequest from './pages/admin/AdminContactRequest';
 
+// Enterprise Warehouse Modules
+import WarehouseLocationMap from './pages/admin/WarehouseLocationMap';
+import SupplierManagement from './pages/admin/SupplierManagement';
+import PurchaseOrderManagement from './pages/admin/PurchaseOrderManagement';
+import ReorderRequisition from './pages/admin/ReorderRequisition';
+import ABCAnalytics from './pages/admin/ABCAnalytics';
+import ReportExportStudio from './pages/admin/ReportExportStudio';
+
 export default function App() {
   const { isDark } = useTheme(); 
   const [products, setProducts] = useState([]);
@@ -135,6 +143,7 @@ export default function App() {
 
             <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
               <Route path="/clerk/ClerkDashboard" element={<ClerkDashboard />} />
+              <Route path="/clerk/location-map" element={<WarehouseLocationMap />} />
               <Route path="/clerk/stock-in" element={<InboundReceiving />} />
               <Route path="/clerk/order" element={<ClerkOrderManagement />} />
               <Route path="/clerk/cycle-count" element={<CycleCountReconciliation />} />
@@ -143,8 +152,14 @@ export default function App() {
               <Route path="/clerk/clerkProfile" element={<ClerkProfile />} />
               
               <Route path="/dashboard" element={<Dashboard products={products} fetchProducts={fetchProducts} activeAlertsCount={activeAlerts.length} />} />
+              <Route path="/admin/location-map" element={<WarehouseLocationMap />} />
               <Route path="/admin/stock-in" element={<InboundReceiving />} />
+              <Route path="/admin/purchase-orders" element={<PurchaseOrderManagement />} />
+              <Route path="/admin/suppliers" element={<SupplierManagement />} />
+              <Route path="/admin/reorder-requisition" element={<ReorderRequisition />} />
+              <Route path="/admin/abc-analytics" element={<ABCAnalytics />} />
               <Route path="/admin/cycle-count" element={<CycleCountReconciliation />} />
+              <Route path="/admin/report-studio" element={<ReportExportStudio />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/admin/settings" element={<AdminSetting />} /> 
               <Route path="/admin/view-profile" element={<AdminProfile />} />

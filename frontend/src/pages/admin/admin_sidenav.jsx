@@ -13,7 +13,13 @@ import {
   LogOut, 
   ChevronLeft, 
   ChevronRight,
-  PackageCheck
+  PackageCheck,
+  MapPin,
+  Building2,
+  FileText,
+  Zap,
+  TrendingUp,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export default function AdminSideNav() {
@@ -31,10 +37,16 @@ export default function AdminSideNav() {
 
   const menuItems = [
     { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Warehouse Map', path: '/admin/location-map', icon: MapPin },
     { name: 'Stock In (Receive)', path: '/admin/stock-in', icon: PackagePlus },
+    { name: 'Purchase Orders', path: '/admin/purchase-orders', icon: FileText },
+    { name: 'Suppliers', path: '/admin/suppliers', icon: Building2 },
+    { name: 'Reorder Desk', path: '/admin/reorder-requisition', icon: Zap },
+    { name: 'ABC Analytics', path: '/admin/abc-analytics', icon: TrendingUp },
     { name: 'Cycle Count Audit', path: '/admin/cycle-count', icon: Scale },
-    { name: 'Staff Management', path: '/admin/users', icon: Users },
+    { name: 'Audit Reports', path: '/admin/report-studio', icon: FileSpreadsheet },
     { name: 'Stock Movement', path: '/admin/history', icon: History },
+    { name: 'Staff Management', path: '/admin/users', icon: Users },
     { name: 'Inquiries', path: '/admin/inquiries', icon: MessageSquare },
     { name: 'Calendar', path: '/calendar', icon: CalendarDays },
     { name: 'Settings', path: '/admin/settings', icon: Settings },

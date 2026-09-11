@@ -12,7 +12,8 @@ import {
   LogOut, 
   ChevronLeft, 
   ChevronRight,
-  PackageCheck
+  PackageCheck,
+  MapPin
 } from 'lucide-react';
 
 const ClerkSidenav = ({ user, onLogout }) => {
@@ -21,6 +22,7 @@ const ClerkSidenav = ({ user, onLogout }) => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/clerk/ClerkDashboard', icon: LayoutDashboard },
+    { name: 'Warehouse Map', path: '/clerk/location-map', icon: MapPin },
     { name: 'Stock In (Receive)', path: '/clerk/stock-in', icon: PackagePlus },
     { name: 'Stock Dispatch', path: '/clerk/order', icon: Truck },
     { name: 'Cycle Count Audit', path: '/clerk/cycle-count', icon: Scale },
