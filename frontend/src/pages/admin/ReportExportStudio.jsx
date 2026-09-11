@@ -19,7 +19,16 @@ import {
   Package
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { applyPlugin } from 'jspdf-autotable';
+
+// Ensure jsPDF plugin is registered
+try {
+  if (typeof applyPlugin === 'function') {
+    applyPlugin(jsPDF);
+  }
+} catch (e) {
+  console.warn("jsPDF plugin init warning:", e);
+}
 
 // Helper to resolve exact product image_url from database matching Overview Dashboard
 const getProductImage = (p) => {
@@ -106,7 +115,10 @@ export default function ReportExportStudio() {
 
   // CSV Exporter
   const exportCSV = (filename, rows) => {
-    if (!rows || !rows.length) return;
+    if (!rows || !rows.length) {
+      alert("No data available to export.");
+      return;
+    }
     const separator = ',';
     const keys = Object.keys(rows[0]);
     const csvContent =
@@ -135,32 +147,51 @@ export default function ReportExportStudio() {
     showToast(`✅ Exported ${filename}.csv successfully`);
   };
 
-  // PDF Exporter using jsPDF & AutoTable
+  // PDF Exporter using jsPDF & AutoTable with fallback
   const exportPDF = (title, columns, rows) => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.setTextColor(0, 104, 74);
-    doc.text('MindStock Enterprise Warehouse System', 14, 15);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(50, 50, 50);
-    doc.text(title, 14, 22);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(16);
+      doc.setTextColor(0, 104, 74);
+      doc.text('MindStock Enterprise Warehouse System', 14, 15);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(50, 50, 50);
+      doc.text(title, 14, 22);
 
-    doc.setFontSize(9);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`Generated on: ${new Date().toLocaleString()} | Administrator Desk`, 14, 28);
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Generated on: ${new Date().toLocaleString()} | Administrator Desk`, 14, 28);
 
-    autoTable(doc, {
-      startY: 32,
-      head: [columns],
-      body: rows,
-      theme: 'striped',
-      headStyles: { fillColor: [0, 104, 74], textColor: 255, fontStyle: 'bold' },
-      styles: { fontSize: 8, cellPadding: 2.5 }
-    });
+      const tableOpts = {
+        startY: 32,
+        head: [columns],
+        body: rows,
+        theme: 'striped',
+        headStyles: { fillColor: [0, 104, 74], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 2.5 }
+      };
 
-    doc.save(`${title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`);
-    showToast(`📑 Generated ${title}.pdf successfully`);
+      if (typeof doc.autoTable === 'function') {
+        doc.autoTable(tableOpts);
+      } else if (typeof autoTable === 'function') {
+        autoTable(doc, tableOpts);
+      } else {
+        try {
+          applyPlugin(jsPDF);
+          doc.autoTable(tableOpts);
+        } catch (pluginErr) {
+          console.error("AutoTable fallback error:", pluginErr);
+        }
+      }
+
+      const cleanFilename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      doc.save(cleanFilename);
+      showToast(`📑 Generated ${title}.pdf successfully`);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      alert(`PDF Export Error: ${err.message || err}`);
+    }
   };
 
   // 1. Valuation Report Handlers
@@ -191,11 +222,11 @@ export default function ReportExportStudio() {
       const totalCost = (p.quantity || 0) * cost;
       return [
         p.sku || `SKU-${p.id}`,
-        p.name,
-        p.category,
-        p.quantity.toString(),
+        p.name || '',
+        p.category || 'General',
+        (p.quantity || 0).toString(),
         `PHP ${cost.toFixed(2)}`,
-        `PHP ${(p.price || 0).toFixed(2)}`,
+        `PHP ${(parseFloat(p.price) || 0).toFixed(2)}`,
         `PHP ${totalCost.toFixed(2)}`,
         `${p.location_zone || 'Zone A'}-${p.location_aisle || 'Aisle 01'}`
       ];
@@ -224,13 +255,83 @@ export default function ReportExportStudio() {
     const rows = varianceLogs.map(l => [
       l.id.toString(),
       new Date(l.created_at).toLocaleDateString(),
-      l.product_name,
+      l.product_name || '',
       l.user_name || 'Staff',
       l.change_amount > 0 ? `+${l.change_amount}` : l.change_amount.toString(),
       l.reference_no || 'N/A',
       l.notes || 'Routine Reconciliation'
     ]);
     exportPDF('Physical Cycle Count Variance Audit Report', columns, rows);
+  };
+
+  // 3. Expiry Report Handlers
+  const handleExportExpiryCSV = () => {
+    const dataRows = products.map(p => {
+      const cost = parseFloat(p.cost_price) || 0;
+      const holdingExposure = (p.quantity || 0) * cost;
+      const exp = p.expiry_date ? new Date(p.expiry_date) : null;
+      const daysLeft = exp ? Math.ceil((exp - new Date()) / (1000 * 60 * 60 * 24)) : 999;
+      const status = daysLeft <= 0 ? 'EXPIRED' : daysLeft <= 60 ? `WARNING (${daysLeft}d left)` : 'HEALTHY';
+      return {
+        BatchNumber: p.batch_number || `LOT-${p.id}`,
+        ProductName: p.name,
+        Category: p.category || 'General',
+        Quantity: p.quantity,
+        ExpiryDate: p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable',
+        UnitCost_PHP: cost.toFixed(2),
+        HoldingExposure_PHP: holdingExposure.toFixed(2),
+        RiskStatus: status
+      };
+    });
+    exportCSV('Batch_Expiry_Liability_Report', dataRows);
+  };
+
+  const handleExportExpiryPDF = () => {
+    const columns = ['Batch #', 'Product Name', 'Quantity', 'Expiry Date', 'Holding Exposure', 'Risk Status'];
+    const rows = products.map(p => {
+      const cost = parseFloat(p.cost_price) || 0;
+      const holdingExposure = (p.quantity || 0) * cost;
+      const exp = p.expiry_date ? new Date(p.expiry_date) : null;
+      const daysLeft = exp ? Math.ceil((exp - new Date()) / (1000 * 60 * 60 * 24)) : 999;
+      const status = daysLeft <= 0 ? 'EXPIRED' : daysLeft <= 60 ? `${daysLeft}d Left` : 'HEALTHY';
+      return [
+        p.batch_number || `LOT-${p.id}`,
+        p.name || '',
+        (p.quantity || 0).toString(),
+        p.expiry_date ? new Date(p.expiry_date).toLocaleDateString() : 'Non-perishable',
+        `PHP ${holdingExposure.toFixed(2)}`,
+        status
+      ];
+    });
+    exportPDF('Batch Expiration & Spoilage Liability Register', columns, rows);
+  };
+
+  // 4. Movement Report Handlers
+  const handleExportMovementCSV = () => {
+    const dataRows = stockHistory.map(h => ({
+      LogID: h.id,
+      Date: new Date(h.created_at).toLocaleString(),
+      Product: h.product_name,
+      User: h.user_name || 'System',
+      ActionType: h.action_type || 'Adjustment',
+      ChangeAmount: h.change_amount,
+      ReferenceNo: h.reference_no || 'N/A',
+      Notes: h.notes || ''
+    }));
+    exportCSV('Stock_Movements_Audit_Ledger', dataRows);
+  };
+
+  const handleExportMovementPDF = () => {
+    const columns = ['Date', 'Product', 'User', 'Action', 'Amount', 'Ref / Notes'];
+    const rows = stockHistory.slice(0, 100).map(h => [
+      new Date(h.created_at).toLocaleDateString(),
+      h.product_name || '',
+      h.user_name || 'System',
+      h.action_type || 'Adjustment',
+      h.change_amount > 0 ? `+${h.change_amount}` : (h.change_amount || 0).toString(),
+      h.notes || h.reference_no || 'Movement Log'
+    ]);
+    exportPDF('Inventory Stock Movement & Ledger Report', columns, rows);
   };
 
   return (
@@ -606,6 +707,31 @@ export default function ReportExportStudio() {
                 <h3 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Batch Expiry & Spoilage Liability Register</h3>
                 <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Batches nearing shelf life limits requiring promotional priority or write-off</p>
               </div>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => window.print()}
+                  className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+                    isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-900'
+                  }`}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print View</span>
+                </button>
+                <button
+                  onClick={handleExportExpiryCSV}
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  onClick={handleExportExpiryPDF}
+                  className="px-3.5 py-2 rounded-xl bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -706,6 +832,31 @@ export default function ReportExportStudio() {
               <div>
                 <h3 className="text-base font-black" style={{ color: isDark ? '#ffffff' : '#09090b' }}>Stock Inbound & Outbound Movement Ledger</h3>
                 <p className="text-xs font-bold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Complete audit log of restocks, deliveries, and adjustments</p>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => window.print()}
+                  className={`px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+                    isDark ? 'border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200' : 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-900'
+                  }`}
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print View</span>
+                </button>
+                <button
+                  onClick={handleExportMovementCSV}
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  onClick={handleExportMovementPDF}
+                  className="px-3.5 py-2 rounded-xl bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Download PDF</span>
+                </button>
               </div>
             </div>
 
