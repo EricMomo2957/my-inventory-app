@@ -28,6 +28,8 @@ router.patch('/location/:id', productController.updateProductLocation);
 router.get('/:id', productController.getProductById);
 router.post('/', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'productImage', maxCount: 1 }]), productController.createProduct);
 router.put('/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'productImage', maxCount: 1 }]), productController.updateProduct);
+router.patch('/archive/:id', productController.toggleArchiveProduct);
+router.patch('/:id/archive', productController.toggleArchiveProduct);
 router.delete('/:id', productController.deleteProduct);
 router.patch('/restock/:id', productController.restockProduct);
 
