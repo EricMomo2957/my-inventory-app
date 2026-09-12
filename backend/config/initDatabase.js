@@ -18,6 +18,24 @@ async function initDatabase() {
         if (!colNames.includes('location_bin')) {
             await db.query("ALTER TABLE products ADD COLUMN location_bin VARCHAR(50) DEFAULT 'Shelf 1'");
         }
+        if (!colNames.includes('status')) {
+            await db.query("ALTER TABLE products ADD COLUMN status ENUM('active', 'archived') DEFAULT 'active'");
+        }
+        await db.query("UPDATE products SET status = 'active' WHERE status IS NULL OR status = ''");
+
+        // Ensure order_items supports variant tracking
+        try {
+            const [orderItemCols] = await db.query('SHOW COLUMNS FROM order_items');
+            const oiColNames = orderItemCols.map(c => c.Field);
+            if (!oiColNames.includes('variant_id')) {
+                await db.query("ALTER TABLE order_items ADD COLUMN variant_id INT NULL");
+            }
+            if (!oiColNames.includes('variant_name')) {
+                await db.query("ALTER TABLE order_items ADD COLUMN variant_name VARCHAR(150) NULL");
+            }
+        } catch (oiErr) {
+            // order_items table might not be created yet if fresh database
+        }
 
         // Standardize legacy 'Rack 01'/'Bin 01' coordinates to match interactive bay matrix
         await db.query("UPDATE products SET location_rack = 'Rack A' WHERE location_rack IN ('Rack 01', 'Rack 1', 'Rack-A', '') OR location_rack IS NULL");
