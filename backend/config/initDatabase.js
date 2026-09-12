@@ -13,11 +13,22 @@ async function initDatabase() {
             await db.query("ALTER TABLE products ADD COLUMN location_aisle VARCHAR(50) DEFAULT 'Aisle 01'");
         }
         if (!colNames.includes('location_rack')) {
-            await db.query("ALTER TABLE products ADD COLUMN location_rack VARCHAR(50) DEFAULT 'Rack 01'");
+            await db.query("ALTER TABLE products ADD COLUMN location_rack VARCHAR(50) DEFAULT 'Rack A'");
         }
         if (!colNames.includes('location_bin')) {
-            await db.query("ALTER TABLE products ADD COLUMN location_bin VARCHAR(50) DEFAULT 'Bin 01'");
+            await db.query("ALTER TABLE products ADD COLUMN location_bin VARCHAR(50) DEFAULT 'Shelf 1'");
         }
+
+        // Standardize legacy 'Rack 01'/'Bin 01' coordinates to match interactive bay matrix
+        await db.query("UPDATE products SET location_rack = 'Rack A' WHERE location_rack IN ('Rack 01', 'Rack 1', 'Rack-A', '') OR location_rack IS NULL");
+        await db.query("UPDATE products SET location_rack = 'Rack B' WHERE location_rack IN ('Rack 02', 'Rack 2', 'Rack-B')");
+        await db.query("UPDATE products SET location_rack = 'Rack C' WHERE location_rack IN ('Rack 03', 'Rack 3', 'Rack-C')");
+        await db.query("UPDATE products SET location_rack = 'Rack D' WHERE location_rack IN ('Rack 04', 'Rack 4', 'Rack-D')");
+
+        await db.query("UPDATE products SET location_bin = 'Shelf 1' WHERE location_bin IN ('Bin 01', 'Bin 1', 'Shelf 01', '') OR location_bin IS NULL");
+        await db.query("UPDATE products SET location_bin = 'Shelf 2' WHERE location_bin IN ('Bin 02', 'Bin 2', 'Shelf 02')");
+        await db.query("UPDATE products SET location_bin = 'Shelf 3' WHERE location_bin IN ('Bin 03', 'Bin 3', 'Shelf 03')");
+        await db.query("UPDATE products SET location_bin = 'Shelf 4' WHERE location_bin IN ('Bin 04', 'Bin 4', 'Shelf 04')");
 
         // 2. Suppliers Table
         await db.query(`
