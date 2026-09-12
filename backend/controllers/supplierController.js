@@ -62,3 +62,66 @@ exports.deleteSupplier = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// 6. GET SUPPLIED PRODUCTS (Catalog of items sourced from this supplier)
+exports.getSuppliedProducts = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [sup] = await db.query('SELECT name FROM suppliers WHERE id = ?', [id]);
+        if (sup.length === 0) {
+            return res.status(404).json({ success: false, message: "Supplier not found" });
+        }
+        const supplierName = sup[0].name;
+
+        const sql = `
+            SELECT 
+                p.id,
+                p.name,
+                p.sku,
+                p.category,
+                p.quantity AS current_stock,
+                p.price AS selling_price,
+                p.cost_price AS default_cost,
+                p.image_url,
+                p.status,
+                COALESCE(MAX(pb.cost_price), MAX(poi.unit_cost), p.cost_price) AS latest_purchase_cost,
+                COALESCE(MAX(pb.created_at), MAX(po.created_at)) AS last_supplied_date,
+                COALESCE(SUM(pb.quantity_received), SUM(poi.quantity_received), 0) AS total_units_supplied,
+                COUNT(DISTINCT pb.id) AS batch_count,
+                COUNT(DISTINCT po.id) AS po_count
+            FROM products p
+            LEFT JOIN product_batches pb ON p.id = pb.product_id AND (pb.supplier = ? OR pb.supplier LIKE ?)
+            LEFT JOIN po_items poi ON p.id = poi.product_id
+            LEFT JOIN purchase_orders po ON poi.po_id = po.id AND (po.supplier_id = ? OR po.supplier_name = ?)
+            WHERE (pb.id IS NOT NULL OR po.id IS NOT NULL)
+            GROUP BY p.id, p.name, p.sku, p.category, p.quantity, p.price, p.cost_price, p.image_url, p.status
+            ORDER BY last_supplied_date DESC, p.name ASC
+        `;
+        
+        let [rows] = await db.query(sql, [supplierName, `%${supplierName}%`, id, supplierName]);
+
+        if (rows.length === 0) {
+            const [fallbackRows] = await db.query(`
+                SELECT 
+                    p.id, p.name, p.sku, p.category, p.quantity AS current_stock, 
+                    p.price AS selling_price, p.cost_price AS latest_purchase_cost, 
+                    p.image_url, p.status, NULL AS last_supplied_date, 0 AS total_units_supplied
+                FROM products p
+                WHERE p.status = 'active'
+                ORDER BY p.id ASC
+                LIMIT 6
+            `);
+            rows = fallbackRows.map(r => ({ ...r, is_suggested: true }));
+        }
+
+        res.json({
+            success: true,
+            supplier_id: id,
+            supplier_name: supplierName,
+            products: rows
+        });
+    } catch (err) {
+        console.error("GET Supplied Products Error:", err);
+        res.status(500).json({ success: false, message: "Failed to fetch supplied products: " + err.message });
+    }
+};
