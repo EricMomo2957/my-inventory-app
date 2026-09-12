@@ -14,7 +14,8 @@ import {
   Building2, 
   Printer, 
   Trash2, 
-  Layers
+  Layers,
+  Boxes
 } from 'lucide-react';
 
 export default function Order() {
@@ -23,6 +24,8 @@ export default function Order() {
 
   // --- STATE ---
   const [products, setProducts] = useState([]);
+  const [variantsMap, setVariantsMap] = useState({});
+  const [selectedVariants, setSelectedVariants] = useState({});
   const [dispatchCart, setDispatchCart] = useState([]);
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
   const [showVoucher, setShowVoucher] = useState(false);
@@ -60,13 +63,27 @@ export default function Order() {
   // --- DATA FETCHING ---
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/products');
+      const res = await axios.get('http://localhost:3000/api/products?status=active');
       const formattedData = res.data.map(p => ({
         ...p,
         price: parseFloat(p.price) || 0,
         quantity: parseInt(p.quantity, 10) || 0
       }));
       setProducts(formattedData);
+
+      // Fetch variants for products
+      const map = {};
+      await Promise.all(
+        formattedData.map(async (prod) => {
+          try {
+            const vRes = await axios.get(`http://localhost:3000/api/variants/${prod.id}`);
+            if (vRes.data && vRes.data.length > 0) {
+              map[prod.id] = vRes.data;
+            }
+          } catch (err) {}
+        })
+      );
+      setVariantsMap(map);
     } catch (err) {
       console.error("Failed to load products for dispatch:", err);
     }
@@ -89,24 +106,41 @@ export default function Order() {
     const qty = parseInt(quantities[product.id], 10) || 1;
     if (qty <= 0) return;
 
-    if (qty > product.quantity) {
-      alert(`Cannot dispatch ${qty} units. Only ${product.quantity} units currently in warehouse.`);
+    const chosenVariantId = selectedVariants[product.id];
+    const chosenVariant = chosenVariantId && variantsMap[product.id]
+      ? variantsMap[product.id].find(v => String(v.id) === String(chosenVariantId))
+      : null;
+
+    const availableStock = chosenVariant ? chosenVariant.quantity : product.quantity;
+
+    if (qty > availableStock) {
+      alert(`Cannot dispatch ${qty} units. Only ${availableStock} units available for ${chosenVariant ? chosenVariant.variant_name : product.name}.`);
       return;
     }
 
+    const cartKey = chosenVariant ? `${product.id}-${chosenVariant.id}` : `${product.id}-main`;
+
     setDispatchCart(prev => {
-      const existing = prev.find(item => String(item.id) === String(product.id));
+      const existing = prev.find(item => item.cartKey === cartKey);
       if (existing) {
         const newQty = existing.quantity + qty;
-        if (newQty > product.quantity) {
-          alert(`Total staged dispatch (${newQty}) exceeds available warehouse stock (${product.quantity}).`);
+        if (newQty > availableStock) {
+          alert(`Total staged dispatch (${newQty}) exceeds available stock (${availableStock}).`);
           return prev;
         }
         return prev.map(item => 
-          String(item.id) === String(product.id) ? { ...item, quantity: newQty } : item
+          item.cartKey === cartKey ? { ...item, quantity: newQty } : item
         );
       }
-      return [...prev, { ...product, quantity: qty }];
+      return [...prev, { 
+        ...product, 
+        cartKey,
+        variant_id: chosenVariant ? chosenVariant.id : null,
+        variant_name: chosenVariant ? chosenVariant.variant_name : null,
+        variant_sku: chosenVariant ? chosenVariant.sku : null,
+        price: chosenVariant && chosenVariant.price > 0 ? chosenVariant.price : product.price,
+        quantity: qty 
+      }];
     });
     setQuantities(prev => ({ ...prev, [product.id]: 1 }));
   };
@@ -125,6 +159,8 @@ export default function Order() {
         await axios.post('http://localhost:3000/api/orders', {
           user_id: clerkId,
           product_id: item.id,
+          variant_id: item.variant_id || null,
+          variant_name: item.variant_name || null,
           quantity: item.quantity,
           price: item.price
         });
@@ -153,7 +189,7 @@ export default function Order() {
       await fetchProducts();
     } catch (err) {
       console.error("Dispatch Processing Error:", err);
-      alert("Dispatch failed. Please verify server connection.");
+      alert("Dispatch failed: " + (err.response?.data?.message || err.message));
     } finally {
       setIsSubmitting(false);
     }
@@ -298,6 +334,31 @@ export default function Order() {
                       ₱{item.price.toFixed(2)}
                     </span>
                   </div>
+
+                  {/* Variant Selection Dropdown if product has variants */}
+                  {variantsMap[item.id] && variantsMap[item.id].length > 0 && (
+                    <div className="pt-2">
+                      <label className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+                        <Boxes className="w-3 h-3" /> Select Variant
+                      </label>
+                      <select
+                        value={selectedVariants[item.id] || ''}
+                        onChange={(e) => setSelectedVariants({ ...selectedVariants, [item.id]: e.target.value })}
+                        className={`w-full p-2 rounded-xl text-xs font-bold border outline-none cursor-pointer transition-colors ${
+                          isDark 
+                            ? 'bg-purple-950/30 border-purple-800 text-purple-200 focus:border-purple-400' 
+                            : 'bg-purple-50 border-purple-200 text-purple-900 focus:border-purple-500'
+                        }`}
+                      >
+                        <option value="">Master Stock ({item.quantity} units)</option>
+                        {variantsMap[item.id].map(v => (
+                          <option key={v.id} value={v.id}>
+                            {v.variant_name} ({v.quantity} units available)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2 mt-5 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -446,11 +507,18 @@ export default function Order() {
                 ) : (
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                     {dispatchCart.map(item => (
-                      <div key={item.id} className={`flex justify-between items-center p-3.5 rounded-xl border ${
+                      <div key={item.cartKey || item.id} className={`flex justify-between items-center p-3.5 rounded-xl border ${
                         isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-slate-50 border-slate-200'
                       }`}>
                         <div className="min-w-0 flex-1 pr-4">
-                          <p className={`font-extrabold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className={`font-extrabold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</p>
+                            {item.variant_name && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                Variant: {item.variant_name}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] text-slate-400 font-semibold">{item.category} • ₱{item.price.toFixed(2)} each</p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -458,7 +526,7 @@ export default function Order() {
                             {item.quantity} Units
                           </span>
                           <button 
-                            onClick={() => setDispatchCart(dispatchCart.filter(c => c.id !== item.id))}
+                            onClick={() => setDispatchCart(dispatchCart.filter(c => c.cartKey !== item.cartKey))}
                             className="text-red-500 hover:text-red-600 p-1 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
                             title="Remove item"
                           >
@@ -534,21 +602,39 @@ export default function Order() {
                 <span className="text-slate-400 font-bold block text-[10px] uppercase">Issuing Clerk</span>
                 <span className="font-extrabold text-[#00684a]">{voucherData.clerkName}</span>
               </div>
+              <div className="col-span-2">
+                <span className="text-slate-400 font-bold block text-[10px] uppercase">Notes / Purpose</span>
+                <span className="font-medium text-slate-700">{voucherData.notes || 'Authorized material release from warehouse facility.'}</span>
+              </div>
             </div>
 
             <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Dispatched Items Breakdown</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Dispatched Items List</span>
               {voucherData.items.map(item => (
-                <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100">
-                  <span className="font-bold text-slate-700">{item.name}</span>
-                  <span className="font-black text-[#00684a]">{item.quantity} Units</span>
+                <div key={item.cartKey || item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100">
+                  <div>
+                    <span className="font-bold text-slate-800 block">
+                      {item.name} {item.variant_name ? `(${item.variant_name})` : ''}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">SKU: {item.variant_sku || item.sku || `SKU-#${item.id}`}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-[#00684a] block">{item.quantity} Units</span>
+                    <span className="text-[10px] text-slate-400">@ ₱{item.price.toFixed(2)}/unit</span>
+                  </div>
                 </div>
               ))}
             </div>
 
             <div className="border-t pt-3 mb-6 flex justify-between items-center font-black">
-              <span className="text-xs uppercase tracking-wider text-slate-500">Total Units Dispatched</span>
-              <span className="text-lg text-slate-900">{voucherData.totalUnits} Units</span>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-slate-500 block">Total Units Dispatched</span>
+                <span className="text-base text-slate-900">{voucherData.totalUnits} Units</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs uppercase tracking-wider text-slate-500 block">Total Material Value</span>
+                <span className="text-base text-[#00684a]">₱{voucherData.totalValue?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -556,13 +642,13 @@ export default function Order() {
                 onClick={() => window.print()} 
                 className="bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Printer className="w-4 h-4" /> Print Slip
+                <Printer className="w-4 h-4" /> Print Voucher
               </button>
               <button 
                 onClick={() => setShowVoucher(false)} 
                 className="bg-[#00684a] text-white py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider hover:bg-[#005a3f] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4" /> Complete
+                <CheckCircle2 className="w-4 h-4" /> Done
               </button>
             </div>
           </div>
