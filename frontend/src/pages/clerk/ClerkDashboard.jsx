@@ -125,6 +125,30 @@ export default function ClerkDashboard() {
   const role = localStorage.getItem('userRole') || 'CLERK';
   const profileImage = localStorage.getItem('userPhoto') || localStorage.getItem('profileImage');
 
+  const [permissions, setPermissions] = useState({
+    allow_clerk_edit_cost: false,
+    allow_clerk_delete_sku: false,
+    allow_clerk_create_product: true,
+    allow_clerk_bulk_reconciliation: true
+  });
+
+  const fetchPermissions = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/settings');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.settings) {
+          setPermissions({
+            allow_clerk_edit_cost: data.settings.allow_clerk_edit_cost ?? false,
+            allow_clerk_delete_sku: data.settings.allow_clerk_delete_sku ?? false,
+            allow_clerk_create_product: data.settings.allow_clerk_create_product ?? true,
+            allow_clerk_bulk_reconciliation: data.settings.allow_clerk_bulk_reconciliation ?? true
+          });
+        }
+      }
+    } catch (e) {}
+  }, []);
+
   // --- Data Fetching ---
   const fetchData = useCallback(async () => {
     try {
@@ -207,8 +231,10 @@ export default function ClerkDashboard() {
   }, [fetchData]);
 
   useEffect(() => {
+    fetchData();
     fetchAnalytics();
-  }, [products, fetchAnalytics]);
+    fetchPermissions();
+  }, [fetchData, fetchAnalytics, fetchPermissions]);
 
   // --- Computed Filters & Metrics ---
   const categoriesList = ["General", "Vegetables", "Fruits", "Supplies", "Canned Goods", "Raw Materials"];
@@ -452,17 +478,31 @@ export default function ClerkDashboard() {
               
               {/* Action 1: Add New Product */}
               <button 
-                onClick={() => setIsAddProductModalOpen(true)}
+                onClick={() => {
+                  if (!permissions.allow_clerk_create_product) {
+                    alert("Admin Restriction: Product creation by clerks is currently disabled by system security policy.");
+                    return;
+                  }
+                  setIsAddProductModalOpen(true);
+                }}
                 className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
-                  isDark ? 'bg-emerald-950/30 border-emerald-800/50 hover:bg-emerald-950/50 text-emerald-300' : 'bg-[#e6f4ea]/60 border-[#ccebd7] hover:bg-[#e6f4ea] text-[#00684a]'
+                  !permissions.allow_clerk_create_product
+                    ? 'opacity-60 bg-slate-100 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-400'
+                    : isDark ? 'bg-emerald-950/30 border-emerald-800/50 hover:bg-emerald-950/50 text-emerald-300' : 'bg-[#e6f4ea]/60 border-[#ccebd7] hover:bg-[#e6f4ea] text-[#00684a]'
                 }`}
+                title={!permissions.allow_clerk_create_product ? "Disabled by Administrator" : "Add New Product"}
               >
-                <div className="w-9 h-9 rounded-full bg-[#00684a] text-white flex items-center justify-center shadow-sm">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${
+                  !permissions.allow_clerk_create_product ? 'bg-slate-400 text-white' : 'bg-[#00684a] text-white'
+                }`}>
                   <Plus className="w-5 h-5" />
                 </div>
-                <span className="text-xs font-black">
-                  + Add Product
-                </span>
+                <div className="text-center">
+                  <span className="text-xs font-black block">+ Add Product</span>
+                  {!permissions.allow_clerk_create_product && (
+                    <span className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter">Admin Locked</span>
+                  )}
+                </div>
               </button>
 
               {/* Action 2: Inbound Stock In */}
@@ -1118,17 +1158,25 @@ export default function ClerkDashboard() {
                 </span>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-                      Cost Price (₱)
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Cost Price (₱)
+                      </label>
+                      {!permissions.allow_clerk_edit_cost && (
+                        <span className="text-[9px] font-bold text-rose-500 uppercase">Admin Locked</span>
+                      )}
+                    </div>
                     <input 
                       type="number" 
-                      placeholder="0.00"
+                      placeholder={!permissions.allow_clerk_edit_cost ? "Auto 65% of price" : "0.00"}
                       step="0.01"
+                      disabled={!permissions.allow_clerk_edit_cost}
                       value={newProduct.cost_price}
                       onChange={(e) => setNewProduct({ ...newProduct, cost_price: e.target.value })}
                       className={`w-full px-3.5 py-2 rounded-xl border text-xs font-semibold outline-none ${
-                        isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+                        !permissions.allow_clerk_edit_cost
+                          ? 'opacity-60 bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-800 text-slate-400 cursor-not-allowed'
+                          : isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
                       }`}
                     />
                   </div>
