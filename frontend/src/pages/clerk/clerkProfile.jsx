@@ -43,7 +43,7 @@ export default function ClerkProfile() {
   return (
     <div className={`w-full min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      <main className="p-6 lg:p-10 max-w-7xl mx-auto">
+      <main className="p-6 md:p-8 w-full space-y-7">
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           
           {/* Header Section */}
