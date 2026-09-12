@@ -23,6 +23,7 @@ const analyticsRoutes = require('./routes/analytics');
 const categoryRoutes = require('./routes/categories');
 const damagedRoutes = require('./routes/damagedItems');
 const variantRoutes = require('./routes/variants');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/damaged-items', damagedRoutes);
 app.use('/api/variants', variantRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // --- COMPATIBILITY & ALIAS ENDPOINTS ---
 
