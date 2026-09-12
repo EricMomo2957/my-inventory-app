@@ -17,7 +17,8 @@ import {
   Plus,
   Clock,
   DollarSign,
-  Tag
+  Tag,
+  Boxes
 } from 'lucide-react';
 
 export default function InboundReceiving() {
@@ -25,6 +26,8 @@ export default function InboundReceiving() {
   
   // Products & Staging State
   const [products, setProducts] = useState([]);
+  const [variantsMap, setVariantsMap] = useState({});
+  const [selectedVariants, setSelectedVariants] = useState({});
   const [receivingCart, setReceivingCart] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,10 +53,10 @@ export default function InboundReceiving() {
 
   const clerkName = localStorage.getItem('fullName') || localStorage.getItem('userName') || 'Warehouse Clerk';
 
-  // --- 1. FETCH PRODUCTS ---
+  // --- 1. FETCH PRODUCTS & VARIANTS ---
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/api/products');
+      const res = await axios.get('http://localhost:3000/api/products?status=active');
       const formatted = res.data.map(p => ({
         ...p,
         price: parseFloat(p.price) || 0,
@@ -63,6 +66,20 @@ export default function InboundReceiving() {
         quantity: parseInt(p.quantity, 10) || 0
       }));
       setProducts(formatted);
+
+      // Load variants for all loaded products
+      const map = {};
+      await Promise.all(
+        formatted.map(async (prod) => {
+          try {
+            const vRes = await axios.get(`http://localhost:3000/api/variants/${prod.id}`);
+            if (vRes.data && vRes.data.length > 0) {
+              map[prod.id] = vRes.data;
+            }
+          } catch (err) {}
+        })
+      );
+      setVariantsMap(map);
     } catch (err) {
       console.error("Failed to load products for inbound receiving:", err);
     }
@@ -90,27 +107,39 @@ export default function InboundReceiving() {
       ? String(product.expiry_date).split('T')[0] 
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+    const chosenVariantId = selectedVariants[product.id];
+    const chosenVariant = chosenVariantId && variantsMap[product.id] 
+      ? variantsMap[product.id].find(v => String(v.id) === String(chosenVariantId)) 
+      : null;
+
+    const cartKey = chosenVariant ? `${product.id}-${chosenVariant.id}` : `${product.id}-main`;
+
     setReceivingCart(prev => {
-      const existing = prev.find(item => String(item.id) === String(product.id));
+      const existing = prev.find(item => item.cartKey === cartKey);
       if (existing) {
         return prev.map(item => 
-          String(item.id) === String(product.id) ? { ...item, quantity: item.quantity + qty } : item
+          item.cartKey === cartKey ? { ...item, quantity: item.quantity + qty } : item
         );
       }
       return [...prev, { 
         ...product, 
+        cartKey,
+        variant_id: chosenVariant ? chosenVariant.id : null,
+        variant_name: chosenVariant ? chosenVariant.variant_name : null,
+        variant_sku: chosenVariant ? chosenVariant.sku : null,
+        cost_price: chosenVariant && chosenVariant.cost_price > 0 ? chosenVariant.cost_price : product.cost_price,
+        price: chosenVariant && chosenVariant.price > 0 ? chosenVariant.price : product.price,
         quantity: qty,
         batch_number: product.batch_number || inboundDetails.defaultBatch,
         expiry_date: defaultExp,
-        cost_price: product.cost_price
       }];
     });
     setQuantities(prev => ({ ...prev, [product.id]: 10 }));
   };
 
-  const updateCartItemField = (id, field, value) => {
+  const updateCartItemField = (cartKey, field, value) => {
     setReceivingCart(prev => prev.map(item => {
-      if (String(item.id) === String(id)) {
+      if (item.cartKey === cartKey) {
         return { ...item, [field]: value };
       }
       return item;
@@ -129,6 +158,8 @@ export default function InboundReceiving() {
       const payload = {
         items: receivingCart.map(item => ({ 
           id: item.id, 
+          variant_id: item.variant_id || null,
+          variant_name: item.variant_name || null,
           quantity: item.quantity,
           batch_number: item.batch_number || inboundDetails.defaultBatch,
           expiry_date: item.expiry_date || null,
@@ -314,6 +345,31 @@ export default function InboundReceiving() {
                       ₱{item.cost_price.toFixed(2)} / ₱{item.price.toFixed(2)}
                     </span>
                   </div>
+
+                  {/* Variant Selection Dropdown if product has variants */}
+                  {variantsMap[item.id] && variantsMap[item.id].length > 0 && (
+                    <div className="pt-2">
+                      <label className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+                        <Boxes className="w-3 h-3" /> Select Variant / UOM
+                      </label>
+                      <select
+                        value={selectedVariants[item.id] || ''}
+                        onChange={(e) => setSelectedVariants({ ...selectedVariants, [item.id]: e.target.value })}
+                        className={`w-full p-2 rounded-xl text-xs font-bold border outline-none cursor-pointer transition-colors ${
+                          isDark 
+                            ? 'bg-purple-950/30 border-purple-800 text-purple-200 focus:border-purple-400' 
+                            : 'bg-purple-50 border-purple-200 text-purple-900 focus:border-purple-500'
+                        }`}
+                      >
+                        <option value="">Master Stock (Default Unit)</option>
+                        {variantsMap[item.id].map(v => (
+                          <option key={v.id} value={v.id}>
+                            {v.variant_name} (Stock: {v.quantity}, {v.uom_type || 'Unit'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2 mt-5 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -428,20 +484,27 @@ export default function InboundReceiving() {
 
                 <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                   {receivingCart.map(item => (
-                    <div key={item.id} className={`p-4 rounded-2xl border space-y-3 ${
+                    <div key={item.cartKey || item.id} className={`p-4 rounded-2xl border space-y-3 ${
                       isDark ? 'bg-[#0b1120] border-slate-800' : 'bg-slate-50 border-slate-200'
                     }`}>
                       <div className="flex justify-between items-start gap-4">
                         <div>
-                          <p className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</p>
-                          <p className="text-[11px] text-slate-400 font-semibold">{item.category} • SKU: {item.sku || `SKU-#${item.id}`}</p>
+                          <div className="flex items-center gap-2">
+                            <p className={`font-extrabold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.name}</p>
+                            {item.variant_name && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                Variant: {item.variant_name}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-400 font-semibold">{item.category} • SKU: {item.variant_sku || item.sku || `SKU-#${item.id}`}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="font-black text-sm text-[#00684a] dark:text-emerald-400">
                             +{item.quantity} Units
                           </span>
                           <button 
-                            onClick={() => setReceivingCart(receivingCart.filter(c => c.id !== item.id))}
+                            onClick={() => setReceivingCart(receivingCart.filter(c => c.cartKey !== item.cartKey))}
                             className="text-red-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
                             title="Remove item"
                           >
@@ -457,7 +520,7 @@ export default function InboundReceiving() {
                           <input 
                             type="text" 
                             value={item.batch_number || ''}
-                            onChange={(e) => updateCartItemField(item.id, 'batch_number', e.target.value)}
+                            onChange={(e) => updateCartItemField(item.cartKey, 'batch_number', e.target.value)}
                             className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-mono font-bold ${
                               isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
                             }`}
@@ -469,7 +532,7 @@ export default function InboundReceiving() {
                           <input 
                             type="date" 
                             value={item.expiry_date || ''}
-                            onChange={(e) => updateCartItemField(item.id, 'expiry_date', e.target.value)}
+                            onChange={(e) => updateCartItemField(item.cartKey, 'expiry_date', e.target.value)}
                             className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold ${
                               isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
                             }`}
@@ -482,7 +545,7 @@ export default function InboundReceiving() {
                             type="number" 
                             step="0.01"
                             value={item.cost_price || ''}
-                            onChange={(e) => updateCartItemField(item.id, 'cost_price', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateCartItemField(item.cartKey, 'cost_price', parseFloat(e.target.value) || 0)}
                             className={`w-full px-2.5 py-1.5 rounded-lg border text-xs font-bold ${
                               isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
                             }`}
@@ -558,9 +621,11 @@ export default function InboundReceiving() {
             <div className="space-y-2 mb-4 max-h-48 overflow-y-auto pr-1">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Received Items & FIFO Lot Breakdown</span>
               {grnData.items.map(item => (
-                <div key={item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100">
+                <div key={item.cartKey || item.id} className="flex justify-between items-center text-xs py-1.5 border-b border-slate-100">
                   <div>
-                    <span className="font-bold text-slate-800 block">{item.name}</span>
+                    <span className="font-bold text-slate-800 block">
+                      {item.name} {item.variant_name ? `(${item.variant_name})` : ''}
+                    </span>
                     <span className="text-[10px] text-slate-400 font-mono">Lot: {item.batch_number || 'DEFAULT'} • Exp: {item.expiry_date || 'N/A'}</span>
                   </div>
                   <div className="text-right">
@@ -571,29 +636,23 @@ export default function InboundReceiving() {
               ))}
             </div>
 
-            <div className="border-t pt-3 mb-6 flex justify-between items-center font-black">
-              <div>
-                <span className="text-xs uppercase tracking-wider text-slate-500 block">Total Units Received</span>
-                <span className="text-base text-slate-900">+{grnData.totalUnits} Units</span>
-              </div>
-              <div className="text-right">
-                <span className="text-xs uppercase tracking-wider text-slate-500 block">Total Landed Cost</span>
-                <span className="text-base text-[#00684a]">₱{grnData.totalCost?.toFixed(2)}</span>
-              </div>
+            <div className="border-t pt-3 flex justify-between items-center font-black text-sm mb-6">
+              <span>Total Received Valuation:</span>
+              <span className="text-[#00684a]">₱{grnData.totalCost?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex gap-3">
               <button 
                 onClick={() => window.print()} 
-                className="bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 font-bold text-xs uppercase flex items-center justify-center gap-2 cursor-pointer text-slate-700"
               >
-                <Printer className="w-4 h-4" /> Print GRN Slip
+                <Printer className="w-4 h-4" /> Print GRN
               </button>
               <button 
                 onClick={() => setShowGRN(false)} 
-                className="bg-[#00684a] text-white py-3 rounded-xl font-extrabold text-xs uppercase tracking-wider hover:bg-[#005a3f] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-3 rounded-xl bg-[#00684a] hover:bg-[#005a3f] text-white font-bold text-xs uppercase cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4" /> Done
+                Done
               </button>
             </div>
           </div>
