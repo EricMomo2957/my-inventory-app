@@ -386,7 +386,7 @@ export default function ReportExportStudio() {
         </div>
       )}
 
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="w-full p-6 md:p-8 space-y-6">
 
         {/* 4-CARD METRIC GRID-BOX */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

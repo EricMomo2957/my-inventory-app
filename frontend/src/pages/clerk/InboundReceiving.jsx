@@ -191,7 +191,7 @@ export default function InboundReceiving() {
     <div className={`w-full min-h-screen transition-colors duration-300 font-sans ${
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-slate-50 text-slate-900'
     }`}>
-      <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-8 animate-in fade-in duration-500">
+      <div className="w-full p-6 md:p-8 space-y-8 animate-in fade-in duration-500">
         
         {/* --- HEADER BANNER --- */}
         <div className="bg-linear-to-r from-[#00684a] via-[#005a3f] to-[#014732] text-white p-8 lg:p-10 rounded-3xl shadow-xl shadow-[#00684a]/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">

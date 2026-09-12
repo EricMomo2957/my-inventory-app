@@ -120,7 +120,7 @@ export default function ClerkSetting() {
       isDark ? 'bg-[#0b1120] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
     }`}>
       
-      <div className="flex-1 overflow-y-auto p-8 space-y-8 max-w-[1400px] mx-auto w-full">
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 w-full">
         
         {/* Top Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
