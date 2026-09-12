@@ -27,7 +27,10 @@ import {
   Clock,
   DollarSign,
   Percent,
-  Tag
+  Tag,
+  Archive,
+  ArchiveRestore,
+  Boxes
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -237,16 +240,21 @@ export default function ClerkDashboard() {
   }, [fetchData, fetchAnalytics, fetchPermissions]);
 
   // --- Computed Filters & Metrics ---
+  const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'archived'
+  const [actionToast, setActionToast] = useState(null);
+
   const categoriesList = ["General", "Vegetables", "Fruits", "Supplies", "Canned Goods", "Raw Materials"];
   const dynamicCategories = ["All", ...new Set([...categoriesList, ...products.map(p => p.category).filter(Boolean)])];
 
   const filteredProducts = products.filter(p => {
+    const itemStatus = p.status || 'active';
+    const matchesStatus = statusFilter === 'all' || itemStatus === statusFilter;
     const matchesCategory = activeCategory === "All" || p.category === activeCategory;
     const q = searchQuery.toLowerCase();
     const matchesSearch = p.name.toLowerCase().includes(q) || 
                           (p.sku && p.sku.toLowerCase().includes(q)) ||
                           (p.batch_number && p.batch_number.toLowerCase().includes(q));
-    return matchesCategory && matchesSearch;
+    return matchesStatus && matchesCategory && matchesSearch;
   });
 
   const displayedProducts = isExpanded 
@@ -255,7 +263,20 @@ export default function ClerkDashboard() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, activeCategory]);
+  }, [searchQuery, activeCategory, statusFilter]);
+
+  const handleToggleArchive = async (product) => {
+    try {
+      const res = await axios.patch(`http://localhost:3000/api/products/archive/${product.id}`);
+      if (res.data.success) {
+        setActionToast(res.data.message);
+        setTimeout(() => setActionToast(null), 3500);
+        fetchData();
+      }
+    } catch (err) {
+      alert("Archive action failed: " + (err.response?.data?.error || err.message));
+    }
+  };
 
   const totalItems = products.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
   const totalValue = products.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.quantity) || 0)), 0);
@@ -705,7 +726,7 @@ export default function ClerkDashboard() {
               </p>
             </div>
 
-            {/* Search, Category Pills, and Add Product Button */}
+            {/* Search, Category Pills, Status Filter, and Add Product Button */}
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -718,6 +739,42 @@ export default function ClerkDashboard() {
                     isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-white border-slate-200 text-slate-800 focus:border-[#00684a]'
                   }`}
                 />
+              </div>
+
+              {/* Status Filter Toggle */}
+              <div className={`p-1 rounded-xl border flex items-center gap-1 ${
+                isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
+              }`}>
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    statusFilter === "all" 
+                      ? 'bg-[#00684a] text-white shadow-xs' 
+                      : `${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`
+                  }`}
+                >
+                  All ({products.length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("active")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    statusFilter === "active" 
+                      ? 'bg-emerald-600 text-white shadow-xs' 
+                      : `${isDark ? 'text-slate-400 hover:text-emerald-400' : 'text-slate-600 hover:text-emerald-700'}`
+                  }`}
+                >
+                  Active ({products.filter(p => (p.status || 'active') === 'active').length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("archived")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    statusFilter === "archived" 
+                      ? 'bg-amber-600 text-white shadow-xs' 
+                      : `${isDark ? 'text-slate-400 hover:text-amber-400' : 'text-slate-600 hover:text-amber-700'}`
+                  }`}
+                >
+                  Archived ({products.filter(p => p.status === 'archived').length})
+                </button>
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
@@ -745,6 +802,14 @@ export default function ClerkDashboard() {
               </button>
             </div>
           </div>
+
+          {/* Floating Action Toast */}
+          {actionToast && (
+            <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-emerald-400/30 animate-bounce">
+              <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+              <span className="font-semibold text-xs">{actionToast}</span>
+            </div>
+          )}
 
           {/* Table Container */}
           <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${
@@ -803,9 +868,16 @@ export default function ClerkDashboard() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-black text-sm leading-tight truncate" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
-                                {item.name}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-black text-sm leading-tight truncate" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                  {item.name}
+                                </p>
+                                {item.status === 'archived' && (
+                                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                                    Archived
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                                   {item.sku || `SKU-${(item.category || 'GEN').substring(0, 3).toUpperCase()}-${item.id}`}
@@ -884,7 +956,18 @@ export default function ClerkDashboard() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-3.5 px-5 text-right">
+                        <td className="py-3.5 px-5 text-right space-x-1.5">
+                          <button 
+                            onClick={() => handleToggleArchive(item)} 
+                            className={`p-2 rounded-xl border transition-colors cursor-pointer inline-flex items-center justify-center ${
+                              item.status === 'archived'
+                                ? 'border-emerald-700 bg-emerald-950/30 hover:bg-emerald-900/50 text-emerald-400'
+                                : (isDark ? 'border-amber-800/60 bg-amber-950/20 hover:bg-amber-900/40 text-amber-400' : 'border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-600')
+                            }`}
+                            title={item.status === 'archived' ? 'Restore SKU to Active Catalog' : 'Archive Product (Hides from active POS while preserving audit history)'}
+                          >
+                            {item.status === 'archived' ? <ArchiveRestore className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
+                          </button>
                           <button 
                             onClick={() => openAdjustmentModal(item)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00684a] hover:bg-[#00553c] text-white text-xs font-bold transition-all shadow-sm shadow-[#00684a]/20 active:scale-95 cursor-pointer"
