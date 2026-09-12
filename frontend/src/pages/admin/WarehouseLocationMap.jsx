@@ -34,6 +34,54 @@ const AISLES = ['Aisle 01', 'Aisle 02', 'Aisle 03', 'Aisle 04'];
 const RACKS = ['Rack A', 'Rack B', 'Rack C', 'Rack D'];
 const SHELVES = ['Shelf 1', 'Shelf 2', 'Shelf 3', 'Shelf 4'];
 
+export const normalizeZone = (zoneStr) => {
+  if (!zoneStr) return 'Zone A';
+  const z = zoneStr.toString().trim();
+  if (/zone\s*a/i.test(z) || z === 'A') return 'Zone A';
+  if (/zone\s*b/i.test(z) || z === 'B') return 'Zone B';
+  if (/zone\s*c/i.test(z) || z === 'C') return 'Zone C';
+  if (/zone\s*d/i.test(z) || z === 'D') return 'Zone D';
+  return zoneStr;
+};
+
+export const normalizeAisle = (aisleStr) => {
+  if (!aisleStr) return 'Aisle 01';
+  const a = aisleStr.toString().trim();
+  if (/aisle\s*0?1/i.test(a) || a === '1') return 'Aisle 01';
+  if (/aisle\s*0?2/i.test(a) || a === '2') return 'Aisle 02';
+  if (/aisle\s*0?3/i.test(a) || a === '3') return 'Aisle 03';
+  if (/aisle\s*0?4/i.test(a) || a === '4') return 'Aisle 04';
+  return aisleStr;
+};
+
+export const normalizeRack = (rackStr) => {
+  if (!rackStr) return 'Rack A';
+  const r = rackStr.toString().trim();
+  if (/^(rack\s*0?1|rack\s*a|a)$/i.test(r)) return 'Rack A';
+  if (/^(rack\s*0?2|rack\s*b|b)$/i.test(r)) return 'Rack B';
+  if (/^(rack\s*0?3|rack\s*c|c)$/i.test(r)) return 'Rack C';
+  if (/^(rack\s*0?4|rack\s*d|d)$/i.test(r)) return 'Rack D';
+  if (r.toLowerCase().includes('a') || r.includes('1')) return 'Rack A';
+  if (r.toLowerCase().includes('b') || r.includes('2')) return 'Rack B';
+  if (r.toLowerCase().includes('c') || r.includes('3')) return 'Rack C';
+  if (r.toLowerCase().includes('d') || r.includes('4')) return 'Rack D';
+  return 'Rack A';
+};
+
+export const normalizeShelf = (shelfStr) => {
+  if (!shelfStr) return 'Shelf 1';
+  const s = shelfStr.toString().trim();
+  if (/^(shelf\s*0?1|bin\s*0?1|shelf\s*1|bin\s*1|1)$/i.test(s)) return 'Shelf 1';
+  if (/^(shelf\s*0?2|bin\s*0?2|shelf\s*2|bin\s*2|2)$/i.test(s)) return 'Shelf 2';
+  if (/^(shelf\s*0?3|bin\s*0?3|shelf\s*3|bin\s*3|3)$/i.test(s)) return 'Shelf 3';
+  if (/^(shelf\s*0?4|bin\s*0?4|shelf\s*4|bin\s*4|4)$/i.test(s)) return 'Shelf 4';
+  if (s.toLowerCase().includes('1')) return 'Shelf 1';
+  if (s.toLowerCase().includes('2')) return 'Shelf 2';
+  if (s.toLowerCase().includes('3')) return 'Shelf 3';
+  if (s.toLowerCase().includes('4')) return 'Shelf 4';
+  return 'Shelf 1';
+};
+
 export default function WarehouseLocationMap() {
   const { isDark } = useTheme();
   const [products, setProducts] = useState([]);
@@ -126,10 +174,10 @@ export default function WarehouseLocationMap() {
   // Open edit modal for a product
   const handleOpenEdit = (p) => {
     setEditingProduct(p);
-    setEditZone(p.location_zone || 'Zone A');
-    setEditAisle(p.location_aisle || 'Aisle 01');
-    setEditRack(p.location_rack || 'Rack A');
-    setEditBin(p.location_bin || 'Shelf 1');
+    setEditZone(normalizeZone(p.location_zone));
+    setEditAisle(normalizeAisle(p.location_aisle));
+    setEditRack(normalizeRack(p.location_rack));
+    setEditBin(normalizeShelf(p.location_bin));
   };
 
   // Save new location coordinates
@@ -315,7 +363,7 @@ export default function WarehouseLocationMap() {
               </div>
               <div className="space-y-2">
                 {AISLES.map(aisle => {
-                  const count = products.filter(p => (p.location_zone || 'Zone A') === selectedZone && (p.location_aisle || 'Aisle 01') === aisle).length;
+                  const count = products.filter(p => normalizeZone(p.location_zone) === selectedZone && normalizeAisle(p.location_aisle) === aisle).length;
                   const isSelected = selectedAisle === aisle;
                   return (
                     <button
@@ -396,10 +444,10 @@ export default function WarehouseLocationMap() {
                       {SHELVES.map(shelf => {
                         // Find all products located in this exact coordinate
                         const shelfProducts = products.filter(p => 
-                          (p.location_zone || 'Zone A') === selectedZone &&
-                          (p.location_aisle || 'Aisle 01') === selectedAisle &&
-                          (p.location_rack || 'Rack A') === rack &&
-                          (p.location_bin || 'Shelf 1') === shelf
+                          normalizeZone(p.location_zone) === selectedZone &&
+                          normalizeAisle(p.location_aisle) === selectedAisle &&
+                          normalizeRack(p.location_rack) === rack &&
+                          normalizeShelf(p.location_bin) === shelf
                         );
 
                         return (
@@ -514,19 +562,19 @@ export default function WarehouseLocationMap() {
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5 font-mono text-xs">
                           <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-[#00684a] dark:text-emerald-400 font-bold border border-emerald-500/30">
-                            {p.location_zone || 'Zone A'}
+                            {normalizeZone(p.location_zone)}
                           </span>
                           <span className="text-slate-400">→</span>
                           <span className="px-2 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-400 font-bold border border-blue-500/30">
-                            {p.location_aisle || 'Aisle 01'}
+                            {normalizeAisle(p.location_aisle)}
                           </span>
                           <span className="text-slate-400">→</span>
                           <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-700 dark:text-purple-400 font-bold border border-purple-500/30">
-                            {p.location_rack || 'Rack A'}
+                            {normalizeRack(p.location_rack)}
                           </span>
                           <span className="text-slate-400">→</span>
                           <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30">
-                            {p.location_bin || 'Shelf 1'}
+                            {normalizeShelf(p.location_bin)}
                           </span>
                         </div>
                       </td>
