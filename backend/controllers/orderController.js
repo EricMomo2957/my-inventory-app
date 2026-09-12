@@ -100,11 +100,21 @@ exports.createOrder = async (req, res) => {
         for (const item of orderItems) {
             const pId = item.id || item.productId;
             const pQty = parseInt(item.quantity) || 1;
+            const variantId = item.variant_id || item.variantId || null;
+            const variantName = item.variant_name || null;
 
             const [prod] = await connection.query('SELECT price, quantity, name FROM products WHERE id = ?', [pId]);
             if (!prod[0] || prod[0].quantity < pQty) {
                 const pName = prod[0]?.name || `ID ${pId}`;
                 throw new Error(`Insufficient stock for product: ${pName}`);
+            }
+
+            // If variant specified, check and deduct variant stock
+            if (variantId) {
+                const [varRows] = await connection.query('SELECT quantity, variant_name FROM product_variants WHERE id = ? AND product_id = ?', [variantId, pId]);
+                if (varRows.length > 0) {
+                    await connection.query('UPDATE product_variants SET quantity = GREATEST(0, quantity - ?) WHERE id = ?', [pQty, variantId]);
+                }
             }
 
             const itemPrice = item.price !== undefined ? parseFloat(item.price) : parseFloat(prod[0].price);
@@ -114,11 +124,29 @@ exports.createOrder = async (req, res) => {
 
             try {
                 await connection.query(
-                    'INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES (?, ?, ?, ?)',
-                    [orderId, pId, pQty, itemPrice]
+                    'INSERT INTO order_items (order_id, product_id, quantity, price_at_time, variant_id, variant_name) VALUES (?, ?, ?, ?, ?, ?)',
+                    [orderId, pId, pQty, itemPrice, variantId, variantName]
                 );
             } catch (e) {
-                await connection.query('UPDATE orders SET product_id = ? WHERE id = ?', [pId, orderId]);
+                try {
+                    await connection.query(
+                        'INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES (?, ?, ?, ?)',
+                        [orderId, pId, pQty, itemPrice]
+                    );
+                } catch (fallbackErr) {
+                    await connection.query('UPDATE orders SET product_id = ? WHERE id = ?', [pId, orderId]);
+                }
+            }
+
+            // Log stock history for order dispatch
+            try {
+                const note = variantName ? `Order Dispatch (Variant: ${variantName})` : 'Order Dispatch / Sale';
+                await connection.query(
+                    'INSERT INTO stock_history (product_id, user_name, change_amount, action_type, reference_no, notes) VALUES (?, ?, ?, "sale", ?, ?)',
+                    [pId, finalUserId ? `User #${finalUserId}` : 'POS / Staff', pQty, `ORD-${orderId}`, note]
+                );
+            } catch (histErr) {
+                // Ignore if history log fails
             }
         }
 
@@ -160,6 +188,15 @@ exports.createGuestOrder = async (req, res) => {
             for (const item of items) {
                 const pId = item.id || item.productId;
                 const pQty = parseInt(item.quantity) || 1;
+                const variantId = item.variant_id || item.variantId || null;
+                const variantName = item.variant_name || null;
+
+                // Deduct variant stock if applicable
+                if (variantId) {
+                    try {
+                        await connection.query('UPDATE product_variants SET quantity = GREATEST(0, quantity - ?) WHERE id = ?', [pQty, variantId]);
+                    } catch (vErr) {}
+                }
 
                 await connection.query(
                     'UPDATE products SET quantity = quantity - ? WHERE id = ?',
@@ -168,11 +205,18 @@ exports.createGuestOrder = async (req, res) => {
 
                 try {
                     await connection.query(
-                        'INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES (?, ?, ?, ?)',
-                        [orderId, pId, pQty, item.price || 0]
+                        'INSERT INTO order_items (order_id, product_id, quantity, price_at_time, variant_id, variant_name) VALUES (?, ?, ?, ?, ?, ?)',
+                        [orderId, pId, pQty, item.price || 0, variantId, variantName]
                     );
                 } catch (e) {
-                    console.warn("Item insert fallback:", e.message);
+                    try {
+                        await connection.query(
+                            'INSERT INTO order_items (order_id, product_id, quantity, price_at_time) VALUES (?, ?, ?, ?)',
+                            [orderId, pId, pQty, item.price || 0]
+                        );
+                    } catch (fErr) {
+                        console.warn("Item insert fallback:", fErr.message);
+                    }
                 }
             }
         }
