@@ -44,6 +44,16 @@ exports.createProduct = async (req, res) => {
         const uploadedFile = (req.files?.image && req.files.image[0]) || (req.files?.productImage && req.files.productImage[0]);
         const imageUrl = uploadedFile ? `/uploads/${uploadedFile.filename}` : null;
 
+        const userRole = (req.headers['x-user-role'] || req.query.role || req.body.role || '').toLowerCase();
+        if (userRole === 'clerk' || userRole === 'staff') {
+            try {
+                const [perm] = await db.query("SELECT setting_value FROM system_settings WHERE setting_key = 'allow_clerk_create_product'");
+                if (perm.length > 0 && perm[0].setting_value === 'false') {
+                    return res.status(403).json({ success: false, error: "Access Denied: Product registration is restricted to Administrators by system security policy." });
+                }
+            } catch (pErr) {}
+        }
+
         const cost = cost_price !== undefined && cost_price !== '' ? parseFloat(cost_price) : Math.round((parseFloat(price) || 0) * 0.65 * 100) / 100;
         const generatedSku = sku || `SKU-${(category || 'GEN').substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
         const generatedBatch = batch_number || `LOT-${new Date().toISOString().slice(0, 7).replace('-', '')}-${Math.floor(10 + Math.random() * 90)}`;
@@ -116,8 +126,16 @@ exports.updateProduct = async (req, res) => {
             await connection.rollback();
             return res.status(404).json({ error: "Product not found" });
         }
-        const existing = results[0];
-        const oldQuantity = existing.quantity;
+        const userRole = (req.headers['x-user-role'] || req.query.role || req.body.role || '').toLowerCase();
+        if ((userRole === 'clerk' || userRole === 'staff') && cost_price !== undefined && cost_price !== '' && parseFloat(cost_price) !== parseFloat(existing.cost_price)) {
+            try {
+                const [perm] = await connection.query("SELECT setting_value FROM system_settings WHERE setting_key = 'allow_clerk_edit_cost'");
+                if (perm.length > 0 && perm[0].setting_value === 'false') {
+                    await connection.rollback();
+                    return res.status(403).json({ success: false, error: "Access Denied: Modifying landed cost price is restricted to Administrators by system security policy." });
+                }
+            } catch (pErr) {}
+        }
 
         const newName = name !== undefined ? name : existing.name;
         const newCategory = category !== undefined ? category : existing.category;
@@ -197,6 +215,16 @@ exports.updateProduct = async (req, res) => {
 // 5. DELETE PRODUCT
 exports.deleteProduct = async (req, res) => {
     try {
+        const userRole = (req.headers['x-user-role'] || req.query.role || req.body.role || '').toLowerCase();
+        if (userRole === 'clerk' || userRole === 'staff') {
+            try {
+                const [perm] = await db.query("SELECT setting_value FROM system_settings WHERE setting_key = 'allow_clerk_delete_sku'");
+                if (perm.length > 0 && perm[0].setting_value === 'false') {
+                    return res.status(403).json({ success: false, error: "Access Denied: SKU deletion is restricted to Administrators by system security policy." });
+                }
+            } catch (pErr) {}
+        }
+
         const { id } = req.params;
         const [result] = await db.query('DELETE FROM products WHERE id = ?', [id]);
         if (result.affectedRows === 0) {
