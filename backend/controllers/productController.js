@@ -4,12 +4,23 @@ const db = require('../config/db');
 exports.getAllProducts = async (req, res) => {
     try {
         const searchTerm = req.query.search || '';
+        const statusFilter = req.query.status; // 'active', 'archived', 'all'
         let sql = 'SELECT * FROM products';
+        const conditions = [];
         const params = [];
 
         if (searchTerm.trim() !== '') {
-            sql += ' WHERE LOWER(name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?)';
-            params.push(`%${searchTerm}%`, `%${searchTerm}%`);
+            conditions.push('(LOWER(name) LIKE LOWER(?) OR LOWER(category) LIKE LOWER(?) OR LOWER(sku) LIKE LOWER(?))');
+            params.push(`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`);
+        }
+
+        if (statusFilter && statusFilter !== 'all') {
+            conditions.push('status = ?');
+            params.push(statusFilter);
+        }
+
+        if (conditions.length > 0) {
+            sql += ' WHERE ' + conditions.join(' AND ');
         }
         sql += ' ORDER BY id DESC';
 
@@ -317,6 +328,16 @@ exports.batchStockIn = async (req, res) => {
 
             await connection.query(updateSql, params);
 
+            // If a specific variant was received, increment the variant's stock
+            const variantId = item.variant_id || item.variantId;
+            if (variantId) {
+                try {
+                    await connection.query('UPDATE product_variants SET quantity = quantity + ? WHERE id = ? AND product_id = ?', [qty, variantId, item.id]);
+                } catch (vErr) {
+                    console.warn("Variant stock update skipped:", vErr.message);
+                }
+            }
+
             // Insert into product_batches table for FIFO tracking
             try {
                 await connection.query(`
@@ -327,7 +348,8 @@ exports.batchStockIn = async (req, res) => {
                 console.warn("Batch record skipped:", bErr.message);
             }
 
-            const auditNotes = `Supplier: ${sup}. Batch: ${batchNo}. ${expiry ? `Expiry: ${expiry}. ` : ''}${notes ? notes : ''}`.trim();
+            const variantNote = item.variant_name ? `Variant: ${item.variant_name}. ` : '';
+            const auditNotes = `Supplier: ${sup}. Batch: ${batchNo}. ${variantNote}${expiry ? `Expiry: ${expiry}. ` : ''}${notes ? notes : ''}`.trim();
             await connection.query(
                 'INSERT INTO stock_history (product_id, user_name, change_amount, action_type, reference_no, notes) VALUES (?, ?, ?, "stock_in", ?, ?)',
                 [item.id, clerk, qty, refNo, auditNotes]
@@ -462,5 +484,31 @@ exports.batchUpdateLocations = async (req, res) => {
         res.status(500).json({ success: false, message: "Failed to batch relocate: " + err.message });
     }
 };
+
+// 11. TOGGLE PRODUCT ARCHIVE STATUS (Soft-Archiving)
+exports.toggleArchiveProduct = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [product] = await db.query('SELECT id, name, status FROM products WHERE id = ?', [id]);
+        if (product.length === 0) {
+            return res.status(404).json({ success: false, message: "Product not found" });
+        }
+        const currentStatus = product[0].status || 'active';
+        const newStatus = currentStatus === 'archived' ? 'active' : 'archived';
+        
+        await db.query('UPDATE products SET status = ? WHERE id = ?', [newStatus, id]);
+        
+        res.json({
+            success: true,
+            message: `Product "${product[0].name}" successfully ${newStatus === 'archived' ? 'archived' : 'restored to active catalog'}.`,
+            id: product[0].id,
+            status: newStatus
+        });
+    } catch (err) {
+        console.error("Toggle Archive Error:", err);
+        res.status(500).json({ success: false, message: "Failed to update product archive status: " + err.message });
+    }
+};
+
 
 
