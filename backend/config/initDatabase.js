@@ -181,9 +181,41 @@ async function initDatabase() {
             `);
         }
 
-        console.log("✅ MindStock Enterprise Schema (Categories, Damaged/RTV, Variants) successfully initialized.");
+        // 12. System Settings & Role Permissions Table
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS system_settings (
+                setting_key VARCHAR(100) PRIMARY KEY,
+                setting_value TEXT NOT NULL,
+                category VARCHAR(50) DEFAULT 'general',
+                description VARCHAR(255),
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        `);
+
+        // Seed default system settings if empty
+        const [existingSettings] = await db.query('SELECT COUNT(*) as count FROM system_settings');
+        if (existingSettings[0].count === 0) {
+            await db.query(`
+                INSERT INTO system_settings (setting_key, setting_value, category, description) VALUES
+                ('allow_clerk_edit_cost', 'false', 'permissions', 'Allow warehouse clerks to modify landed cost prices'),
+                ('allow_clerk_delete_sku', 'false', 'permissions', 'Allow warehouse clerks to delete catalog SKUs'),
+                ('allow_clerk_create_product', 'true', 'permissions', 'Allow warehouse clerks to register new products'),
+                ('allow_clerk_bulk_reconciliation', 'true', 'permissions', 'Allow warehouse clerks to execute cycle count audits'),
+                ('manager_alert_email', 'warehouse.manager@mindstock.com', 'alerts', 'Primary manager email for low-stock and expiry digests'),
+                ('low_stock_threshold', '5', 'alerts', 'Stock level at or below which alerts trigger'),
+                ('expiry_warning_days', '30', 'alerts', 'Days before batch expiration to trigger liability warnings'),
+                ('daily_digest_enabled', 'true', 'alerts', 'Enable automated daily low-stock and expiry digest dispatch'),
+                ('store_name', 'MindStock Central Warehouse', 'store', 'Official warehouse and facility identifier'),
+                ('store_code', 'MS-WMS-01', 'store', 'Unique facility logistics code'),
+                ('operating_hours', '08:00 AM - 08:00 PM', 'store', 'Daily warehouse operating schedule'),
+                ('timezone', 'UTC+08:00 (Asia/Manila)', 'store', 'Facility timezone for logs and audits'),
+                ('currency', 'PHP (₱)', 'store', 'Primary accounting currency');
+            `);
+        }
+
+        console.log("✅ MindStock Enterprise Schema (Categories, Damaged/RTV, Variants, System Settings) successfully initialized.");
     } catch (err) {
-        console.error("Database initialization notice:", err.message);
+        console.error("Database initialization error:", err.message);
     }
 }
 
