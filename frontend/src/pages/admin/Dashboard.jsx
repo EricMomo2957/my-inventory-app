@@ -24,7 +24,9 @@ import {
   Percent,
   Clock,
   Tag,
-  Boxes
+  Boxes,
+  Archive,
+  ArchiveRestore
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -113,15 +115,22 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
     imageFile: null 
   });
 
+  const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'archived'
+  const [actionFeedback, setActionFeedback] = useState(null);
+
   const categoriesList = ["General", "Vegetables", "Fruits", "Supplies", "Canned Goods", "Raw Materials"];
   const dynamicCategories = ["All", ...new Set([...categoriesList, ...products.map(p => p.category).filter(Boolean)])];
 
-  const filteredProducts = products.filter(p => 
-    (activeCategory === "All" || p.category === activeCategory) && 
-    (p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-     (p.sku && p.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
-     (p.batch_number && p.batch_number.toLowerCase().includes(searchTerm.toLowerCase())))
-  );
+  const filteredProducts = products.filter(p => {
+    const itemStatus = p.status || 'active';
+    const matchesStatus = statusFilter === 'all' || itemStatus === statusFilter;
+    const matchesCategory = activeCategory === "All" || p.category === activeCategory;
+    const q = searchTerm.toLowerCase();
+    const matchesSearch = p.name.toLowerCase().includes(q) || 
+                          (p.sku && p.sku.toLowerCase().includes(q)) ||
+                          (p.batch_number && p.batch_number.toLowerCase().includes(q));
+    return matchesStatus && matchesCategory && matchesSearch;
+  });
 
   const displayedProducts = isExpanded 
     ? filteredProducts 
@@ -129,7 +138,21 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, activeCategory]);
+  }, [searchTerm, activeCategory, statusFilter]);
+
+  const handleToggleArchive = async (product) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/products/archive/${product.id}`, { method: 'PATCH' });
+      const data = await res.json();
+      if (data.success) {
+        setActionFeedback(data.message);
+        setTimeout(() => setActionFeedback(null), 3500);
+        fetchProducts && fetchProducts();
+      }
+    } catch (err) {
+      alert("Archive action failed: " + err.message);
+    }
+  };
 
   // Inventory & Financial Calculations
   const totalItems = products.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
@@ -530,7 +553,7 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
               </p>
             </div>
 
-            {/* Search, Category Tabs, and Add Product */}
+            {/* Search, Category Tabs, Status Filter, and Add Product */}
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -543,6 +566,42 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                     isDark ? 'bg-slate-800 border-slate-700 text-white focus:border-[#00684a]' : 'bg-white border-slate-200 text-slate-800 focus:border-[#00684a]'
                   }`}
                 />
+              </div>
+
+              {/* Status Filter Toggle */}
+              <div className={`p-1 rounded-xl border flex items-center gap-1 ${
+                isDark ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'
+              }`}>
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    statusFilter === "all" 
+                      ? 'bg-[#00684a] text-white shadow-xs' 
+                      : `${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`
+                  }`}
+                >
+                  All ({products.length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("active")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    statusFilter === "active" 
+                      ? 'bg-emerald-600 text-white shadow-xs' 
+                      : `${isDark ? 'text-slate-400 hover:text-emerald-400' : 'text-slate-600 hover:text-emerald-700'}`
+                  }`}
+                >
+                  Active ({products.filter(p => (p.status || 'active') === 'active').length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter("archived")}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                    statusFilter === "archived" 
+                      ? 'bg-amber-600 text-white shadow-xs' 
+                      : `${isDark ? 'text-slate-400 hover:text-amber-400' : 'text-slate-600 hover:text-amber-700'}`
+                  }`}
+                >
+                  Archived ({products.filter(p => p.status === 'archived').length})
+                </button>
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
@@ -570,6 +629,14 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
               </button>
             </div>
           </div>
+
+          {/* Floating Action Toast */}
+          {actionFeedback && (
+            <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-emerald-400/30 animate-bounce">
+              <CheckCircle2 className="w-5 h-5 text-white shrink-0" />
+              <span className="font-semibold text-xs">{actionFeedback}</span>
+            </div>
+          )}
 
           {/* Product Data Table */}
           <div className={`rounded-2xl border overflow-hidden shadow-xs transition-colors ${
@@ -628,9 +695,16 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-black text-sm leading-tight truncate" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
-                                {item.name}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-black text-sm leading-tight truncate" style={{ color: isDark ? '#ffffff' : '#09090b' }}>
+                                  {item.name}
+                                </p>
+                                {item.status === 'archived' && (
+                                  <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                                    Archived
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[10px] font-mono font-bold" style={{ color: isDark ? '#94a3b8' : '#334155' }}>
                                   {item.sku || `SKU-${(item.category || 'GEN').substring(0, 3).toUpperCase()}-${item.id}`}
@@ -718,6 +792,17 @@ export default function Dashboard({ products = [], fetchProducts, activeAlertsCo
                             title="Manage Variants & Packaging UOM"
                           >
                             <Boxes className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleToggleArchive(item)} 
+                            className={`p-2 rounded-lg border transition-colors ${
+                              item.status === 'archived'
+                                ? 'border-emerald-700 bg-emerald-950/30 hover:bg-emerald-900/50 text-emerald-400'
+                                : (isDark ? 'border-amber-800/60 bg-amber-950/20 hover:bg-amber-900/40 text-amber-400' : 'border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-600')
+                            }`}
+                            title={item.status === 'archived' ? 'Restore SKU to Active Catalog' : 'Archive Product (Preserves sales & audit history)'}
+                          >
+                            {item.status === 'archived' ? <ArchiveRestore className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
                           </button>
                           <button 
                             onClick={() => { setSelectedProduct(item); setIsEditModalOpen(true); }} 
